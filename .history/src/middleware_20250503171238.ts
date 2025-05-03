@@ -37,13 +37,6 @@ export function middleware(request: NextRequest) {
 }
 
 // Configure the paths that should be processed by this middleware
-// Combine the arrays manually instead of using spread operator
 export const config = {
-  matcher: [
-    "/dashboard", 
-    "/profile", 
-    "/settings", 
-    "/login", 
-    "/register"
-  ],
+  matcher: [...protectedPaths, ...authPaths],
 };

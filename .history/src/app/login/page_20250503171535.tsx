@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { FormEvent, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { FormEvent, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,8 +13,8 @@ export default function LoginPage() {
 
   // Check if user just registered
   useEffect(() => {
-    if (searchParams.get("registered") === "true") {
-      setSuccess("Account created successfully! Please sign in.");
+    if (searchParams.get('registered') === 'true') {
+      setSuccess('Account created successfully! Please sign in.');
     }
   }, [searchParams]);
 
@@ -25,27 +25,26 @@ export default function LoginPage() {
     setSuccess(null);
 
     const formData = new FormData(event.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
 
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
       if (response.ok) {
         // Redirect to dashboard on successful login
-        router.push("/dashboard");
+        router.push('/dashboard');
         router.refresh();
       } else {
         const data = await response.json();
-        setError(data.error || "Login failed");
+        setError(data.error || 'Login failed');
       }
     } catch (err) {
-      console.error("Login error:", err);
-      setError("An error occurred. Please try again.");
+      setError('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +56,7 @@ export default function LoginPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold">Sign in to your account</h1>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Or{" "}
+            Or{' '}
             <Link href="/register" className="text-blue-600 hover:underline">
               create a new account
             </Link>
@@ -114,7 +113,7 @@ export default function LoginPage() {
               disabled={isLoading}
               className="flex w-full justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
             >
-              {isLoading ? "Signing in..." : "Sign in"}
+              {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
         </form>

@@ -95,7 +95,7 @@ export default function RegisterPage() {
         }
       }
     } catch (err) {
-      console.error("Registration error:", err);
+      console.error()
       setGeneralError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
