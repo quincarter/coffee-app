@@ -55,7 +55,7 @@ export async function POST(request: Request) {
         name,
         email,
         password: hashedPassword,
-        role: "user",
+        userRole: "user",
       },
     });
 
@@ -63,9 +63,10 @@ export async function POST(request: Request) {
     const session = {
       userId: user.id,
       user: {
+        id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: user.userRole,
       },
     };
 

@@ -5,6 +5,7 @@ import { SignJWT, jwtVerify } from "jose";
 export type Session = {
   userId: string;
   user: {
+    id: string;
     email: string;
     name: string;
     role: string;

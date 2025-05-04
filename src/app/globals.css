@@ -1,9 +1,67 @@
 @import "tailwindcss";
+@plugin "daisyui";
+@plugin "daisyui/theme" {
+  name: "coffee";
+  default: true; /* set as default */
+  prefersdark: true; /* not a dark theme */
+  color-scheme: light; /* color of browser-provided UI */
 
-:root {
+  /* Coffee color palette using OKLCH */
+  --color-base-100: oklch(98% 0.02 80); /* coffee paper/parchment */
+  --color-base-200: oklch(95% 0.03 80); /* light cream */
+  --color-base-300: oklch(92% 0.04 80); /* darker cream */
+  --color-base-content: oklch(25% 0.05 60); /* dark coffee text */
+
+  --color-primary: oklch(45% 0.12 60); /* rich coffee brown */
+  --color-primary-content: oklch(98% 0.01 80); /* light text on coffee */
+
+  --color-secondary: oklch(60% 0.1 70); /* lighter coffee */
+  --color-secondary-content: oklch(98% 0.01 80); /* light text on secondary */
+
+  --color-accent: oklch(75% 0.12 80); /* creamy latte */
+  --color-accent-content: oklch(25% 0.05 60); /* dark text on accent */
+
+  --color-neutral: oklch(35% 0.08 60); /* dark roast */
+  --color-neutral-content: oklch(98% 0.01 80); /* light text on neutral */
+
+  --color-info: oklch(70% 0.2 220); /* blue for water */
+  --color-info-content: oklch(98% 0.01 220); /* light text on info */
+
+  --color-success: oklch(65% 0.15 140); /* fresh beans green */
+  --color-success-content: oklch(98% 0.01 140); /* light text on success */
+
+  --color-warning: oklch(80% 0.15 80); /* caramel */
+  --color-warning-content: oklch(25% 0.05 80); /* dark text on warning */
+
+  --color-error: oklch(65% 0.2 30); /* cherry */
+  --color-error-content: oklch(98% 0.01 30); /* light text on error */
+
+  /* border radius */
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+
+  /* base sizes */
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+
+  /* border size */
+  --border: 1px;
+
+  /* effects */
+  --depth: 1;
+  --noise: 0.05; /* slight texture like coffee grounds */
+}
+
+/* :root {
   --background: #ffffff;
   --foreground: #171717;
 }
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+} */
 
 @theme inline {
   --color-background: var(--background);
@@ -12,15 +70,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
 }

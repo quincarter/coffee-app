@@ -13,11 +13,55 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   email     String   @unique
   name      String
   password  String
-  role      String   @default("user")
+  userRole  String   @default("user")  // Renamed from role to userRole
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  UserBrewingDevice UserBrewingDevice[]
+  UserBrewSession UserBrewSession[]
 }
+
+model BrewingDevice {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  image       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  UserBrewingDevice UserBrewingDevice[]
+
+  UserBrewSession UserBrewSession[]
+}
+
+model UserBrewingDevice {
+  id              String   @id @default(uuid())
+  name            String
+  description     String
+  userId          String
+  brewingDeviceId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User        @relation(fields: [userId], references: [id])
+  brewingDevice   BrewingDevice @relation(fields: [brewingDeviceId], references: [id])
+}
+
+model UserBrewSession {
+  id              String   @id @default(uuid())
+  name            String
+  notes           String
+  userId          String
+  brewingDeviceId String
+  brewTime        String   // Changed from Decimal to String to store "HH:MM:SS" format
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User        @relation(fields: [userId], references: [id])
+  brewingDevice   BrewingDevice @relation(fields: [brewingDeviceId], references: [id])
+}
+
