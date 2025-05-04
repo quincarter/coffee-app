@@ -136,13 +136,13 @@ export default function BrewSessionDetail({
   const formattedDate = format(new Date(session.createdAt), "PPP");
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div className="bg-white coffee:bg-gray-800 rounded-lg shadow-md p-6">
       {isEditing ? (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-gray-700 coffee:text-gray-300"
             >
               Name
             </label>
@@ -151,7 +151,7 @@ export default function BrewSessionDetail({
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 coffee:bg-gray-700 coffee:border-gray-600"
               required
             />
           </div>
@@ -159,7 +159,7 @@ export default function BrewSessionDetail({
           <div>
             <label
               htmlFor="brewingDevice"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-gray-700 coffee:text-gray-300"
             >
               Brewing Device
             </label>
@@ -167,7 +167,7 @@ export default function BrewSessionDetail({
               id="brewingDevice"
               value={brewingDeviceId}
               onChange={(e) => setBrewingDeviceId(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 coffee:bg-gray-700 coffee:border-gray-600"
               required
               disabled={isLoading}
             >
@@ -184,14 +184,14 @@ export default function BrewSessionDetail({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="block text-sm font-medium text-gray-700 coffee:text-gray-300">
               Brew Time
             </label>
             <div className="flex space-x-2 mt-1">
               <div>
                 <label
                   htmlFor="hours"
-                  className="block text-xs mb-1 text-gray-600 dark:text-gray-400"
+                  className="block text-xs mb-1 text-gray-600 coffee:text-gray-400"
                 >
                   Hours
                 </label>
@@ -202,7 +202,7 @@ export default function BrewSessionDetail({
                   onChange={(e) =>
                     setHours(Math.max(0, Math.min(23, Number(e.target.value))))
                   }
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 coffee:bg-gray-700 coffee:border-gray-600"
                   min="0"
                   max="23"
                   step="1"
@@ -211,7 +211,7 @@ export default function BrewSessionDetail({
               <div>
                 <label
                   htmlFor="minutes"
-                  className="block text-xs mb-1 text-gray-600 dark:text-gray-400"
+                  className="block text-xs mb-1 text-gray-600 coffee:text-gray-400"
                 >
                   Minutes
                 </label>
@@ -224,7 +224,7 @@ export default function BrewSessionDetail({
                       Math.max(0, Math.min(59, Number(e.target.value)))
                     )
                   }
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 coffee:bg-gray-700 coffee:border-gray-600"
                   min="0"
                   max="59"
                   step="1"
@@ -233,7 +233,7 @@ export default function BrewSessionDetail({
               <div>
                 <label
                   htmlFor="seconds"
-                  className="block text-xs mb-1 text-gray-600 dark:text-gray-400"
+                  className="block text-xs mb-1 text-gray-600 coffee:text-gray-400"
                 >
                   Seconds
                 </label>
@@ -246,7 +246,7 @@ export default function BrewSessionDetail({
                       Math.max(0, Math.min(59, Number(e.target.value)))
                     )
                   }
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 coffee:bg-gray-700 coffee:border-gray-600"
                   min="0"
                   max="59"
                   step="1"
@@ -258,7 +258,7 @@ export default function BrewSessionDetail({
           <div>
             <label
               htmlFor="notes"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-gray-700 coffee:text-gray-300"
             >
               Notes
             </label>
@@ -267,7 +267,7 @@ export default function BrewSessionDetail({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={6}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 coffee:bg-gray-700 coffee:border-gray-600"
             />
           </div>
 
@@ -275,7 +275,7 @@ export default function BrewSessionDetail({
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 coffee:bg-gray-700 coffee:text-gray-300 coffee:border-gray-600 coffee:hover:bg-gray-600"
             >
               Cancel
             </button>
@@ -291,14 +291,14 @@ export default function BrewSessionDetail({
         <>
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-2xl font-bold text-gray-900 coffee:text-white">
                 {session.name}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-500 coffee:text-gray-400">
                 {formattedDate} • {session.brewingDevice.name}
               </p>
               {session.brewTime && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-sm text-gray-500 coffee:text-gray-400 mt-1">
                   Brew Time: {session.brewTime}
                 </p>
               )}
@@ -306,7 +306,7 @@ export default function BrewSessionDetail({
             <div className="flex space-x-2">
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 coffee:bg-gray-700 coffee:text-gray-300 coffee:border-gray-600 coffee:hover:bg-gray-600"
               >
                 Edit
               </button>
@@ -320,16 +320,16 @@ export default function BrewSessionDetail({
           </div>
 
           <div className="mt-6">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-medium text-gray-900 coffee:text-white mb-2">
               Notes
             </h3>
-            <div className="prose dark:prose-invert max-w-none">
+            <div className="prose coffee:prose-invert max-w-none">
               {notes ? (
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                <p className="text-gray-700 coffee:text-gray-300 whitespace-pre-wrap">
                   {notes}
                 </p>
               ) : (
-                <p className="text-gray-500 dark:text-gray-400 italic">
+                <p className="text-gray-500 coffee:text-gray-400 italic">
                   No notes for this brew session.
                 </p>
               )}

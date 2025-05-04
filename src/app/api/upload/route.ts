@@ -6,12 +6,19 @@ export async function POST(request: Request) {
   try {
     const session = await getSession();
 
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Log the session for debugging
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized - No session" },
+        { status: 401 }
+      );
     }
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
+    // Get the upload context (profile, brewing-device, etc.)
+    const context = (formData.get("context") as string) || "profile";
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -25,8 +32,39 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if BLOB_READ_WRITE_TOKEN is configured
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error("Missing BLOB_READ_WRITE_TOKEN environment variable");
+      return NextResponse.json(
+        { error: "Server configuration error: Missing Blob storage token" },
+        { status: 500 }
+      );
+    }
+
+    // Determine the directory based on context
+    let directory;
+    switch (context) {
+      case "brewing-device":
+        directory = "brewing-devices";
+        break;
+      case "profile":
+        directory = "user-profile-images";
+        break;
+      case "brew-session":
+        directory = "brew-session-images";
+        break;
+      default:
+        directory = "misc";
+        break;
+    }
+
+    // Generate a unique filename
+    const filename = `${directory}/${
+      session.user.id
+    }-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+
     // Upload to Vercel Blob
-    const blob = await put(`brewing-devices/${Date.now()}-${file.name}`, file, {
+    const blob = await put(filename, file, {
       access: "public",
     });
 
@@ -34,7 +72,10 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error uploading file:", error);
     return NextResponse.json(
-      { error: "Failed to upload file" },
+      {
+        error: "Failed to upload file",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }

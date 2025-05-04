@@ -6,6 +6,7 @@ import Link from "next/link";
 import LogoutButton from "./components/LogoutButton";
 import ThemeSwitcher from "./components/ThemeSwitcher";
 import { ThemeProvider } from "./providers/ThemeProvider";
+import Image from "next/image";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,26 +33,34 @@ export default async function RootLayout({
   return (
     <html id="root-html" lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <ThemeProvider>
+          {/* Header - visible on all screens */}
           <header className="border-b p-4">
             <nav className="container mx-auto flex items-center justify-between">
               <Link href="/" className="text-xl font-bold">
                 Coffee App
               </Link>
               <div className="flex items-center gap-4">
-                <ThemeSwitcher />
+                {/* Navigation links - visible only on desktop */}
                 {session ? (
-                  <>
-                    <Link href="/dashboard">Dashboard</Link>
-                    <Link href="/profile">Profile</Link>
-                    <Link href="/brew-log">Brew Log</Link>
-                    <Link href="/settings">Settings</Link>
-                    <LogoutButton />
-                  </>
+                  <div className="hidden md:flex items-center gap-4">
+                    <Link href="/dashboard" className="hover:text-primary">
+                      Dashboard
+                    </Link>
+                    <Link href="/brew-log" className="hover:text-primary">
+                      Brew Log
+                    </Link>
+                    <Link href="/profile" className="hover:text-primary">
+                      Profile
+                    </Link>
+                    <Link href="/settings" className="hover:text-primary">
+                      Settings
+                    </Link>
+                  </div>
                 ) : (
-                  <>
+                  <div className="hidden md:flex items-center gap-4">
                     <Link href="/login">Sign in</Link>
                     <Link
                       href="/register"
@@ -59,12 +68,197 @@ export default async function RootLayout({
                     >
                       Sign up
                     </Link>
-                  </>
+                  </div>
+                )}
+
+                <ThemeSwitcher />
+
+                {session ? (
+                  <div className="dropdown dropdown-end">
+                    <div
+                      tabIndex={0}
+                      role="button"
+                      className="btn btn-ghost btn-circle avatar"
+                    >
+                      <div className="w-10 rounded-full">
+                        <Image
+                          src={session.user?.image || "/default-avatar.webp"}
+                          alt="Profile"
+                          width={40}
+                          height={40}
+                          className="rounded-full"
+                        />
+                      </div>
+                    </div>
+                    <ul
+                      tabIndex={0}
+                      className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
+                    >
+                      <li className="p-2 text-sm opacity-70">
+                        {session.user?.email}
+                      </li>
+                      <li>
+                        <Link href="/profile">Profile</Link>
+                      </li>
+                      <li>
+                        <Link href="/settings">Settings</Link>
+                      </li>
+                      <li>
+                        <LogoutButton />
+                      </li>
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="md:hidden flex items-center gap-2">
+                    <Link href="/login">Sign in</Link>
+                    <Link
+                      href="/register"
+                      className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+                    >
+                      Sign up
+                    </Link>
+                  </div>
                 )}
               </div>
             </nav>
           </header>
-          {children}
+
+          {/* Main content with padding for mobile bottom nav */}
+          <main className="flex-grow pb-16 md:pb-0">{children}</main>
+
+          {/* Mobile Bottom Navigation - visible only on mobile */}
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-base-100 border-t p-2 z-50">
+            <div className="flex justify-around items-center">
+              <Link href="/" className="flex flex-col items-center p-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  />
+                </svg>
+                <span className="text-xs">Home</span>
+              </Link>
+
+              {session ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="flex flex-col items-center p-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      />
+                    </svg>
+                    <span className="text-xs">Dashboard</span>
+                  </Link>
+
+                  <Link
+                    href="/brew-log"
+                    className="flex flex-col items-center p-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                      />
+                    </svg>
+                    <span className="text-xs">Brew Log</span>
+                  </Link>
+
+                  <Link
+                    href="/profile"
+                    className="flex flex-col items-center p-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                    <span className="text-xs">Profile</span>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="flex flex-col items-center p-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                      />
+                    </svg>
+                    <span className="text-xs">Sign In</span>
+                  </Link>
+
+                  <Link
+                    href="/register"
+                    className="flex flex-col items-center p-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                      />
+                    </svg>
+                    <span className="text-xs">Sign Up</span>
+                  </Link>
+                </>
+              )}
+            </div>
+          </nav>
         </ThemeProvider>
       </body>
     </html>

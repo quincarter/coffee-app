@@ -41,17 +41,24 @@ type Props = {
   userId: string;
   userDevices: UserBrewingDevice[];
   initialBrewSessions: BrewSession[];
+  initialSelectedSessionId?: string;
+  selectedSession?: BrewSession | null;
 };
 
 export default function BrewLogContent({
   userId,
   userDevices,
   initialBrewSessions,
+  initialSelectedSessionId,
+  selectedSession,
 }: Props) {
   const [brewSessions, setBrewSessions] =
     useState<BrewSession[]>(initialBrewSessions);
-  const [selectedSession, setSelectedSession] = useState<BrewSession | null>(
-    null
+  const [selectedSessionState, setSelectedSession] = useState<BrewSession | null>(
+    selectedSession || 
+    (initialSelectedSessionId 
+      ? brewSessions.find(s => s.id === initialSelectedSessionId) || null
+      : null)
   );
   const [showNewForm, setShowNewForm] = useState(false);
 
@@ -111,7 +118,7 @@ export default function BrewLogContent({
         ) : (
           <BrewSessionList
             sessions={brewSessions}
-            selectedSessionId={selectedSession?.id}
+            selectedSessionId={selectedSessionState?.id}
             onSelectSession={(session) =>
               setSelectedSession(session as BrewSession)
             }
@@ -120,15 +127,15 @@ export default function BrewLogContent({
       </div>
 
       <div className="md:col-span-2">
-        {selectedSession ? (
+        {selectedSessionState ? (
           <BrewSessionDetail
-            session={selectedSession}
+            session={selectedSessionState}
             onUpdate={handleUpdateBrewSession}
             onDelete={handleDeleteBrewSession}
           />
         ) : (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8 text-center">
-            <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400">
+          <div className="bg-gray-50 coffee:bg-gray-800 rounded-lg p-8 text-center">
+            <h3 className="text-lg font-medium text-gray-500 coffee:text-gray-400">
               Select a brew session to view details or create a new one
             </h3>
           </div>

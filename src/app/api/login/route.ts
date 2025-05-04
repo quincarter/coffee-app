@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create session
+    // Create a session with user data
     const session = {
       userId: user.id,
       user: {
@@ -67,11 +67,18 @@ export async function POST(request: Request) {
         email: user.email,
         name: user.name,
         role: user.userRole,
+        image: user.image,
       },
     };
 
     // Encrypt session and set cookie
-    const encryptedSession = await encrypt(session);
+    const encryptedSession = await encrypt({
+      ...session,
+      user: {
+        ...session.user,
+        image: user.image || undefined,
+      },
+    });
     (await cookies()).set("session", encryptedSession, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

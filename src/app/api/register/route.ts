@@ -56,6 +56,7 @@ export async function POST(request: Request) {
         email,
         password: hashedPassword,
         userRole: "user",
+        image: "/default-avatar.webp", // Default image for new users
       },
     });
 
@@ -67,11 +68,18 @@ export async function POST(request: Request) {
         email: user.email,
         name: user.name,
         role: user.userRole,
+        image: user.image,
       },
     };
 
     // Encrypt the session and set as a cookie
-    const encryptedSession = await encrypt(session);
+    const encryptedSession = await encrypt({
+      ...session,
+      user: {
+        ...session.user,
+        image: session.user.image || undefined
+      }
+    });
     (await cookies()).set("session", encryptedSession, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

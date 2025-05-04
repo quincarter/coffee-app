@@ -18,6 +18,7 @@ model User {
   name      String
   password  String
   userRole  String   @default("user")  // Renamed from role to userRole
+  image     String?  // Added optional image field
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -58,6 +59,8 @@ model UserBrewSession {
   userId          String
   brewingDeviceId String
   brewTime        String   // Changed from Decimal to String to store "HH:MM:SS" format
+  isFavorite      Boolean  @default(false)
+  image           String?  // Added optional image field
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

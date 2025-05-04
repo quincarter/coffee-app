@@ -3,6 +3,7 @@
 import { FormEvent, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -52,11 +53,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8 rounded-lg border p-6 shadow-md">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 relative">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/chemex-brewing-landing.png"
+          alt="Coffee brewing background"
+          fill
+          className="object-cover opacity-80"
+          priority
+        />
+      </div>
+      <div className="w-full max-w-md space-y-8 rounded-lg border p-6 shadow-md bg-base-100/90 relative z-10">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Sign in to your account</h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm text-gray-600 coffee:text-gray-400">
             Or{" "}
             <Link href="/register" className="text-blue-600 hover:underline">
               create a new account
@@ -65,13 +75,13 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
+          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700 coffee:bg-red-900/30 coffee:text-red-400">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
+          <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 coffee:bg-green-900/30 coffee:text-green-400">
             {success}
           </div>
         )}
@@ -88,7 +98,7 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
                 placeholder="you@example.com"
               />
             </div>
@@ -102,7 +112,7 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
                 placeholder="••••••••"
               />
             </div>

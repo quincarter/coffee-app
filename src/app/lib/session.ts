@@ -9,6 +9,7 @@ export type Session = {
     email: string;
     name: string;
     role: string;
+    image?: string; // Added optional image property
   };
   exp?: number;
 };

@@ -5,8 +5,6 @@ import SettingsTabs from "./components/SettingsTabs";
 export default async function SettingsPage() {
   const session = await getSession();
 
-  console.log("session", session);
-
   if (!session) {
     redirect("/login");
   }

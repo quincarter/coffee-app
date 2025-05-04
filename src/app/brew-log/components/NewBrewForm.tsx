@@ -48,6 +48,22 @@ export default function NewBrewForm({
   const [seconds, setSeconds] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -72,6 +88,27 @@ export default function NewBrewForm({
     setError(null);
 
     try {
+      let imageUrl = null;
+
+      // Upload image if one was selected
+      if (imageFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", imageFile);
+        uploadFormData.append("context", "brew-session");
+
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.url;
+      }
+
       // Log the payload for debugging
       const payload = {
         userId,
@@ -79,6 +116,7 @@ export default function NewBrewForm({
         notes,
         brewingDeviceId: selectedDeviceId,
         brewTime,
+        ...(imageUrl && { image: imageUrl }),
       };
       console.log("Submitting payload:", payload);
 
@@ -110,6 +148,8 @@ export default function NewBrewForm({
       setHours(0);
       setMinutes(0);
       setSeconds(0);
+      setImageFile(null);
+      setImagePreview(null);
     } catch (err) {
       console.error("Submission error:", err);
       setError("An error occurred while creating the brew session");
@@ -124,7 +164,7 @@ export default function NewBrewForm({
   );
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <div className="bg-white coffee:bg-gray-800 rounded-lg shadow p-6">
       <h3 className="text-lg font-medium mb-4">Log a New Brew</h3>
 
       {error && (
@@ -237,6 +277,31 @@ export default function NewBrewForm({
               />
             </div>
           </div>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="image" className="block text-sm font-medium mb-1">
+            Brew Image (optional)
+          </label>
+          <input
+            type="file"
+            id="image"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full px-3 py-2 border rounded-md"
+          />
+          
+          {imagePreview && (
+            <div className="mt-2">
+              <div className="w-32 h-32 mx-auto">
+                <img
+                  src={imagePreview}
+                  alt="Brew preview"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mb-4">
