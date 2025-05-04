@@ -53,6 +53,9 @@ export async function POST(request: Request) {
       case "brew-session":
         directory = "brew-session-images";
         break;
+      case "background":
+        directory = "user-background-images";
+        break;
       default:
         directory = "misc";
         break;

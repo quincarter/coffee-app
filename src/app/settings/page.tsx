@@ -2,12 +2,19 @@ import { redirect } from "next/navigation";
 import { getSession } from "../lib/session";
 import SettingsTabs from "./components/SettingsTabs";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const session = await getSession();
 
   if (!session) {
     redirect("/login");
   }
+
+  const resolvedSearchParams = await searchParams;
+  const tab = resolvedSearchParams.tab;
 
   return (
     <div className="container mx-auto p-6">

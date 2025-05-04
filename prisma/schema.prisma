@@ -13,17 +13,20 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  password  String
-  userRole  String   @default("user")  // Renamed from role to userRole
-  image     String?  // Added optional image field
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(uuid())
+  name              String
+  email             String   @unique
+  password          String
+  userRole              String   @default("user")
+  image             String?
+  backgroundImage   String?
+  backgroundOpacity Float?   @default(0.8)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  UserBrewingDevice UserBrewingDevice[]
-  UserBrewSession UserBrewSession[]
+  // Relations
+  brewingSessions   UserBrewSession[]
+  brewingDevices    UserBrewingDevice[]
 }
 
 model BrewingDevice {

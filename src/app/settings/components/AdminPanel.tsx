@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import BrewingDeviceForm from "./BrewingDeviceForm";
 import Image from "next/image";
+import { Pencil } from "lucide-react";
+
 type BrewingDevice = {
   id: string;
   name: string;
@@ -17,31 +19,41 @@ export default function AdminPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingDevice, setEditingDevice] = useState<BrewingDevice | null>(null);
 
   // Fetch brewing devices on component mount
   useEffect(() => {
-    async function fetchBrewingDevices() {
-      try {
-        const response = await fetch("/api/brewing-devices");
-        if (!response.ok) {
-          throw new Error("Failed to fetch brewing devices");
-        }
-        const data = await response.json();
-        setBrewingDevices(data);
-      } catch (err) {
-        console.error("Error fetching brewing devices:", err);
-        setError("Failed to load brewing devices. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     fetchBrewingDevices();
   }, []);
+
+  async function fetchBrewingDevices() {
+    try {
+      const response = await fetch("/api/brewing-devices");
+      if (!response.ok) {
+        throw new Error("Failed to fetch brewing devices");
+      }
+      const data = await response.json();
+      setBrewingDevices(data);
+    } catch (err) {
+      console.error("Error fetching brewing devices:", err);
+      setError("Failed to load brewing devices. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const handleDeviceAdded = (newDevice: BrewingDevice) => {
     setBrewingDevices([...brewingDevices, newDevice]);
     setShowAddForm(false);
+  };
+
+  const handleDeviceUpdated = (updatedDevice: BrewingDevice) => {
+    setBrewingDevices(
+      brewingDevices.map((device) => 
+        device.id === updatedDevice.id ? updatedDevice : device
+      )
+    );
+    setEditingDevice(null);
   };
 
   const handleDeleteDevice = async (deviceId: string) => {
@@ -61,6 +73,11 @@ export default function AdminPanel() {
       console.error("Error deleting device:", err);
       setError("Failed to delete the device. Please try again.");
     }
+  };
+
+  const handleEditClick = (device: BrewingDevice) => {
+    setEditingDevice(device);
+    setShowAddForm(false);
   };
 
   if (isLoading) {
@@ -83,7 +100,10 @@ export default function AdminPanel() {
       <div className="mb-6 flex items-center justify-between">
         <h3 className="text-lg font-medium">Brewing Devices</h3>
         <button
-          onClick={() => setShowAddForm(!showAddForm)}
+          onClick={() => {
+            setShowAddForm(!showAddForm);
+            setEditingDevice(null);
+          }}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           {showAddForm ? "Cancel" : "Add Device"}
@@ -93,6 +113,17 @@ export default function AdminPanel() {
       {showAddForm && (
         <div className="mb-8 rounded-lg border p-4">
           <BrewingDeviceForm onDeviceAdded={handleDeviceAdded} />
+        </div>
+      )}
+
+      {editingDevice && (
+        <div className="mb-8 rounded-lg border p-4">
+          <h3 className="mb-4 text-lg font-medium">Edit Brewing Device</h3>
+          <BrewingDeviceForm 
+            onDeviceAdded={handleDeviceUpdated} 
+            initialDevice={editingDevice}
+            isEditing={true}
+          />
         </div>
       )}
 
@@ -112,30 +143,41 @@ export default function AdminPanel() {
             >
               <div className="mb-2 flex items-start justify-between">
                 <h3 className="font-medium">{device.name}</h3>
-                <button
-                  onClick={() => handleDeleteDevice(device.id)}
-                  className="text-red-500 hover:text-red-700"
-                  aria-label="Delete device"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEditClick(device)}
+                    className="text-blue-500 hover:text-blue-700"
+                    aria-label="Edit device"
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
+                    <Pencil className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteDevice(device.id)}
+                    className="text-red-500 hover:text-red-700"
+                    aria-label="Delete device"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
               {device.image && (
                 <div className="mb-2 h-40 w-full overflow-hidden rounded">
                   <Image
                     src={device.image}
                     alt={device.name}
+                    width={400}
+                    height={200}
                     className="h-full w-full object-cover"
                   />
                 </div>

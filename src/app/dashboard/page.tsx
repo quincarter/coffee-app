@@ -49,7 +49,6 @@ export default function Dashboard() {
         const brewsData = await brewsRes.json();
         const devicesData = await devicesRes.json();
 
-        console.log("brews dat", devicesData);
         setUser(userData);
         setRecentBrews(brewsData);
         setFavoriteBrews(

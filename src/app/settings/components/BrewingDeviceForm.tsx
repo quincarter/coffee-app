@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, ChangeEvent } from "react";
+import { useState, FormEvent, ChangeEvent, useEffect } from "react";
 
 type BrewingDevice = {
   id: string;
@@ -13,18 +13,36 @@ type BrewingDevice = {
 
 type Props = {
   onDeviceAdded: (device: BrewingDevice) => void;
+  initialDevice?: BrewingDevice;
+  isEditing?: boolean;
 };
 
-export default function BrewingDeviceForm({ onDeviceAdded }: Props) {
+export default function BrewingDeviceForm({ 
+  onDeviceAdded, 
+  initialDevice, 
+  isEditing = false 
+}: Props) {
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    image: "",
+    name: initialDevice?.name || "",
+    description: initialDevice?.description || "",
+    image: initialDevice?.image || "",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploadMethod, setUploadMethod] = useState<"url" | "file">("url");
+  const [uploadMethod, setUploadMethod] = useState<"url" | "file">(
+    initialDevice?.image ? "url" : "url"
+  );
+
+  useEffect(() => {
+    if (initialDevice) {
+      setFormData({
+        name: initialDevice.name,
+        description: initialDevice.description,
+        image: initialDevice.image,
+      });
+    }
+  }, [initialDevice]);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -66,9 +84,15 @@ export default function BrewingDeviceForm({ onDeviceAdded }: Props) {
         imageUrl = uploadData.url;
       }
 
-      // Create the brewing device
-      const response = await fetch("/api/brewing-devices", {
-        method: "POST",
+      // Create or update the brewing device
+      const url = isEditing 
+        ? `/api/brewing-devices/${initialDevice?.id}` 
+        : "/api/brewing-devices";
+      
+      const method = isEditing ? "PATCH" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -81,23 +105,25 @@ export default function BrewingDeviceForm({ onDeviceAdded }: Props) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create brewing device");
+        throw new Error(errorData.error || `Failed to ${isEditing ? 'update' : 'create'} brewing device`);
       }
 
-      const newDevice = await response.json();
-      onDeviceAdded(newDevice);
+      const deviceData = await response.json();
+      onDeviceAdded(deviceData);
 
-      // Reset form
-      setFormData({
-        name: "",
-        description: "",
-        image: "",
-      });
-      setImageFile(null);
+      // Reset form if not editing
+      if (!isEditing) {
+        setFormData({
+          name: "",
+          description: "",
+          image: "",
+        });
+        setImageFile(null);
+      }
     } catch (err) {
-      console.error("Error creating brewing device:", err);
+      console.error(`Error ${isEditing ? 'updating' : 'creating'} brewing device:`, err);
       setError(
-        err instanceof Error ? err.message : "Failed to create brewing device"
+        err instanceof Error ? err.message : `Failed to ${isEditing ? 'update' : 'create'} brewing device`
       );
     } finally {
       setIsSubmitting(false);
@@ -106,7 +132,7 @@ export default function BrewingDeviceForm({ onDeviceAdded }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h3 className="mb-4 text-lg font-medium">Add New Brewing Device</h3>
+      {!isEditing && <h3 className="mb-4 text-lg font-medium">Add New Brewing Device</h3>}
 
       {error && (
         <div className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">
@@ -138,40 +164,39 @@ export default function BrewingDeviceForm({ onDeviceAdded }: Props) {
           name="description"
           value={formData.description}
           onChange={handleChange}
-          required
           rows={3}
           className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
         />
       </div>
 
       <div className="mb-4">
-        <fieldset className="mb-2">
-          <legend className="mb-1 block text-sm font-medium">
-            Image Source
-          </legend>
-          <div className="flex space-x-4">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="uploadMethod"
-                checked={uploadMethod === "url"}
-                onChange={() => setUploadMethod("url")}
-                className="mr-2"
-              />
+        <div className="mb-2">
+          <span className="block text-sm font-medium">Image</span>
+          <div className="mt-1 flex items-center space-x-4">
+            <button
+              type="button"
+              onClick={() => setUploadMethod("url")}
+              className={`rounded-md px-3 py-1 text-sm ${
+                uploadMethod === "url"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
               URL
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="uploadMethod"
-                checked={uploadMethod === "file"}
-                onChange={() => setUploadMethod("file")}
-                className="mr-2"
-              />
-              File Upload
-            </label>
+            </button>
+            <button
+              type="button"
+              onClick={() => setUploadMethod("file")}
+              className={`rounded-md px-3 py-1 text-sm ${
+                uploadMethod === "file"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              Upload File
+            </button>
           </div>
-        </fieldset>
+        </div>
 
         {uploadMethod === "url" ? (
           <div>
@@ -202,7 +227,7 @@ export default function BrewingDeviceForm({ onDeviceAdded }: Props) {
               id="imageFile"
               accept="image/*"
               onChange={handleFileChange}
-              required
+              required={!formData.image}
               className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
             />
           </div>
@@ -215,7 +240,9 @@ export default function BrewingDeviceForm({ onDeviceAdded }: Props) {
           disabled={isSubmitting}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {isSubmitting ? "Creating..." : "Create Device"}
+          {isSubmitting 
+            ? (isEditing ? "Updating..." : "Creating...") 
+            : (isEditing ? "Update Device" : "Create Device")}
         </button>
       </div>
     </form>
