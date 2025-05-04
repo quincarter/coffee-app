@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { User } from "@prisma/client";
+import PasswordChangeForm from "./components/PasswordChangeForm";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -222,6 +223,7 @@ export default function ProfilePage() {
           Update Profile
         </button>
       </form>
+      <PasswordChangeForm />
     </div>
   );
 }

@@ -12,10 +12,14 @@ export default function LoginPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check if user just registered
+  // Check if user just registered or password reset was successful
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
       setSuccess("Account created successfully! Please sign in.");
+    }
+    
+    if (searchParams.get("reset") === "success") {
+      setSuccess("Password reset successful! Please sign in.");
     }
   }, [searchParams]);
 
@@ -115,6 +119,11 @@ export default function LoginPage() {
                 className="input input-bordered w-full"
                 placeholder="••••••••"
               />
+            </div>
+            <div className="flex justify-end">
+              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                Forgot password?
+              </Link>
             </div>
           </div>
 
