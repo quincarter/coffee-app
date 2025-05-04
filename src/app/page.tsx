@@ -94,8 +94,8 @@ export default async function Home() {
           <div className="card bg-base-200 shadow-lg">
             <div className="card-body">
               <p className="text-lg italic mb-4">
-                "This app has completely transformed my morning coffee routine.
-                I'm brewing better coffee than ever before!"
+                &quot;This app has completely transformed my morning coffee
+                routine. I&apos;m brewing better coffee than ever before!&quot;
               </p>
               <p className="font-semibold">— Coffee Enthusiast</p>
             </div>

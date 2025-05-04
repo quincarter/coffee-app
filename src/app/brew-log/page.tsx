@@ -6,7 +6,7 @@ import prisma from "@/app/lib/db";
 export default async function BrewLogPage({
   searchParams,
 }: {
-  searchParams: { session?: string };
+  searchParams: Promise<{ session?: string }>;
 }) {
   const session = await getSession();
 
@@ -15,7 +15,8 @@ export default async function BrewLogPage({
   }
 
   const userId = session.userId;
-  const selectedSessionId = (await searchParams).session;
+  const resolvedSearchParams = await searchParams;
+  const selectedSessionId = resolvedSearchParams.session;
 
   // Fetch user's brewing devices
   const userDevices = await prisma.userBrewingDevice.findMany({

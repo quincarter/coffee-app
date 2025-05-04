@@ -152,7 +152,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <p className="text-gray-500 coffee:text-gray-400 text-sm">
-              You haven't favorited any brews yet.
+              You haven&apos;t favorited any brews yet.
             </p>
           )}
         </div>
@@ -202,7 +202,7 @@ export default function Dashboard() {
         ) : (
           <div className="bg-white coffee:bg-gray-800 rounded-lg shadow p-6 text-center">
             <p className="text-gray-500 coffee:text-gray-400">
-              You haven't logged any brews yet.
+              You haven&apos;t logged any brews yet.
             </p>
             <button
               onClick={() => setShowQuickBrew(true)}
