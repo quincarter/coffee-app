@@ -112,7 +112,7 @@ export default function ProfilePage() {
       <h1 className="text-2xl font-bold mb-6">Your Profile - {user?.name}</h1>
 
       {message && (
-        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+        <div className="mb-4 p-3 bg-success/20 text-success-content rounded">
           {message}
         </div>
       )}
@@ -135,12 +135,12 @@ export default function ProfilePage() {
             className="rounded-full object-cover"
           />
           <div
-            className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            className="absolute inset-0 flex items-center justify-center bg-base-content bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
             onClick={() => fileInputRef.current && fileInputRef.current.click()}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-white"
+              className="h-8 w-8 text-base-100"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -154,8 +154,8 @@ export default function ProfilePage() {
             </svg>
           </div>
           {uploading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 rounded-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+            <div className="absolute inset-0 flex items-center justify-center bg-base-content bg-opacity-70 rounded-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-base-100"></div>
             </div>
           )}
         </div>
@@ -171,7 +171,7 @@ export default function ProfilePage() {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded input input-bordered"
             required
           />
         </div>
@@ -185,7 +185,7 @@ export default function ProfilePage() {
             id="email"
             value={email}
             disabled
-            className="w-full p-2 border rounded bg-gray-100"
+            className="w-full p-2 border rounded input input-bordered bg-base-200"
           />
           <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
         </div>
@@ -200,7 +200,7 @@ export default function ProfilePage() {
               id="image"
               value={image}
               onChange={(e) => setImage(e.target.value)}
-              className="w-full p-2 border rounded-l"
+              className="w-full p-2 border rounded-l input input-bordered"
               placeholder="https://example.com/your-image.jpg"
             />
             <button
@@ -208,7 +208,7 @@ export default function ProfilePage() {
               onClick={() =>
                 fileInputRef.current && fileInputRef.current.click()
               }
-              className="bg-gray-200 px-3 rounded-r border-t border-r border-b"
+              className="bg-base-200 px-3 rounded-r border-t border-r border-b btn btn-ghost"
             >
               Browse
             </button>
@@ -218,10 +218,7 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-        >
+        <button type="submit" className="w-full btn btn-primary">
           Update Profile
         </button>
       </form>
