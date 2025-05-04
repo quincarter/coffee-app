@@ -4,6 +4,7 @@ import { FormEvent, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import MagicLinkForm from "./magic-link-form";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -90,6 +91,13 @@ export default function LoginPage() {
           </div>
         )}
 
+        <div className="flex justify-between items-center mt-4">
+          <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+            Forgot password?
+          </Link>
+          {/* Remove the magic link here since we have the collapsible form below */}
+        </div>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -137,6 +145,8 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
+
+        <MagicLinkForm />
       </div>
     </div>
   );
