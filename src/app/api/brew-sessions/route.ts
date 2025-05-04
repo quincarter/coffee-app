@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
     const { name, brewingDeviceId, brewTime } = body;
     const notes = body.notes || "";
     const image = body.image || null;
+    const isPublic = body.isPublic || false; // Default to false if not provided
 
     const userId = body.userId || (await getSession())?.userId;
 
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
         brewingDeviceId,
         brewTime,
         image,
+        isPublic, // Add the isPublic field
       },
       include: {
         brewingDevice: {

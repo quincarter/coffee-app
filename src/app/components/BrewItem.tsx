@@ -96,6 +96,27 @@ export default function BrewItem({
           )}
         </div>
 
+        {/* Show session image if available, otherwise show placeholder */}
+        {session.image ? (
+          <div className="mt-2 h-32 w-full relative rounded overflow-hidden">
+            <Image
+              src={session.image}
+              alt={session.name}
+              fill
+              className="object-cover"
+            />
+          </div>
+        ) : (
+          <div className="mt-2 h-32 w-full relative rounded overflow-hidden bg-gray-100 coffee:bg-gray-700">
+            <Image
+              src="/placeholder-brew.webp"
+              alt="Placeholder"
+              fill
+              className="object-cover"
+            />
+          </div>
+        )}
+
         <div className="flex items-center mt-2">
           <div className="h-8 w-8 relative mr-2">
             <Image

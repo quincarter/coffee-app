@@ -55,6 +55,7 @@ export default function NewBrewForm({
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isPublic, setIsPublic] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -122,6 +123,7 @@ export default function NewBrewForm({
         brewingDeviceId: selectedDeviceId,
         brewTime,
         ...(imageUrl && { image: imageUrl }),
+        isPublic,
       };
       console.log("Submitting payload:", payload);
 
@@ -318,6 +320,24 @@ export default function NewBrewForm({
           rows={isQuickForm ? 2 : 5}
           placeholder={isQuickForm ? "How did it taste? What would you change next time?" : "Describe your brew process, taste notes, etc."}
         />
+      </div>
+
+      <div className={isQuickForm ? "mb-4" : "mb-4"}>
+        <div className="flex items-center justify-between">
+          <label htmlFor="isPublic" className="text-sm font-medium">
+            Make this brew public
+          </label>
+          <input
+            type="checkbox"
+            id="isPublic"
+            checked={isPublic}
+            onChange={(e) => setIsPublic(e.target.checked)}
+            className="toggle toggle-primary toggle-sm"
+          />
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          Public brews may be showcased on the home page
+        </p>
       </div>
 
       {isQuickForm ? (

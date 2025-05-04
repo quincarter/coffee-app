@@ -3,9 +3,15 @@ import prisma from "@/app/lib/db";
 
 export async function GET() {
   try {
-    // Fetch recent public brew sessions
+    // Fetch recent public brew sessions, prioritizing ones with images
     const publicBrews = await prisma.userBrewSession.findMany({
       take: 6, // Limit to 6 recent brews
+      where: {
+        image: {
+          not: null
+        },
+        isPublic: true // Only fetch brews marked as public
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -19,8 +25,37 @@ export async function GET() {
       },
     });
 
+    // If we don't have enough brews with images, fetch some without images
+    let combinedBrews = [...publicBrews];
+    
+    if (publicBrews.length < 6) {
+      const additionalBrews = await prisma.userBrewSession.findMany({
+        take: 6 - publicBrews.length,
+        where: {
+          image: null,
+          isPublic: true, // Only fetch brews marked as public
+          id: {
+            notIn: publicBrews.map(brew => brew.id)
+          }
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          brewingDevice: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+      });
+      
+      combinedBrews = [...publicBrews, ...additionalBrews];
+    }
+
     // Anonymize the data
-    const anonymizedBrews = publicBrews.map((brew) => ({
+    const anonymizedBrews = combinedBrews.map((brew) => ({
       ...brew,
       userId: "anonymous", // Hide real user ID
       user: {

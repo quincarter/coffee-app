@@ -67,6 +67,7 @@ model UserBrewSession {
   brewTime        String   // Changed from Decimal to String to store "HH:MM:SS" format
   isFavorite      Boolean  @default(false)
   image           String?  // Added optional image field
+  isPublic        Boolean  @default(false) // Add this field
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

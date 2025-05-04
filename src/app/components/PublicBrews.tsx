@@ -25,6 +25,7 @@ type BrewSession = {
   isFavorite?: boolean;
   createdAt: string;
   updatedAt: string;
+  isPublic?: boolean;
 };
 
 export default function PublicBrews() {
@@ -37,7 +38,11 @@ export default function PublicBrews() {
         const response = await fetch("/api/public-brews");
         if (response.ok) {
           const data = await response.json();
-          setBrews(data);
+          // Filter out brews without images
+          const brewsWithImages = data.filter(
+            (brew: BrewSession) => brew.image
+          );
+          setBrews(brewsWithImages);
         }
       } catch (error) {
         console.error("Error fetching public brews:", error);
@@ -67,7 +72,10 @@ export default function PublicBrews() {
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        style={{ alignItems: "center" }}
+      >
         {brews.map((brew) => (
           <div
             key={brew.id}
