@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import AddBrewingDeviceForm from "./AddBrewingDeviceForm";
+import { Pencil } from "lucide-react";
 
 type UserBrewingDevice = {
   id: string;
   name: string;
   description: string;
   brewingDeviceId: string;
+  image?: string;
   brewingDevice: {
     name: string;
     image: string;
@@ -21,6 +23,9 @@ export default function BrewingDevicesTab({ userId }: { userId: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingDevice, setEditingDevice] = useState<UserBrewingDevice | null>(
+    null
+  );
 
   useEffect(() => {
     async function fetchUserDevices() {
@@ -51,6 +56,15 @@ export default function BrewingDevicesTab({ userId }: { userId: string }) {
     setShowAddForm(false);
   };
 
+  const handleDeviceUpdated = (updatedDevice: UserBrewingDevice) => {
+    setUserDevices(
+      userDevices.map((device) =>
+        device.id === updatedDevice.id ? updatedDevice : device
+      )
+    );
+    setEditingDevice(null);
+  };
+
   const handleDeleteDevice = async (deviceId: string) => {
     try {
       const response = await fetch(`/api/user-brewing-devices/${deviceId}`, {
@@ -68,6 +82,11 @@ export default function BrewingDevicesTab({ userId }: { userId: string }) {
     }
   };
 
+  const handleEditClick = (device: UserBrewingDevice) => {
+    setEditingDevice(device);
+    setShowAddForm(false);
+  };
+
   if (isLoading) {
     return (
       <div className="py-4 text-center">Loading your brewing devices...</div>
@@ -83,7 +102,10 @@ export default function BrewingDevicesTab({ userId }: { userId: string }) {
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Your Brewing Devices</h2>
         <button
-          onClick={() => setShowAddForm(!showAddForm)}
+          onClick={() => {
+            setShowAddForm(!showAddForm);
+            setEditingDevice(null);
+          }}
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           {showAddForm ? "Cancel" : "Add Device"}
@@ -95,6 +117,18 @@ export default function BrewingDevicesTab({ userId }: { userId: string }) {
           <AddBrewingDeviceForm
             userId={userId}
             onDeviceAdded={handleDeviceAdded}
+          />
+        </div>
+      )}
+
+      {editingDevice && (
+        <div className="mb-8 rounded-lg border p-4">
+          <h3 className="mb-4 text-lg font-medium">Edit Brewing Device</h3>
+          <AddBrewingDeviceForm
+            userId={userId}
+            onDeviceAdded={handleDeviceUpdated}
+            initialDevice={editingDevice}
+            isEditing={true}
           />
         </div>
       )}
@@ -116,31 +150,57 @@ export default function BrewingDevicesTab({ userId }: { userId: string }) {
             >
               <div className="mb-2 flex items-start justify-between">
                 <h3 className="font-medium">{device.name}</h3>
-                <button
-                  onClick={() => handleDeleteDevice(device.id)}
-                  className="text-red-500 hover:text-red-700"
-                  aria-label="Delete device"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="h-5 w-5"
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEditClick(device)}
+                    className="text-blue-500 hover:text-blue-700"
+                    aria-label="Edit device"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                    />
-                  </svg>
-                </button>
+                    <Pencil className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteDevice(device.id)}
+                    className="text-red-500 hover:text-red-700"
+                    aria-label="Delete device"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      className="h-5 w-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
-              <p className="text-sm text-gray-600">{device.description}</p>
-              <div className="mt-2 text-xs text-gray-500">
-                <p>Type: {device.brewingDevice.name}</p>
+              <div className="flex items-center mt-2">
+                <div className="h-10 w-10 relative mr-2 rounded overflow-hidden">
+                  <img
+                    src={
+                      device.image ||
+                      device.brewingDevice.image ||
+                      "/placeholder-device.png"
+                    }
+                    alt={device.name}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+                <span className="text-sm text-gray-600 coffee:text-gray-300">
+                  {device.brewingDevice.name}
+                </span>
               </div>
+              {device.description && (
+                <p className="text-sm text-gray-500 coffee:text-gray-400 mt-2">
+                  {device.description}
+                </p>
+              )}
             </div>
           ))}
         </div>

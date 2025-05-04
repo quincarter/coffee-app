@@ -64,13 +64,12 @@ export default async function RootLayout({
                       </Link>
                     </div>
                   ) : (
-                    <div className="hidden md:flex items-center gap-4">
-                      <Link href="/login">Sign in</Link>
-                      <Link
-                        href="/register"
-                        className="rounded-md bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-                      >
-                        Sign up
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Link href="/register" className="btn btn-primary btn-lg">
+                        Get Started Free
+                      </Link>
+                      <Link href="/login" className="btn btn-outline btn-lg">
+                        Sign In
                       </Link>
                     </div>
                   )}
@@ -133,7 +132,10 @@ export default async function RootLayout({
               <div className="flex justify-around items-center">
                 {session ? (
                   <>
-                    <Link href="/dashboard" className="flex flex-col items-center p-1">
+                    <Link
+                      href="/dashboard"
+                      className="flex flex-col items-center p-1"
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-6 w-6"
@@ -192,7 +194,7 @@ export default async function RootLayout({
                       </svg>
                       <span className="text-xs">Profile</span>
                     </Link>
-                    
+
                     <Link
                       href="/settings"
                       className="flex flex-col items-center p-1"

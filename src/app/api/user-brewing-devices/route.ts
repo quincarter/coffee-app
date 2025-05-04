@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { userId, name, description, brewingDeviceId } = body;
+    const { userId, name, description, brewingDeviceId, image } = body;
 
     // Validate required fields
     if (!userId || !name || !brewingDeviceId) {
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
     if (!brewingDevice) {
       return NextResponse.json(
-        { error: "Brewing device not found" },
+        { error: "Selected brewing device not found" },
         { status: 404 }
       );
     }
@@ -88,7 +88,8 @@ export async function POST(request: Request) {
     const userBrewingDevice = await prisma.userBrewingDevice.create({
       data: {
         name,
-        description: description || "",
+        description,
+        image, // Add the image field
         userId,
         brewingDeviceId,
       },
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(userBrewingDevice, { status: 201 });
+    return NextResponse.json(userBrewingDevice);
   } catch (error) {
     console.error("Error creating user brewing device:", error);
     return NextResponse.json(

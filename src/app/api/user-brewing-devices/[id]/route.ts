@@ -108,7 +108,7 @@ export async function PATCH(
 
     const id = (await params).id;
     const body = await request.json();
-    const { name, description } = body;
+    const { name, description, brewingDeviceId, image } = body;
 
     // Find the device first to check ownership
     const device = await prisma.userBrewingDevice.findUnique({
@@ -134,6 +134,9 @@ export async function PATCH(
       data: {
         name: name !== undefined ? name : undefined,
         description: description !== undefined ? description : undefined,
+        brewingDeviceId:
+          brewingDeviceId !== undefined ? brewingDeviceId : undefined,
+        image: image !== undefined ? image : undefined, // Add the image field
       },
       include: {
         brewingDevice: {

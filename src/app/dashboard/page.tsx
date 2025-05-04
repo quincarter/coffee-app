@@ -172,7 +172,32 @@ export default function Dashboard() {
 
             <div>
               <div className="text-2xl font-bold">
-                {userDevices?.length > 0 ? userDevices[0].name : "None"}
+                {recentBrews?.length > 0 
+                  ? (() => {
+                      // Count brews per device
+                      const deviceCounts = recentBrews.reduce((acc, brew) => {
+                        const deviceId = brew.brewingDeviceId;
+                        acc[deviceId] = (acc[deviceId] || 0) + 1;
+                        return acc;
+                      }, {} as Record<string, number>);
+                      
+                      // Find the highest count
+                      const maxCount = Math.max(...Object.values(deviceCounts));
+                      
+                      // Get all devices with that count (handles ties)
+                      const topDeviceIds = Object.entries(deviceCounts)
+                        .filter(([_, count]) => count === maxCount)
+                        .map(([deviceId]) => deviceId);
+                      
+                      // Map to device names
+                      const topDeviceNames = topDeviceIds.map(
+                        id => userDevices.find(d => d.brewingDeviceId === id)?.name || "Unknown"
+                      );
+                      
+                      // Join with commas if there are ties
+                      return topDeviceNames.join(", ");
+                    })()
+                  : "None"}
               </div>
               <div className="text-sm text-gray-500 coffee:text-gray-400">
                 Most used device

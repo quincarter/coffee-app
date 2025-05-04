@@ -36,6 +36,12 @@ export default async function BrewLogPage({
   const brewSessions = await prisma.userBrewSession.findMany({
     where: { userId },
     include: {
+      user: {
+        select: {
+          name: true,
+          image: true,
+        }
+      },
       brewingDevice: {
         select: {
           name: true,
@@ -59,6 +65,12 @@ export default async function BrewLogPage({
         userId, // Ensure it belongs to the current user
       },
       include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          }
+        },
         brewingDevice: {
           select: {
             name: true,
@@ -74,7 +86,12 @@ export default async function BrewLogPage({
       <h1 className="text-3xl font-bold mb-8">My Brew Log</h1>
       <BrewLogContent
         userId={userId}
-        userDevices={userDevices}
+        userDevices={userDevices.map(device => ({
+          ...device,
+          description: device.description || "",
+          createdAt: device.createdAt.toISOString(),
+          updatedAt: device.updatedAt.toISOString()
+        }))}
         initialBrewSessions={brewSessions.map((session) => ({
           ...session,
           createdAt: session.createdAt.toISOString(),

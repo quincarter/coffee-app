@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getSession } from "./lib/session";
 import { redirect } from "next/navigation";
+import PublicBrews from "./components/PublicBrews";
 
 export default async function Home() {
   const session = await getSession();
@@ -50,7 +51,7 @@ export default async function Home() {
             Brew Better Coffee
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
             <div className="card bg-base-100 shadow-md">
               <div className="card-body">
                 <h3 className="card-title text-secondary">Track Your Brews</h3>
@@ -80,7 +81,23 @@ export default async function Home() {
                 </p>
               </div>
             </div>
+            <div className="card bg-base-100 shadow-md">
+              <div className="card-body">
+                <h3 className="card-title text-secondary">Discover Patterns</h3>
+                <p>Calculate your coffee-to-water ratio for optimal flavor.</p>
+              </div>
+            </div>
           </div>
+        </div>
+      </section>
+
+      {/* Recent Brews Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12 text-primary">
+            See What Others Are Brewing
+          </h2>
+          <PublicBrews />
         </div>
       </section>
 

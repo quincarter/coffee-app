@@ -8,9 +8,11 @@ export async function POST(request: NextRequest) {
     console.log("Received request body:", body);
 
     // Validate required fields
-    const { userId, name, brewingDeviceId, brewTime } = body;
+    const { name, brewingDeviceId, brewTime } = body;
     const notes = body.notes || "";
     const image = body.image || null;
+
+    const userId = body.userId || (await getSession())?.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -94,9 +96,16 @@ export async function GET(request: NextRequest) {
     // Parse limit parameter, default to returning all if not specified
     const limit = limitParam ? parseInt(limitParam, 10) : undefined;
 
+    // First get the brew sessions
     const brewSessions = await prisma.userBrewSession.findMany({
       where: { userId },
       include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
         brewingDevice: {
           select: {
             name: true,
@@ -108,7 +117,28 @@ export async function GET(request: NextRequest) {
       ...(limit && !isNaN(limit) ? { take: limit } : {}),
     });
 
-    return NextResponse.json(brewSessions);
+    // Then get the user's brewing devices
+    const userBrewingDevices = await prisma.userBrewingDevice.findMany({
+      where: { userId },
+      select: {
+        brewingDeviceId: true,
+        image: true,
+      },
+    });
+
+    // Combine the data
+    const enrichedBrewSessions = brewSessions.map(session => {
+      const userDevice = userBrewingDevices.find(
+        device => device.brewingDeviceId === session.brewingDeviceId
+      );
+      
+      return {
+        ...session,
+        userBrewingDevice: userDevice || null,
+      };
+    });
+
+    return NextResponse.json(enrichedBrewSessions);
   } catch (error) {
     console.error("Error fetching brew sessions:", error);
     return NextResponse.json(
