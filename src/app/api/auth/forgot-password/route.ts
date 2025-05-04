@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     try {
       // Send email with reset link
       const emailResult = await resend.emails.send({
-        from: "Coffee App <no-reply@brewme.app>", // Use your verified domain
+        from: `Coffee App <no-reply@${process.env.RESEND_DOMAIN}>`, // Use your verified domain
         to: email,
         subject: "Reset Your Password",
         html: `
