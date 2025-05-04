@@ -187,7 +187,7 @@ export default function AddBrewingDeviceForm({
       {!isEditing && <h3 className="mb-4 text-lg font-medium">Add New Brewing Device</h3>}
 
       {formError && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">
+        <div className="alert alert-error mb-4">
           {formError}
         </div>
       )}
@@ -204,7 +204,7 @@ export default function AddBrewingDeviceForm({
           onChange={handleChange}
           required
           placeholder="e.g., My Favorite French Press"
-          className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
+          className="input input-bordered w-full"
         />
       </div>
 
@@ -219,7 +219,7 @@ export default function AddBrewingDeviceForm({
           onChange={handleChange}
           rows={3}
           placeholder="Add any notes about your device..."
-          className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
+          className="textarea textarea-bordered w-full"
         />
       </div>
 
@@ -233,7 +233,7 @@ export default function AddBrewingDeviceForm({
           value={formData.brewingDeviceId}
           onChange={handleChange}
           required
-          className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
+          className="select select-bordered w-full"
         >
           <option value="">Select a device type</option>
           {availableDevices.map((device) => (
@@ -251,10 +251,10 @@ export default function AddBrewingDeviceForm({
             <button
               type="button"
               onClick={() => setUploadMethod("none")}
-              className={`rounded-md px-3 py-1 text-sm ${
+              className={`btn btn-sm ${
                 uploadMethod === "none"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700"
+                  ? "btn-primary"
+                  : "btn-outline"
               }`}
             >
               Use Default
@@ -262,10 +262,10 @@ export default function AddBrewingDeviceForm({
             <button
               type="button"
               onClick={() => setUploadMethod("file")}
-              className={`rounded-md px-3 py-1 text-sm ${
+              className={`btn btn-sm ${
                 uploadMethod === "file"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700"
+                  ? "btn-primary"
+                  : "btn-outline"
               }`}
             >
               Upload Custom
@@ -286,7 +286,7 @@ export default function AddBrewingDeviceForm({
               id="imageFile"
               accept="image/*"
               onChange={handleFileChange}
-              className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
+              className="file-input file-input-bordered w-full"
             />
             
             {imagePreview && (
@@ -323,7 +323,7 @@ export default function AddBrewingDeviceForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="btn btn-primary"
         >
           {isSubmitting 
             ? (isEditing ? "Updating..." : "Adding...") 

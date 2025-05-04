@@ -46,10 +46,10 @@ export default function SettingsTabs({ userId, userRole }: Props) {
         <ul className="flex flex-wrap -mb-px">
           <li className="mr-2">
             <button
-              className={`inline-block p-4 border-b-2 rounded-t-lg ${
+              className={`tab ${
                 activeTab === "devices"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent hover:text-gray-600 hover:border-gray-300"
+                  ? "tab-active text-primary border-primary"
+                  : ""
               }`}
               onClick={() => handleTabChange("devices")}
             >
@@ -58,10 +58,10 @@ export default function SettingsTabs({ userId, userRole }: Props) {
           </li>
           <li className="mr-2">
             <button
-              className={`inline-block p-4 border-b-2 rounded-t-lg ${
+              className={`tab ${
                 activeTab === "background"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent hover:text-gray-600 hover:border-gray-300"
+                  ? "tab-active text-primary border-primary"
+                  : ""
               }`}
               onClick={() => handleTabChange("background")}
             >
@@ -71,10 +71,10 @@ export default function SettingsTabs({ userId, userRole }: Props) {
           {userRole === "admin" && (
             <li className="mr-2">
               <button
-                className={`inline-block p-4 border-b-2 rounded-t-lg ${
+                className={`tab ${
                   activeTab === "admin"
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent hover:text-gray-600 hover:border-gray-300"
+                    ? "tab-active text-primary border-primary"
+                    : ""
                 }`}
                 onClick={() => handleTabChange("admin")}
               >

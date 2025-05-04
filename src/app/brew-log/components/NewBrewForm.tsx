@@ -171,7 +171,7 @@ export default function NewBrewForm({
   const formContent = (
     <>
       {error && (
-        <div className={`${isQuickForm ? 'p-2 text-sm text-red-600 bg-red-50 rounded mb-4' : 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4'}`}>
+        <div className={`${isQuickForm ? 'alert alert-error text-sm mb-4' : 'alert alert-error mb-4'}`}>
           {error}
         </div>
       )}
@@ -185,7 +185,7 @@ export default function NewBrewForm({
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className={isQuickForm ? "w-full p-2 border rounded" : "w-full px-3 py-2 border rounded-md"}
+          className={isQuickForm ? "input input-bordered input-sm w-full" : "input input-bordered w-full"}
           placeholder="Morning Coffee"
           required
         />
@@ -199,7 +199,7 @@ export default function NewBrewForm({
           id="device"
           value={selectedDeviceId}
           onChange={(e) => setSelectedDeviceId(e.target.value)}
-          className={isQuickForm ? "w-full p-2 border rounded" : "w-full px-3 py-2 border rounded-md"}
+          className={isQuickForm ? "select select-bordered select-sm w-full" : "select select-bordered w-full"}
           required
         >
           <option value="">Select a device</option>
@@ -231,9 +231,6 @@ export default function NewBrewForm({
         <label className="block text-sm font-medium mb-1">Brew Time</label>
         <div className="flex space-x-2">
           <div>
-            <label htmlFor="hours" className={isQuickForm ? "text-xs text-center block mt-1" : "block text-xs mb-1"}>
-              Hours
-            </label>
             <input
               type="number"
               id="hours"
@@ -241,18 +238,15 @@ export default function NewBrewForm({
               onChange={(e) =>
                 setHours(Math.max(0, Math.min(23, Number(e.target.value))))
               }
-              className={isQuickForm ? "w-full p-2 border rounded" : "w-full px-3 py-2 border rounded-md"}
+              className={isQuickForm ? "input input-bordered input-sm w-full" : "input input-bordered w-full"}
               min="0"
               max="23"
               step="1"
-              placeholder={isQuickForm ? "HH" : ""}
+              placeholder="HH"
             />
-            {isQuickForm && <span className="text-xs text-center block mt-1">Hours</span>}
+            <span className="text-xs text-center block mt-1">Hours</span>
           </div>
           <div>
-            <label htmlFor="minutes" className={isQuickForm ? "text-xs text-center block mt-1" : "block text-xs mb-1"}>
-              Minutes
-            </label>
             <input
               type="number"
               id="minutes"
@@ -260,18 +254,15 @@ export default function NewBrewForm({
               onChange={(e) =>
                 setMinutes(Math.max(0, Math.min(59, Number(e.target.value))))
               }
-              className={isQuickForm ? "w-full p-2 border rounded" : "w-full px-3 py-2 border rounded-md"}
+              className={isQuickForm ? "input input-bordered input-sm w-full" : "input input-bordered w-full"}
               min="0"
               max="59"
               step="1"
-              placeholder={isQuickForm ? "MM" : ""}
+              placeholder="MM"
             />
-            {isQuickForm && <span className="text-xs text-center block mt-1">Minutes</span>}
+            <span className="text-xs text-center block mt-1">Minutes</span>
           </div>
           <div>
-            <label htmlFor="seconds" className={isQuickForm ? "text-xs text-center block mt-1" : "block text-xs mb-1"}>
-              Seconds
-            </label>
             <input
               type="number"
               id="seconds"
@@ -279,13 +270,13 @@ export default function NewBrewForm({
               onChange={(e) =>
                 setSeconds(Math.max(0, Math.min(59, Number(e.target.value))))
               }
-              className={isQuickForm ? "w-full p-2 border rounded" : "w-full px-3 py-2 border rounded-md"}
+              className={isQuickForm ? "input input-bordered input-sm w-full" : "input input-bordered w-full"}
               min="0"
               max="59"
               step="1"
-              placeholder={isQuickForm ? "SS" : ""}
+              placeholder="SS"
             />
-            {isQuickForm && <span className="text-xs text-center block mt-1">Seconds</span>}
+            <span className="text-xs text-center block mt-1">Seconds</span>
           </div>
         </div>
       </div>
@@ -299,7 +290,7 @@ export default function NewBrewForm({
           id="image"
           accept="image/*"
           onChange={handleImageChange}
-          className={isQuickForm ? "w-full p-2 border rounded" : "w-full px-3 py-2 border rounded-md"}
+          className={isQuickForm ? "file-input file-input-bordered file-input-sm w-full" : "file-input file-input-bordered w-full"}
         />
         
         {imagePreview && (
@@ -323,7 +314,7 @@ export default function NewBrewForm({
           id="notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className={isQuickForm ? "w-full p-2 border rounded" : "w-full px-3 py-2 border rounded-md"}
+          className={isQuickForm ? "textarea textarea-bordered textarea-sm w-full" : "textarea textarea-bordered w-full"}
           rows={isQuickForm ? 2 : 5}
           placeholder={isQuickForm ? "How did it taste? What would you change next time?" : "Describe your brew process, taste notes, etc."}
         />
@@ -335,7 +326,7 @@ export default function NewBrewForm({
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
+              className="btn btn-outline btn-sm flex-1"
             >
               Cancel
             </button>
@@ -343,7 +334,7 @@ export default function NewBrewForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:opacity-50"
+            className="btn btn-primary btn-sm flex-1"
           >
             {isSubmitting ? "Creating..." : "Start Brew"}
           </button>
@@ -352,7 +343,7 @@ export default function NewBrewForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+          className="btn btn-primary w-full"
         >
           {isSubmitting ? "Saving..." : "Save Brew Session"}
         </button>

@@ -111,7 +111,7 @@ export default function Dashboard() {
           ) : (
             <button
               onClick={() => setShowQuickBrew(true)}
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center transition"
+              className="btn btn-primary w-full"
             >
               <Plus className="mr-2 h-5 w-5" />
               Start New Brew

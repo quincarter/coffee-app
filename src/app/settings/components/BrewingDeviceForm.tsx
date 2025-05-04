@@ -135,7 +135,7 @@ export default function BrewingDeviceForm({
       {!isEditing && <h3 className="mb-4 text-lg font-medium">Add New Brewing Device</h3>}
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700">
+        <div className="alert alert-error mb-4">
           {error}
         </div>
       )}
@@ -151,7 +151,7 @@ export default function BrewingDeviceForm({
           value={formData.name}
           onChange={handleChange}
           required
-          className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
+          className="input input-bordered w-full"
         />
       </div>
 
@@ -165,7 +165,7 @@ export default function BrewingDeviceForm({
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
+          className="textarea textarea-bordered w-full"
         />
       </div>
 
@@ -176,10 +176,10 @@ export default function BrewingDeviceForm({
             <button
               type="button"
               onClick={() => setUploadMethod("url")}
-              className={`rounded-md px-3 py-1 text-sm ${
+              className={`btn btn-sm ${
                 uploadMethod === "url"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700"
+                  ? "btn-primary"
+                  : "btn-outline"
               }`}
             >
               URL
@@ -187,10 +187,10 @@ export default function BrewingDeviceForm({
             <button
               type="button"
               onClick={() => setUploadMethod("file")}
-              className={`rounded-md px-3 py-1 text-sm ${
+              className={`btn btn-sm ${
                 uploadMethod === "file"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700"
+                  ? "btn-primary"
+                  : "btn-outline"
               }`}
             >
               Upload File
@@ -210,7 +210,7 @@ export default function BrewingDeviceForm({
               value={formData.image}
               onChange={handleChange}
               required
-              className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
+              className="input input-bordered w-full"
               placeholder="https://example.com/image.jpg"
             />
           </div>
@@ -228,7 +228,7 @@ export default function BrewingDeviceForm({
               accept="image/*"
               onChange={handleFileChange}
               required={!formData.image}
-              className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 coffee:border-gray-700 coffee:bg-gray-800"
+              className="file-input file-input-bordered w-full"
             />
           </div>
         )}
@@ -238,7 +238,7 @@ export default function BrewingDeviceForm({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="btn btn-primary"
         >
           {isSubmitting 
             ? (isEditing ? "Updating..." : "Creating...") 

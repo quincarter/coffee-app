@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import BrewingDeviceForm from "./BrewingDeviceForm";
 import Image from "next/image";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash } from "lucide-react";
 
 type BrewingDevice = {
   id: string;
@@ -104,7 +104,7 @@ export default function AdminPanel() {
             setShowAddForm(!showAddForm);
             setEditingDevice(null);
           }}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="btn btn-primary btn-sm"
         >
           {showAddForm ? "Cancel" : "Add Device"}
         </button>
@@ -146,28 +146,17 @@ export default function AdminPanel() {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handleEditClick(device)}
-                    className="text-blue-500 hover:text-blue-700"
+                    className="btn btn-ghost btn-sm"
                     aria-label="Edit device"
                   >
                     <Pencil className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => handleDeleteDevice(device.id)}
-                    className="text-red-500 hover:text-red-700"
+                    className="btn btn-ghost btn-sm text-red-500"
                     aria-label="Delete device"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <Trash className="h-5 w-5" />
                   </button>
                 </div>
               </div>

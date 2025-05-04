@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import AddBrewingDeviceForm from "./AddBrewingDeviceForm";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash } from "lucide-react";
 
 type UserBrewingDevice = {
   id: string;
@@ -106,7 +106,7 @@ export default function BrewingDevicesTab({ userId }: { userId: string }) {
             setShowAddForm(!showAddForm);
             setEditingDevice(null);
           }}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="btn btn-primary btn-sm"
         >
           {showAddForm ? "Cancel" : "Add Device"}
         </button>
@@ -153,30 +153,17 @@ export default function BrewingDevicesTab({ userId }: { userId: string }) {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handleEditClick(device)}
-                    className="text-blue-500 hover:text-blue-700"
+                    className="btn btn-ghost btn-sm"
                     aria-label="Edit device"
                   >
                     <Pencil className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => handleDeleteDevice(device.id)}
-                    className="text-red-500 hover:text-red-700"
+                    className="btn btn-ghost btn-sm text-red-500"
                     aria-label="Delete device"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      className="h-5 w-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
+                    <Trash className="h-5 w-5" />
                   </button>
                 </div>
               </div>

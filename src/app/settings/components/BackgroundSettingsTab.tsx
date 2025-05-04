@@ -134,40 +134,35 @@ export default function BackgroundSettingsTab({ userId }: { userId: string }) {
       <h2 className="text-xl font-semibold">Background Settings</h2>
       
       {message && (
-        <div className="p-3 bg-green-100 text-green-700 rounded">
+        <div className="alert alert-success mb-4">
           {message}
         </div>
       )}
       
       {error && (
-        <div className="p-3 bg-red-100 text-red-700 rounded">
+        <div className="alert alert-error mb-4">
           {error}
         </div>
       )}
 
       <div>
         <h3 className="text-lg font-medium mb-2">Background Image</h3>
-        
-        <div className="mb-4">
+        <div className="space-y-4">
           {(backgroundImage || imagePreview) && (
-            <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
-              <Image
+            <div className="relative rounded-lg overflow-hidden h-40 mb-4">
+              <img
                 src={imagePreview || backgroundImage || ""}
                 alt="Background preview"
-                fill
-                className="object-cover"
-                style={{ opacity }}
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                <button
-                  onClick={handleRemoveBackground}
-                  className="bg-red-600 text-white p-2 rounded-full"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </div>
+              <button
+                onClick={handleRemoveBackground}
+                className="btn btn-circle btn-sm absolute top-2 right-2 bg-white/80"
+              >
+                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </button>
             </div>
           )}
           
@@ -182,7 +177,7 @@ export default function BackgroundSettingsTab({ userId }: { userId: string }) {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="btn btn-primary"
             disabled={uploading}
           >
             {uploading ? "Uploading..." : "Upload Background Image"}
@@ -200,7 +195,7 @@ export default function BackgroundSettingsTab({ userId }: { userId: string }) {
             step="0.1"
             value={opacity}
             onChange={(e) => setOpacity(parseFloat(e.target.value))}
-            className="w-full"
+            className="range range-primary w-full"
           />
           <span>{Math.round(opacity * 100)}%</span>
         </div>
@@ -209,7 +204,7 @@ export default function BackgroundSettingsTab({ userId }: { userId: string }) {
       <div className="pt-4">
         <button
           onClick={handleSaveSettings}
-          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+          className="btn btn-primary"
         >
           Save Settings
         </button>

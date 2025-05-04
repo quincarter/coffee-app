@@ -103,7 +103,7 @@ export default function BrewLogContent({
           <h2 className="text-xl font-semibold">My Brews</h2>
           <button
             onClick={() => setShowNewForm(!showNewForm)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+            className="btn btn-primary btn-sm"
           >
             {showNewForm ? "Cancel" : "New Brew"}
           </button>
