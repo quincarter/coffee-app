@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Another Coffee App",
-  description: "A Next.js application with authentication",
+  title: "BrewMe",
+  description: "A Coffee App For Coffee Nerds",
 };
 
 export const viewport: Viewport = {

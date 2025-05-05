@@ -14,7 +14,7 @@ export default function HeaderNav({ session }: { session: any }) {
     <header className="sticky top-0 z-10 bg-base-100/80 backdrop-blur-sm border-b">
       <nav className="container mx-auto flex items-center justify-between py-4 px-4 md:px-0">
         <Link href="/" className="text-xl font-bold">
-          Another Coffee App
+          BrewMe
         </Link>
         <div className="flex items-center gap-4">
           {/* Navigation links - visible only on desktop */}

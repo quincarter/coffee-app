@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     try {
       // Send email with reset link
       const emailResult = await resend.emails.send({
-        from: `Coffee App <no-reply@${process.env.RESEND_DOMAIN}>`, // Use your verified domain
+        from: `BrewMe <no-reply@${process.env.RESEND_DOMAIN}>`, // Use your verified domain
         to: email,
         subject: "Reset Your Password",
         html: `
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
               <a href="${resetUrl}" style="background-color: #8B4513; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Reset Password</a>
             </div>
             <p>This link will expire in 24 hours. If you didn't request a password reset, you can ignore this email.</p>
-            <p>Best regards,<br>The Coffee App Team</p>
+            <p>Best regards,<br>The BrewMe Team</p>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; text-align: center;">
               <p>If the button doesn't work, copy and paste this URL into your browser:</p>
               <p>${resetUrl}</p>

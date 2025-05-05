@@ -66,19 +66,19 @@ export async function POST(request: Request) {
     try {
       // Send email with magic link
       const emailResult = await resend.emails.send({
-        from: `Coffee App <no-reply@${process.env.RESEND_DOMAIN}>`,
+        from: `BrewMe <no-reply@${process.env.RESEND_DOMAIN}>`,
         to: email,
         subject: "Your Magic Login Link",
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #8B4513; text-align: center;">Login to Coffee App</h1>
+            <h1 style="color: #8B4513; text-align: center;">Login to BrewMe</h1>
             <p>Hello,</p>
             <p>Click the button below to sign in to your account. This link will expire in 15 minutes.</p>
             <div style="text-align: center; margin: 30px 0;">
               <a href="${magicLinkUrl}" style="background-color: #8B4513; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Sign In</a>
             </div>
             <p>If you didn't request this login link, you can safely ignore this email.</p>
-            <p>Best regards,<br>The Coffee App Team</p>
+            <p>Best regards,<br>The BrewMe Team</p>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; text-align: center;">
               <p>If the button doesn't work, copy and paste this URL into your browser:</p>
               <p>${magicLinkUrl}</p>
