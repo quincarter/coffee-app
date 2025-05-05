@@ -32,10 +32,20 @@ export default function SearchableDropdownExample() {
       <SearchableDropdown
         options={countries}
         value={selectedCountry}
-        onChange={setSelectedCountry}
+        onChange={(value) => {
+          // Handle both string and string[] types
+          if (Array.isArray(value)) {
+            // If multiple selection is enabled but we only want one value
+            setSelectedCountry(value[0] || "");
+          } else {
+            // Single selection
+            setSelectedCountry(value);
+          }
+        }}
         label="Select a country"
         placeholder="Search countries..."
         required
+        multiple={false}
       />
       
       {selectedCountry && (

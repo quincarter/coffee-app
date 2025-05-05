@@ -695,7 +695,16 @@ export default function NewBrewForm({
                     label: type.name
                   }))}
                   value={selectedDeviceType}
-                  onChange={setSelectedDeviceType}
+                  onChange={(value) => {
+                    // Handle both string and string[] types
+                    if (Array.isArray(value)) {
+                      // If multiple selection is enabled but we only want one value
+                      setSelectedDeviceType(value[0] || "");
+                    } else {
+                      // Single selection
+                      setSelectedDeviceType(value);
+                    }
+                  }}
                   label="Device Type"
                   placeholder="Search device types..."
                   required

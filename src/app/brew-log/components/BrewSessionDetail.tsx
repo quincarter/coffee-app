@@ -168,13 +168,23 @@ export default function BrewSessionDetail({
                 label: device.name
               }))}
               value={brewingDeviceId}
-              onChange={setBrewingDeviceId}
+              onChange={(value) => {
+                // Handle both string and string[] types
+                if (Array.isArray(value)) {
+                  // If multiple selection is enabled but we only want one value
+                  setBrewingDeviceId(value[0] || "");
+                } else {
+                  // Single selection
+                  setBrewingDeviceId(value);
+                }
+              }}
               label="Brewing Device"
               placeholder={isLoading ? "Loading devices..." : "Search your devices..."}
               required
               disabled={isLoading || isSubmitting}
               className="mt-1"
               noOptionsMessage={isLoading ? "Loading devices..." : "No devices found"}
+              multiple={false} // Explicitly set to false to ensure single selection
             />
           </div>
 

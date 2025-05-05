@@ -231,13 +231,23 @@ export default function AddBrewingDeviceForm({
             label: device.name
           }))}
           value={formData.brewingDeviceId}
-          onChange={(value) => setFormData({ ...formData, brewingDeviceId: value })}
+          onChange={(value) => {
+            // Handle both string and string[] types
+            if (Array.isArray(value)) {
+              // If multiple selection is enabled but we only want one value
+              setFormData({ ...formData, brewingDeviceId: value[0] || "" });
+            } else {
+              // Single selection
+              setFormData({ ...formData, brewingDeviceId: value });
+            }
+          }}
           label="Device Type"
           placeholder="Search device types..."
           required
           error={formError && !formData.brewingDeviceId ? "Device type is required" : undefined}
           disabled={isLoading}
           noOptionsMessage="No device types available"
+          multiple={false}
         />
       </div>
 
