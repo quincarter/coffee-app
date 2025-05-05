@@ -2,6 +2,7 @@
 
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import Image from "next/image";
+import SearchableDropdown from "@/app/components/SearchableDropdown";
 
 type BrewingDevice = {
   id: string;
@@ -224,24 +225,20 @@ export default function AddBrewingDeviceForm({
       </div>
 
       <div className="mb-4">
-        <label htmlFor="brewingDeviceId" className="mb-1 block text-sm font-medium">
-          Device Type
-        </label>
-        <select
-          id="brewingDeviceId"
-          name="brewingDeviceId"
+        <SearchableDropdown
+          options={availableDevices.map(device => ({
+            value: device.id,
+            label: device.name
+          }))}
           value={formData.brewingDeviceId}
-          onChange={handleChange}
+          onChange={(value) => setFormData({ ...formData, brewingDeviceId: value })}
+          label="Device Type"
+          placeholder="Search device types..."
           required
-          className="select select-bordered w-full"
-        >
-          <option value="">Select a device type</option>
-          {availableDevices.map((device) => (
-            <option key={device.id} value={device.id}>
-              {device.name}
-            </option>
-          ))}
-        </select>
+          error={formError && !formData.brewingDeviceId ? "Device type is required" : undefined}
+          disabled={isLoading}
+          noOptionsMessage="No device types available"
+        />
       </div>
 
       <div className="mb-4">

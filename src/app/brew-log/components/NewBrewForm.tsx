@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
+import SearchableDropdown from "@/app/components/SearchableDropdown";
 
 type UserBrewingDevice = {
   id: string;
@@ -47,7 +48,7 @@ export default function NewBrewForm({
 }: Props) {
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
-  const [selectedDeviceId, setSelectedDeviceId] = useState("");
+  const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([]);
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [seconds, setSeconds] = useState(0);
@@ -56,8 +57,48 @@ export default function NewBrewForm({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(false);
+  const [showQuickDeviceModal, setShowQuickDeviceModal] = useState(false);
+  const [quickDeviceName, setQuickDeviceName] = useState("");
+  const [isAddingDevice, setIsAddingDevice] = useState(false);
+  const [deviceError, setDeviceError] = useState<string | null>(null);
+  const [availableDeviceTypes, setAvailableDeviceTypes] = useState<
+    Array<{ id: string; name: string; image: string }>
+  >([]);
+  const [selectedDeviceType, setSelectedDeviceType] = useState("");
+  const [modalAnimation, setModalAnimation] = useState(false);
+  const [quickDeviceDescription, setQuickDeviceDescription] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleAddNewDevice = () => {
+    console.log("Add new device clicked");
+    
+    // Try to get the search term from the input element
+    const searchInput = document.querySelector('input[placeholder="Search your devices..."]') as HTMLInputElement;
+    if (searchInput && searchInput.value) {
+      setQuickDeviceName(searchInput.value);
+    }
+    
+    setShowQuickDeviceModal(true);
+    // Start animation after a tiny delay to ensure the modal is in the DOM
+    setTimeout(() => setModalAnimation(true), 10);
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setImageFile(file);
+
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleQuickDeviceImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       setImageFile(file);
@@ -80,8 +121,19 @@ export default function NewBrewForm({
       return;
     }
 
-    if (!selectedDeviceId) {
-      setError("Brewing device is required");
+    if (selectedDeviceIds.length === 0) {
+      setError("At least one brewing device is required");
+      return;
+    }
+
+    // Find the primary selected user device (first in the array)
+    const primaryDeviceId = selectedDeviceIds[0];
+    const primaryUserDevice = userDevices.find(
+      (device) => device.id === primaryDeviceId
+    );
+    
+    if (!primaryUserDevice) {
+      setError("Selected brewing device not found");
       return;
     }
 
@@ -120,7 +172,8 @@ export default function NewBrewForm({
         ...(userId && { userId }),
         name,
         notes,
-        brewingDeviceId: selectedDeviceId,
+        brewingDeviceId: primaryUserDevice.id, // Use the primary UserBrewingDevice.id
+        additionalDeviceIds: selectedDeviceIds.slice(1), // Store additional devices
         brewTime,
         ...(imageUrl && { image: imageUrl }),
         isPublic,
@@ -151,7 +204,7 @@ export default function NewBrewForm({
       // Reset form
       setName("");
       setNotes("");
-      setSelectedDeviceId("");
+      setSelectedDeviceIds([]);
       setHours(0);
       setMinutes(0);
       setSeconds(0);
@@ -165,15 +218,12 @@ export default function NewBrewForm({
     }
   };
 
-  // Find the selected device to show its image
-  const selectedDevice = userDevices.find(
-    (device) => device.brewingDeviceId === selectedDeviceId
-  );
-
   const formContent = (
     <>
       {error && (
-        <div className={`${isQuickForm ? 'alert alert-error text-sm mb-4' : 'alert alert-error mb-4'}`}>
+        <div
+          className={`${isQuickForm ? "alert alert-error text-sm mb-4" : "alert alert-error mb-4"}`}
+        >
           {error}
         </div>
       )}
@@ -187,45 +237,76 @@ export default function NewBrewForm({
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className={isQuickForm ? "input input-bordered input-sm w-full" : "input input-bordered w-full"}
+          className={
+            isQuickForm
+              ? "input input-bordered input-sm w-full"
+              : "input input-bordered w-full"
+          }
           placeholder="Morning Coffee"
           required
         />
       </div>
 
       <div className={isQuickForm ? "mb-4" : "mb-4"}>
-        <label htmlFor="device" className="block text-sm font-medium mb-1">
-          Brewing Device
-        </label>
-        <select
-          id="device"
-          value={selectedDeviceId}
-          onChange={(e) => setSelectedDeviceId(e.target.value)}
-          className={isQuickForm ? "select select-bordered select-sm w-full" : "select select-bordered w-full"}
+        <SearchableDropdown
+          options={userDevices.map((device) => ({
+            value: device.id,
+            label: isQuickForm
+              ? `${device.brewingDevice.name} - ${device.name}`
+              : device.name,
+          }))}
+          value={selectedDeviceIds}
+          onChange={(value) => {
+            if (Array.isArray(value)) {
+              setSelectedDeviceIds(value);
+            } else {
+              setSelectedDeviceIds([value].filter(Boolean));
+            }
+          }}
+          onSearch={setSearchTerm}
+          label="Brewing Devices"
+          placeholder="Search your devices..."
           required
-        >
-          <option value="">Select a device</option>
-          {userDevices.map((device) => (
-            <option key={device.id} value={device.brewingDeviceId}>
-              {isQuickForm 
-                ? `${device.brewingDevice.name} - ${device.name}` 
-                : device.name}
-            </option>
-          ))}
-        </select>
+          error={
+            error && selectedDeviceIds.length === 0
+              ? "At least one brewing device is required"
+              : undefined
+          }
+          className={isQuickForm ? "text-sm" : ""}
+          noOptionsMessage={
+            userDevices.length === 0
+              ? "You don't have any brewing devices yet"
+              : "No devices found with that name"
+          }
+          allowAddNew={true}
+          onAddNew={handleAddNewDevice}
+          addNewText="Add a new brewing device"
+          multiple={true}
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Add multiple devices if needed (e.g., kettle + pour over)
+        </p>
       </div>
 
-      {selectedDevice && selectedDevice.brewingDevice.image && !isQuickForm && (
-        <div className="mb-4">
-          <div className="w-32 h-32 mx-auto">
-            <Image
-              src={selectedDevice.brewingDevice.image}
-              alt={selectedDevice.name}
-              width={128}
-              height={128}
-              className="w-full h-full object-contain"
-            />
-          </div>
+      {selectedDeviceIds.length > 0 && !isQuickForm && (
+        <div className="mb-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {selectedDeviceIds.map((deviceId) => {
+            const device = userDevices.find((d) => d.id === deviceId);
+            if (!device) return null;
+            
+            return (
+              <div key={deviceId} className="flex flex-col items-center">
+                <div className="w-20 h-20 relative">
+                  <img
+                    src={device.brewingDevice.image}
+                    alt={device.name}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <span className="text-xs text-center mt-1">{device.name}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -240,7 +321,11 @@ export default function NewBrewForm({
               onChange={(e) =>
                 setHours(Math.max(0, Math.min(23, Number(e.target.value))))
               }
-              className={isQuickForm ? "input input-bordered input-sm w-full" : "input input-bordered w-full"}
+              className={
+                isQuickForm
+                  ? "input input-bordered input-sm w-full"
+                  : "input input-bordered w-full"
+              }
               min="0"
               max="23"
               step="1"
@@ -256,7 +341,11 @@ export default function NewBrewForm({
               onChange={(e) =>
                 setMinutes(Math.max(0, Math.min(59, Number(e.target.value))))
               }
-              className={isQuickForm ? "input input-bordered input-sm w-full" : "input input-bordered w-full"}
+              className={
+                isQuickForm
+                  ? "input input-bordered input-sm w-full"
+                  : "input input-bordered w-full"
+              }
               min="0"
               max="59"
               step="1"
@@ -272,7 +361,11 @@ export default function NewBrewForm({
               onChange={(e) =>
                 setSeconds(Math.max(0, Math.min(59, Number(e.target.value))))
               }
-              className={isQuickForm ? "input input-bordered input-sm w-full" : "input input-bordered w-full"}
+              className={
+                isQuickForm
+                  ? "input input-bordered input-sm w-full"
+                  : "input input-bordered w-full"
+              }
               min="0"
               max="59"
               step="1"
@@ -292,9 +385,13 @@ export default function NewBrewForm({
           id="image"
           accept="image/*"
           onChange={handleImageChange}
-          className={isQuickForm ? "file-input file-input-bordered file-input-sm w-full" : "file-input file-input-bordered w-full"}
+          className={
+            isQuickForm
+              ? "file-input file-input-bordered file-input-sm w-full"
+              : "file-input file-input-bordered w-full"
+          }
         />
-        
+
         {imagePreview && (
           <div className="mt-2">
             <div className="w-32 h-32 mx-auto">
@@ -316,9 +413,17 @@ export default function NewBrewForm({
           id="notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className={isQuickForm ? "textarea textarea-bordered textarea-sm w-full" : "textarea textarea-bordered w-full"}
+          className={
+            isQuickForm
+              ? "textarea textarea-bordered textarea-sm w-full"
+              : "textarea textarea-bordered w-full"
+          }
           rows={isQuickForm ? 2 : 5}
-          placeholder={isQuickForm ? "How did it taste? What would you change next time?" : "Describe your brew process, taste notes, etc."}
+          placeholder={
+            isQuickForm
+              ? "How did it taste? What would you change next time?"
+              : "Describe your brew process, taste notes, etc."
+          }
         />
       </div>
 
@@ -371,31 +476,290 @@ export default function NewBrewForm({
     </>
   );
 
-  if (isQuickForm) {
-    return (
-      <div className="relative">
-        {onCancel && (
-          <button
-            onClick={onCancel}
-            className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
-            aria-label="Close form"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          {formContent}
-        </form>
-      </div>
-    );
-  }
+  const handleQuickDeviceAdd = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsAddingDevice(true);
+    setDeviceError(null);
+
+    try {
+      if (!quickDeviceName.trim()) {
+        throw new Error("Device name is required");
+      }
+
+      if (!selectedDeviceType) {
+        throw new Error("Please select a device type");
+      }
+
+      let imageUrl = null;
+
+      // Upload image if one was selected
+      if (imageFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", imageFile);
+        uploadFormData.append("context", "brewing-device");
+
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.url;
+      }
+
+      const response = await fetch("/api/user-brewing-devices", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: quickDeviceName,
+          description: quickDeviceDescription,
+          brewingDeviceId: selectedDeviceType,
+          userId,
+          ...(imageUrl && { image: imageUrl }),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add device");
+      }
+
+      const newDevice = await response.json();
+
+      // Add the new device to the list and select it
+      userDevices.push(newDevice);
+      setSelectedDeviceIds([...selectedDeviceIds, newDevice.id]);
+
+      // Close the modal with animation
+      closeModal();
+
+      // Reset form
+      setQuickDeviceName("");
+      setQuickDeviceDescription("");
+      setImageFile(null);
+      setImagePreview(null);
+    } catch (err) {
+      console.error("Error adding device:", err);
+      setDeviceError(
+        err instanceof Error ? err.message : "Failed to add device"
+      );
+    } finally {
+      setIsAddingDevice(false);
+    }
+  };
+
+  useEffect(() => {
+    async function fetchDeviceTypes() {
+      try {
+        const response = await fetch("/api/brewing-devices");
+        if (response.ok) {
+          const data = await response.json();
+          setAvailableDeviceTypes(data);
+          if (data.length > 0) {
+            setSelectedDeviceType(data[0].id);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching device types:", err);
+      }
+    }
+
+    fetchDeviceTypes();
+  }, []);
+
+  const closeModal = () => {
+    setModalAnimation(false);
+    // Wait for animation to complete before hiding the modal
+    setTimeout(() => setShowQuickDeviceModal(false), 300);
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Force a re-render when window size changes
+      if (showQuickDeviceModal) {
+        setModalAnimation(false);
+        setTimeout(() => setModalAnimation(true), 10);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [showQuickDeviceModal]);
 
   return (
-    <div className="bg-white coffee:bg-gray-800 rounded-lg shadow p-6">
-      <h3 className="text-lg font-medium mb-4">Log a New Brew</h3>
-      <form onSubmit={handleSubmit}>
-        {formContent}
-      </form>
-    </div>
+    <>
+      {isQuickForm ? (
+        <div className="relative">
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="absolute right-0 top-0 text-gray-400 hover:text-gray-600"
+              aria-label="Close form"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+            {formContent}
+          </form>
+        </div>
+      ) : (
+        <div className="bg-white coffee:bg-gray-800 rounded-lg shadow p-6">
+          <h3 className="text-lg font-medium mb-4">Log a New Brew</h3>
+          <form onSubmit={handleSubmit}>{formContent}</form>
+        </div>
+      )}
+
+      {/* Bottom sheet style modal for mobile, centered dialog for desktop */}
+      {showQuickDeviceModal && (
+        <div
+          className="fixed inset-0 bg-opacity-25 backdrop-blur-sm flex items-end md:items-center justify-center z-[100]"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-white coffee:bg-gray-800 w-full md:w-auto rounded-t-lg md:rounded-lg shadow-lg p-6 transition-transform duration-300 ease-in-out"
+            style={{
+              transform: modalAnimation ? "translateY(0)" : "translateY(100%)",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              width: window.innerWidth < 768 ? "100%" : "auto",
+              minWidth: window.innerWidth < 768 ? "100%" : "32rem",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium">Add New Brewing Device</h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Add a subtle drag indicator for mobile */}
+            <div className="md:hidden w-12 h-1 bg-gray-300 rounded-full mx-auto -mt-2 mb-4"></div>
+
+            {deviceError && (
+              <div className="alert alert-error mb-4 text-sm">
+                {deviceError}
+              </div>
+            )}
+
+            <form onSubmit={handleQuickDeviceAdd}>
+              <div className="mb-4">
+                <label
+                  htmlFor="quickDeviceName"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Device Name
+                </label>
+                <input
+                  type="text"
+                  id="quickDeviceName"
+                  value={quickDeviceName}
+                  onChange={(e) => setQuickDeviceName(e.target.value)}
+                  className="input input-bordered w-full"
+                  placeholder="My French Press"
+                  required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label
+                  htmlFor="quickDeviceDescription"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Description (Optional)
+                </label>
+                <textarea
+                  id="quickDeviceDescription"
+                  value={quickDeviceDescription}
+                  onChange={(e) => setQuickDeviceDescription(e.target.value)}
+                  className="textarea textarea-bordered w-full"
+                  rows={2}
+                  placeholder="Add any notes about your device..."
+                />
+              </div>
+
+              <div className="mb-4">
+                <SearchableDropdown
+                  options={availableDeviceTypes.map(type => ({
+                    value: type.id,
+                    label: type.name
+                  }))}
+                  value={selectedDeviceType}
+                  onChange={setSelectedDeviceType}
+                  label="Device Type"
+                  placeholder="Search device types..."
+                  required
+                  error={deviceError && !selectedDeviceType ? "Device type is required" : undefined}
+                  noOptionsMessage={availableDeviceTypes.length === 0 ? "Loading device types..." : "No device types found"}
+                  multiple={false}
+                />
+              </div>
+
+              <div className="mb-4">
+                <label
+                  htmlFor="quickDeviceImage"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Device Image (Optional)
+                </label>
+                <input
+                  type="file"
+                  id="quickDeviceImage"
+                  accept="image/*"
+                  onChange={handleQuickDeviceImageChange}
+                  className="file-input file-input-bordered w-full"
+                />
+                
+                {imagePreview && (
+                  <div className="mt-2">
+                    <div className="w-24 h-24 mx-auto">
+                      <img
+                        src={imagePreview}
+                        alt="Device preview"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-2 mt-4">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="btn btn-ghost"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isAddingDevice}
+                >
+                  {isAddingDevice ? (
+                    <>
+                      <span className="loading loading-spinner loading-xs"></span>
+                      Adding...
+                    </>
+                  ) : (
+                    "Add Device"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

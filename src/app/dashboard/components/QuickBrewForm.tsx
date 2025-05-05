@@ -14,14 +14,16 @@ type UserBrewingDevice = {
 };
 
 type Props = {
+  userId?: string;
   userDevices: UserBrewingDevice[];
   onBrewCreated: (brew: any) => void;
   onCancel: () => void;
 };
 
-export default function QuickBrewForm({ userDevices, onBrewCreated, onCancel }: Props) {
+export default function QuickBrewForm({ userId, userDevices, onBrewCreated, onCancel }: Props) {
   return (
     <NewBrewForm
+      userId={userId}
       userDevices={userDevices}
       onBrewCreated={onBrewCreated}
       onCancel={onCancel}

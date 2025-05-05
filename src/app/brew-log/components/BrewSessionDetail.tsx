@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import SearchableDropdown from "@/app/components/SearchableDropdown";
 
 type BrewingDevice = {
   id: string;
@@ -53,6 +54,7 @@ export default function BrewSessionDetail({
   );
   const [userDevices, setUserDevices] = useState<UserBrewingDevice[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchUserDevices = async () => {
     setIsLoading(true);
@@ -95,6 +97,7 @@ export default function BrewSessionDetail({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     // Format brew time as HH:MM:SS
     const brewTime = `${hours.toString().padStart(2, "0")}:${minutes
@@ -124,6 +127,8 @@ export default function BrewSessionDetail({
       }
     } catch (error) {
       console.error("Error updating brew session:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -157,30 +162,20 @@ export default function BrewSessionDetail({
           </div>
 
           <div>
-            <label
-              htmlFor="brewingDevice"
-              className="block text-sm font-medium text-gray-700 coffee:text-gray-300"
-            >
-              Brewing Device
-            </label>
-            <select
-              id="brewingDevice"
+            <SearchableDropdown
+              options={userDevices.map(device => ({
+                value: device.brewingDeviceId,
+                label: device.name
+              }))}
               value={brewingDeviceId}
-              onChange={(e) => setBrewingDeviceId(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 coffee:bg-gray-700 coffee:border-gray-600"
+              onChange={setBrewingDeviceId}
+              label="Brewing Device"
+              placeholder={isLoading ? "Loading devices..." : "Search your devices..."}
               required
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <option>Loading devices...</option>
-              ) : (
-                userDevices.map((device) => (
-                  <option key={device.id} value={device.brewingDeviceId}>
-                    {device.name}
-                  </option>
-                ))
-              )}
-            </select>
+              disabled={isLoading || isSubmitting}
+              className="mt-1"
+              noOptionsMessage={isLoading ? "Loading devices..." : "No devices found"}
+            />
           </div>
 
           <div>
