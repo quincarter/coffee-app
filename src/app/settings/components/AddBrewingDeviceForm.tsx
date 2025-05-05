@@ -3,26 +3,14 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import Image from "next/image";
 import SearchableDropdown from "@/app/components/SearchableDropdown";
+import { UserBrewingDevice } from "@/app/types";
+import ImageUpload from "@/app/components/ImageUpload";
 
 type BrewingDevice = {
   id: string;
   name: string;
   description: string;
   image: string;
-};
-
-type UserBrewingDevice = {
-  id: string;
-  name: string;
-  description: string;
-  brewingDeviceId: string;
-  image?: string;
-  brewingDevice: {
-    name: string;
-    image: string;
-  };
-  createdAt: string;
-  updatedAt: string;
 };
 
 type Props = {
@@ -281,33 +269,16 @@ export default function AddBrewingDeviceForm({
         </div>
 
         {uploadMethod === "file" && (
-          <div>
-            <label
-              htmlFor="imageFile"
-              className="mb-1 block text-sm font-medium"
-            >
-              Upload Image
-            </label>
-            <input
-              type="file"
-              id="imageFile"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="file-input file-input-bordered w-full"
-            />
-            
-            {imagePreview && (
-              <div className="mt-2">
-                <div className="w-32 h-32 mx-auto relative">
-                  <img
-                    src={imagePreview}
-                    alt="Device preview"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+          <ImageUpload
+            initialImage={imagePreview}
+            onImageChange={(file, preview) => {
+              setImageFile(file);
+              setImagePreview(preview);
+            }}
+            label="Upload Image"
+            height="sm"
+            className="mb-4"
+          />
         )}
         
         {formData.brewingDeviceId && uploadMethod === "none" && (

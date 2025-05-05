@@ -3,20 +3,7 @@
 import { useState, useEffect } from "react";
 import AddBrewingDeviceForm from "./AddBrewingDeviceForm";
 import { Pencil, Trash } from "lucide-react";
-
-type UserBrewingDevice = {
-  id: string;
-  name: string;
-  description: string;
-  brewingDeviceId: string;
-  image?: string;
-  brewingDevice: {
-    name: string;
-    image: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-};
+import { UserBrewingDevice } from "@/app/types";
 
 export default function BrewingDevicesTab({ userId }: { userId: string }) {
   const [userDevices, setUserDevices] = useState<UserBrewingDevice[]>([]);

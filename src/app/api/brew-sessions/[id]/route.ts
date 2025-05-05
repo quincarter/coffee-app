@@ -18,10 +18,27 @@ export async function GET(
     const brewSession = await prisma.userBrewSession.findUnique({
       where: { id },
       include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
         brewingDevice: {
           select: {
             name: true,
             image: true,
+          },
+        },
+        additionalDevices: {
+          include: {
+            brewingDevice: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
           },
         },
       },
@@ -50,7 +67,7 @@ export async function GET(
 }
 
 export async function PATCH(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -61,18 +78,10 @@ export async function PATCH(
     }
 
     const id = (await params).id;
-    const body = await request.json();
-    const { name, notes, brewTime, brewingDeviceId } = body;
+    const { name, notes, brewTime, brewingDeviceId, additionalDeviceIds } = await request.json();
 
-    // Validate required fields
-    if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    }
-
-    // Find the session first to check ownership
     const brewSession = await prisma.userBrewSession.findUnique({
       where: { id },
-      select: { userId: true },
     });
 
     if (!brewSession) {
@@ -87,24 +96,97 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
+    // Update the brew session with provided fields
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (notes !== undefined) updateData.notes = notes;
+    if (brewTime !== undefined) updateData.brewTime = brewTime;
+    if (brewingDeviceId !== undefined) updateData.brewingDeviceId = brewingDeviceId;
+
     // Update the brew session
     const updatedSession = await prisma.userBrewSession.update({
       where: { id },
-      data: {
-        name,
-        notes,
-        brewTime,
-        brewingDeviceId: brewingDeviceId || undefined,
-      },
+      data: updateData,
       include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
         brewingDevice: {
           select: {
             name: true,
             image: true,
           },
         },
+        additionalDevices: {
+          include: {
+            brewingDevice: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
       },
     });
+
+    // If additionalDeviceIds is provided, update the additional devices
+    if (additionalDeviceIds !== undefined) {
+      // First, delete all existing additional devices
+      await prisma.brewSessionDevice.deleteMany({
+        where: { brewSessionId: id },
+      });
+
+      // Then, create new relationships for each additional device
+      if (additionalDeviceIds.length > 0) {
+        await Promise.all(
+          additionalDeviceIds.map(async (deviceId: string) => {
+            return prisma.brewSessionDevice.create({
+              data: {
+                brewSessionId: id,
+                brewingDeviceId: deviceId,
+              },
+            });
+          })
+        );
+      }
+
+      // Fetch the updated session with the new additional devices
+      const refreshedSession = await prisma.userBrewSession.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+          brewingDevice: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+          additionalDevices: {
+            include: {
+              brewingDevice: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return NextResponse.json(refreshedSession);
+    }
 
     return NextResponse.json(updatedSession);
   } catch (error) {

@@ -1,17 +1,7 @@
 "use client";
 
 import NewBrewForm from "@/app/brew-log/components/NewBrewForm";
-
-type UserBrewingDevice = {
-  id: string;
-  name: string;
-  description: string;
-  brewingDeviceId: string;
-  brewingDevice: {
-    name: string;
-    image: string;
-  };
-};
+import { UserBrewingDevice } from "@/app/types";
 
 type Props = {
   userId?: string;
@@ -20,7 +10,12 @@ type Props = {
   onCancel: () => void;
 };
 
-export default function QuickBrewForm({ userId, userDevices, onBrewCreated, onCancel }: Props) {
+export default function QuickBrewForm({
+  userId,
+  userDevices,
+  onBrewCreated,
+  onCancel,
+}: Props) {
   return (
     <NewBrewForm
       userId={userId}

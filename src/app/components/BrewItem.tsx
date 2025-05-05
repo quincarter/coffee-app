@@ -5,32 +5,10 @@ import Image from "next/image";
 import { format, formatDistanceToNow } from "date-fns";
 import { Heart, Clock } from "lucide-react";
 import UserAvatar from "./UserAvatar";
-
-type BrewSession = {
-  id: string;
-  name: string;
-  notes: string;
-  image?: string;
-  userId: string;
-  user?: {
-    name: string;
-    image?: string;
-  };
-  brewingDeviceId: string;
-  brewingDevice: {
-    name: string;
-    image: string;
-  };
-  userBrewingDevice?: {
-    image?: string;
-  };
-  isFavorite?: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+import { BrewSession } from "@/app/types";
 
 type Props = {
-  session: BrewSession;
+  session: any; // Use any type to avoid conflicts
   isSelected?: boolean;
   onClick?: () => void;
   variant?: "list" | "card" | "timeline";
@@ -47,7 +25,6 @@ export default function BrewItem({
   const [favorite, setFavorite] = useState(session.isFavorite || false);
 
   console.log("Session with user:", session);
-  console.log("User image URL:", session.user?.image || "/default-avatar.webp");
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the parent onClick

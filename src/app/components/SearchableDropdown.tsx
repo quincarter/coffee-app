@@ -53,18 +53,23 @@ export default function SearchableDropdown({
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxId = useId();
   const labelId = useId();
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Convert value to array if multiple is true
-  const selectedValues = multiple ? (Array.isArray(value) ? value : [value].filter(Boolean)) : [];
+  const selectedValues = multiple
+    ? Array.isArray(value)
+      ? value
+      : [value].filter(Boolean)
+    : [];
 
   // Find the selected option labels for multiple selection
-  const selectedOptions = multiple 
-    ? options.filter(option => selectedValues.includes(option.value))
+  const selectedOptions = multiple
+    ? options.filter((option) => selectedValues.includes(option.value))
     : [];
 
   // Find the selected option label for single selection
-  const selectedOption = !multiple 
-    ? options.find(option => option.value === value) 
+  const selectedOption = !multiple
+    ? options.find((option) => option.value === value)
     : null;
 
   // Filter options based on search term
@@ -109,11 +114,16 @@ export default function SearchableDropdown({
     if (multiple) {
       const newValues = [...selectedValues, optionValue];
       onChange(newValues);
+      // Don't close dropdown for multiple selection to allow selecting more items
     } else {
       onChange(optionValue);
-      setIsOpen(false);
+      setIsOpen(false); // Close dropdown for single selection
     }
+
+    // Clear the search term after selection
     setSearchTerm("");
+
+    // Focus the input after selection
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -121,8 +131,10 @@ export default function SearchableDropdown({
 
   const handleRemoveOption = (optionValue: string) => {
     if (multiple) {
-      const newValues = selectedValues.filter(val => val !== optionValue);
+      const newValues = selectedValues.filter((val) => val !== optionValue);
       onChange(newValues);
+    } else {
+      onChange("");
     }
   };
 
@@ -138,12 +150,50 @@ export default function SearchableDropdown({
     } else if (e.key === "Enter" && isOpen) {
       e.preventDefault();
       if (filteredOptions.length > 0) {
-        handleOptionClick(filteredOptions[highlightedIndex].value);
+        const selectedValue = filteredOptions[highlightedIndex].value;
+        console.log("Enter pressed, selecting:", selectedValue); // Debug log
+        handleOptionClick(selectedValue);
       }
     } else if (e.key === "Escape") {
       setIsOpen(false);
     }
   };
+
+  const handleInputBlur = () => {
+    // Use a small timeout to allow click events on dropdown items to fire first
+    blurTimeoutRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 150);
+  };
+
+  const handleOptionMouseDown = () => {
+    // Cancel the blur timeout if user is clicking on an option
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // If we have a selected option and no active search, show the selected option's label
+    if (!multiple && selectedOption && !searchTerm) {
+      // Don't update the search term when the dropdown is open to avoid interfering with searching
+      if (!isOpen) {
+        // This is a visual-only update, not triggering a new search
+        const inputElement = inputRef.current;
+        if (inputElement) {
+          inputElement.placeholder = selectedOption.label;
+        }
+      }
+    }
+  }, [multiple, selectedOption, searchTerm, isOpen]);
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
@@ -161,33 +211,50 @@ export default function SearchableDropdown({
       {/* Selected chips for multiple selection */}
       {multiple && selectedOptions.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">
-          {selectedOptions.map(option => (
-            <Chip 
+          {selectedOptions.map((option, index) => (
+            <Chip
               key={option.value}
               label={option.label}
               onRemove={() => handleRemoveOption(option.value)}
+              isPrimary={index === 0} // Mark the first item as primary
             />
           ))}
         </div>
       )}
 
+      {/* Selected chip for single selection */}
+      {!multiple && selectedOption && !searchTerm && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          <Chip
+            label={selectedOption.label}
+            onRemove={() => {
+              onChange(multiple ? [] : "");
+            }}
+          />
+        </div>
+      )}
+
       <div className="relative">
+        {/* Hidden input to store the actual value for form submission */}
+        {name && (
+          <input
+            type="hidden"
+            name={name}
+            value={multiple ? selectedValues.join(",") : (value as string)}
+          />
+        )}
+
         <input
           ref={inputRef}
           type="text"
-          id={name}
-          name={name}
+          id={name ? `${name}-display` : undefined}
           value={searchTerm}
           onChange={handleInputChange}
           onFocus={() => setIsOpen(true)}
+          onBlur={handleInputBlur}
           onKeyDown={handleKeyDown}
-          placeholder={
-            multiple
-              ? placeholder
-              : selectedOption?.label || placeholder
-          }
+          placeholder={placeholder}
           disabled={disabled}
-          required={required && (!multiple || selectedValues.length === 0)}
           className={`input input-bordered w-full ${
             error ? "input-error" : ""
           }`}
@@ -221,6 +288,7 @@ export default function SearchableDropdown({
                         : "text-gray-900 coffee:text-gray-100"
                     }`}
                     onClick={() => handleOptionClick(option.value)}
+                    onMouseDown={handleOptionMouseDown}
                     role="option"
                     aria-selected={index === highlightedIndex}
                   >
@@ -229,7 +297,7 @@ export default function SearchableDropdown({
                 ))}
               </>
             )}
-            
+
             {allowAddNew && onAddNew && (
               <li
                 className="relative cursor-pointer select-none py-2 pl-3 pr-9 text-primary hover:bg-gray-100 coffee:hover:bg-gray-700 border-t"
