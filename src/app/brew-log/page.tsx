@@ -1,7 +1,7 @@
+import prisma from "@/app/lib/db";
 import { getSession } from "@/app/lib/session";
 import { redirect } from "next/navigation";
 import BrewLogContent from "./components/BrewLogContent";
-import prisma from "@/app/lib/db";
 
 export default async function BrewLogPage({
   searchParams,
@@ -40,12 +40,23 @@ export default async function BrewLogPage({
         select: {
           name: true,
           image: true,
-        }
+        },
       },
       brewingDevice: {
         select: {
           name: true,
           image: true,
+        },
+      },
+      additionalDevices: {
+        include: {
+          brewingDevice: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
         },
       },
     },
@@ -69,12 +80,23 @@ export default async function BrewLogPage({
           select: {
             name: true,
             image: true,
-          }
+          },
         },
         brewingDevice: {
           select: {
             name: true,
             image: true,
+          },
+        },
+        additionalDevices: {
+          include: {
+            brewingDevice: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
           },
         },
       },
@@ -86,16 +108,31 @@ export default async function BrewLogPage({
       <h1 className="text-3xl font-bold mb-8">My Brew Log</h1>
       <BrewLogContent
         userId={userId}
-        userDevices={userDevices.map(device => ({
+        userDevices={userDevices.map((device) => ({
           ...device,
           description: device.description || "",
           createdAt: device.createdAt.toISOString(),
-          updatedAt: device.updatedAt.toISOString()
+          updatedAt: device.updatedAt.toISOString(),
+          brewingDevice: {
+            id: device.brewingDeviceId, // Add the id field
+            name: device.brewingDevice.name,
+            image: device.brewingDevice.image,
+          },
         }))}
         initialBrewSessions={brewSessions.map((session) => ({
           ...session,
           createdAt: session.createdAt.toISOString(),
           updatedAt: session.updatedAt.toISOString(),
+          // Convert null to undefined for image
+          image: session.image || undefined,
+          additionalDevices: session.additionalDevices.map((device) => ({
+            ...device,
+            brewingDevice: {
+              id: device.brewingDevice.id,
+              name: device.brewingDevice.name,
+              image: device.brewingDevice.image,
+            },
+          })),
         }))}
         initialSelectedSessionId={selectedSessionId}
         selectedSession={
@@ -104,6 +141,18 @@ export default async function BrewLogPage({
                 ...selectedSession,
                 createdAt: selectedSession.createdAt.toISOString(),
                 updatedAt: selectedSession.updatedAt.toISOString(),
+                // Convert null to undefined for image
+                image: selectedSession.image || undefined,
+                additionalDevices: selectedSession.additionalDevices.map(
+                  (device) => ({
+                    ...device,
+                    brewingDevice: {
+                      id: device.brewingDevice.id,
+                      name: device.brewingDevice.name,
+                      image: device.brewingDevice.image,
+                    },
+                  })
+                ),
               }
             : null
         }

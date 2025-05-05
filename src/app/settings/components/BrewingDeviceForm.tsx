@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, FormEvent, ChangeEvent, useEffect } from "react";
+import ImageUpload from "@/app/components/ImageUpload";
 
 type BrewingDevice = {
   id: string;
@@ -215,22 +216,15 @@ export default function BrewingDeviceForm({
             />
           </div>
         ) : (
-          <div>
-            <label
-              htmlFor="imageFile"
-              className="mb-1 block text-sm font-medium"
-            >
-              Upload Image
-            </label>
-            <input
-              type="file"
-              id="imageFile"
-              accept="image/*"
-              onChange={handleFileChange}
-              required={!formData.image}
-              className="file-input file-input-bordered w-full"
-            />
-          </div>
+          <ImageUpload
+            initialImage={imageFile ? URL.createObjectURL(imageFile) : formData.image}
+            onImageChange={(file, preview) => {
+              setImageFile(file);
+            }}
+            label="Upload Image"
+            height="sm"
+            className="mb-4"
+          />
         )}
       </div>
 

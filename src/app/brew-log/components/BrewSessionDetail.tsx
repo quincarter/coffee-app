@@ -3,38 +3,16 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import SearchableDropdown from "@/app/components/SearchableDropdown";
-
-type BrewingDevice = {
-  id: string;
-  name: string;
-  image: string;
-};
-
-type UserBrewingDevice = {
-  id: string;
-  name: string;
-  brewingDeviceId: string;
-  brewingDevice: BrewingDevice;
-};
-
-type BrewSession = {
-  id: string;
-  name: string;
-  notes: string;
-  userId: string;
-  brewingDeviceId: string;
-  brewTime: string;
-  brewingDevice: {
-    name: string;
-    image: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-};
+import Image from "next/image";
+import { MoreVertical, Star, Trash } from "lucide-react";
+import { BrewSession, UserBrewingDevice } from "@/app/types";
+import { BrewingDevice } from "@prisma/client";
+import TimeInput from "@/app/components/TimeInput";
+import ImageUpload from "@/app/components/ImageUpload";
 
 type Props = {
-  session: BrewSession;
-  onUpdate: (updatedSession: BrewSession) => void;
+  session: any; // Use any to avoid type conflicts
+  onUpdate: (updatedSession: any) => void;
   onDelete: (sessionId: string) => void;
 };
 
@@ -52,9 +30,99 @@ export default function BrewSessionDetail({
   const [brewingDeviceId, setBrewingDeviceId] = useState(
     session.brewingDeviceId
   );
+  const [additionalDeviceIds, setAdditionalDeviceIds] = useState<string[]>([]);
   const [userDevices, setUserDevices] = useState<UserBrewingDevice[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dropdownStates, setDropdownStates] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [hoursStr, setHoursStr] = useState("");
+  const [minutesStr, setMinutesStr] = useState("");
+  const [secondsStr, setSecondsStr] = useState("");
+
+  // Toggle dropdown visibility for a specific device
+  const toggleDropdown = (deviceId: string) => {
+    setDropdownStates((prev) => ({
+      ...prev,
+      [deviceId]: !prev[deviceId],
+    }));
+  };
+
+  // Close all dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Check if the click is outside any dropdown button or dropdown content
+      const isOutsideDropdown = !Array.from(document.querySelectorAll('.dropdown-button, .dropdown-content'))
+        .some(el => el.contains(event.target as Node));
+      
+      if (isOutsideDropdown) {
+        setDropdownStates({});
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  // Handle making a device the primary device
+  const handleMakePrimary = async (deviceId: string) => {
+    // Get the current primary device ID
+    const currentPrimaryId = brewingDeviceId;
+
+    // Update state
+    setBrewingDeviceId(deviceId);
+    setAdditionalDeviceIds((prev) => [
+      currentPrimaryId,
+      ...prev.filter((id) => id !== deviceId),
+    ]);
+
+    // Update the session on the server
+    await updateSession({
+      brewingDeviceId: deviceId,
+      additionalDeviceIds: [
+        currentPrimaryId,
+        ...additionalDeviceIds.filter((id) => id !== deviceId),
+      ],
+    });
+  };
+
+  // Handle removing a device from the session
+  const handleRemoveDevice = async (deviceId: string) => {
+    // Update state
+    setAdditionalDeviceIds((prev) => prev.filter((id) => id !== deviceId));
+
+    // Update the session on the server
+    await updateSession({
+      additionalDeviceIds: additionalDeviceIds.filter((id) => id !== deviceId),
+    });
+  };
+
+  // Helper function to update the session
+  const updateSession = async (data: any) => {
+    try {
+      const response = await fetch(`/api/brew-sessions/${session.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const updatedSession = await response.json();
+        onUpdate(updatedSession);
+      } else {
+        console.error("Failed to update brew session");
+      }
+    } catch (error) {
+      console.error("Error updating brew session:", error);
+    }
+  };
 
   const fetchUserDevices = async () => {
     setIsLoading(true);
@@ -82,10 +150,25 @@ export default function BrewSessionDetail({
       setHours(h || 0);
       setMinutes(m || 0);
       setSeconds(s || 0);
+      setHoursStr(h ? h.toString() : "");
+      setMinutesStr(m ? m.toString() : "");
+      setSecondsStr(s ? s.toString() : "");
     }
     setName(session.name);
     setNotes(session.notes);
     setBrewingDeviceId(session.brewingDeviceId);
+    setImagePreview(session.image || null);
+
+    // Extract additional device IDs from session
+    if (session.additionalDevices && session.additionalDevices.length > 0) {
+      setAdditionalDeviceIds(
+        session.additionalDevices.map((device: UserBrewingDevice) => {
+          return device.brewingDevice.id;
+        })
+      );
+    } else {
+      setAdditionalDeviceIds([]);
+    }
   }, [session]);
 
   // Fetch user's brewing devices when editing starts
@@ -95,16 +178,67 @@ export default function BrewSessionDetail({
     }
   }, [isEditing]);
 
+  // Fetch user's brewing devices when the component mounts
+  useEffect(() => {
+    fetchUserDevices();
+  }, []);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setImageFile(file);
+
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleTimeChange = (hours: string, minutes: string, seconds: string) => {
+    setHoursStr(hours);
+    setMinutesStr(minutes);
+    setSecondsStr(seconds);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Convert string inputs to numbers, defaulting to 0 if empty
+    const hoursNum = hoursStr ? parseInt(hoursStr) : 0;
+    const minutesNum = minutesStr ? parseInt(minutesStr) : 0;
+    const secondsNum = secondsStr ? parseInt(secondsStr) : 0;
+
     // Format brew time as HH:MM:SS
-    const brewTime = `${hours.toString().padStart(2, "0")}:${minutes
+    const brewTime = `${hoursNum.toString().padStart(2, "0")}:${minutesNum
       .toString()
-      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+      .padStart(2, "0")}:${secondsNum.toString().padStart(2, "0")}`;
 
     try {
+      let imageUrl = session.image;
+
+      // Upload image if one was selected
+      if (imageFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", imageFile);
+        uploadFormData.append("context", "brew-session");
+
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.url;
+      }
+
       const response = await fetch(`/api/brew-sessions/${session.id}`, {
         method: "PATCH",
         headers: {
@@ -115,6 +249,8 @@ export default function BrewSessionDetail({
           notes,
           brewTime,
           brewingDeviceId,
+          additionalDeviceIds,
+          image: imageUrl,
         }),
       });
 
@@ -144,6 +280,18 @@ export default function BrewSessionDetail({
     <div className="bg-white coffee:bg-gray-800 rounded-lg shadow-md p-6">
       {isEditing ? (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Session image in edit mode */}
+          <ImageUpload
+            initialImage={imagePreview || session.image}
+            onImageChange={(file, preview) => {
+              setImageFile(file);
+              setImagePreview(preview);
+            }}
+            label="Brew Image (optional)"
+            height="md"
+            className="mb-4"
+          />
+
           <div>
             <label
               htmlFor="name"
@@ -162,101 +310,59 @@ export default function BrewSessionDetail({
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 coffee:text-gray-300 mb-1">
+              Brewing Devices
+            </label>
             <SearchableDropdown
-              options={userDevices.map(device => ({
+              options={userDevices.map((device) => ({
                 value: device.brewingDeviceId,
-                label: device.name
+                label: device.name,
               }))}
-              value={brewingDeviceId}
+              value={[brewingDeviceId, ...additionalDeviceIds]}
               onChange={(value) => {
-                // Handle both string and string[] types
-                if (Array.isArray(value)) {
-                  // If multiple selection is enabled but we only want one value
-                  setBrewingDeviceId(value[0] || "");
-                } else {
-                  // Single selection
+                if (Array.isArray(value) && value.length > 0) {
+                  // First value is the primary device
+                  setBrewingDeviceId(value[0]);
+                  // Rest are additional devices
+                  setAdditionalDeviceIds(value.slice(1));
+                } else if (typeof value === "string" && value) {
+                  // Single selection - set as primary device
                   setBrewingDeviceId(value);
+                  setAdditionalDeviceIds([]);
+                } else {
+                  // No selection
+                  setBrewingDeviceId("");
+                  setAdditionalDeviceIds([]);
                 }
               }}
-              label="Brewing Device"
-              placeholder={isLoading ? "Loading devices..." : "Search your devices..."}
+              label=""
+              placeholder={
+                isLoading ? "Loading devices..." : "Search your devices..."
+              }
               required
               disabled={isLoading || isSubmitting}
               className="mt-1"
-              noOptionsMessage={isLoading ? "Loading devices..." : "No devices found"}
-              multiple={false} // Explicitly set to false to ensure single selection
+              noOptionsMessage={
+                isLoading ? "Loading devices..." : "No devices found"
+              }
+              multiple={true}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              First device selected is the primary brewing device
+            </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 coffee:text-gray-300">
               Brew Time
             </label>
-            <div className="flex space-x-2 mt-1">
-              <div>
-                <label
-                  htmlFor="hours"
-                  className="block text-xs mb-1 text-gray-600 coffee:text-gray-400"
-                >
-                  Hours
-                </label>
-                <input
-                  type="number"
-                  id="hours"
-                  value={hours}
-                  onChange={(e) =>
-                    setHours(Math.max(0, Math.min(23, Number(e.target.value))))
-                  }
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 coffee:bg-gray-700 coffee:border-gray-600"
-                  min="0"
-                  max="23"
-                  step="1"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="minutes"
-                  className="block text-xs mb-1 text-gray-600 coffee:text-gray-400"
-                >
-                  Minutes
-                </label>
-                <input
-                  type="number"
-                  id="minutes"
-                  value={minutes}
-                  onChange={(e) =>
-                    setMinutes(
-                      Math.max(0, Math.min(59, Number(e.target.value)))
-                    )
-                  }
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 coffee:bg-gray-700 coffee:border-gray-600"
-                  min="0"
-                  max="59"
-                  step="1"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="seconds"
-                  className="block text-xs mb-1 text-gray-600 coffee:text-gray-400"
-                >
-                  Seconds
-                </label>
-                <input
-                  type="number"
-                  id="seconds"
-                  value={seconds}
-                  onChange={(e) =>
-                    setSeconds(
-                      Math.max(0, Math.min(59, Number(e.target.value)))
-                    )
-                  }
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 coffee:bg-gray-700 coffee:border-gray-600"
-                  min="0"
-                  max="59"
-                  step="1"
-                />
-              </div>
+            <div className="mt-1">
+              <TimeInput
+                initialHours={hours}
+                initialMinutes={minutes}
+                initialSeconds={seconds}
+                onChange={handleTimeChange}
+              />
             </div>
           </div>
 
@@ -299,9 +405,31 @@ export default function BrewSessionDetail({
               <h2 className="text-2xl font-bold text-gray-900 coffee:text-white">
                 {session.name}
               </h2>
-              <p className="text-sm text-gray-500 coffee:text-gray-400">
-                {formattedDate} • {session.brewingDevice.name}
-              </p>
+
+              {/* User and date information */}
+              <div className="flex items-center mt-2">
+                {session.user && (
+                  <div className="flex items-center mr-3">
+                    <div className="h-6 w-6 relative mr-2">
+                      <Image
+                        src={session.user.image || "/default-avatar.webp"}
+                        alt={session.user.name || "User"}
+                        width={24}
+                        height={24}
+                        className="rounded-full"
+                      />
+                    </div>
+                    <span className="text-sm text-gray-600 coffee:text-gray-300">
+                      {session.user.name}
+                    </span>
+                  </div>
+                )}
+                <p className="text-sm text-gray-500 coffee:text-gray-400">
+                  {formattedDate}
+                </p>
+              </div>
+
+              {/* Brew time */}
               {session.brewTime && (
                 <p className="text-sm text-gray-500 coffee:text-gray-400 mt-1">
                   Brew Time: {session.brewTime}
@@ -321,6 +449,135 @@ export default function BrewSessionDetail({
               >
                 Delete
               </button>
+            </div>
+          </div>
+
+          {/* Session image */}
+          {session.image && (
+            <div className="mb-6 rounded-lg overflow-hidden relative h-64 w-full">
+              <Image
+                src={session.image}
+                alt={session.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+          )}
+
+          {/* Brewing devices section */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium text-gray-900 coffee:text-white mb-2">
+              Brewing Devices
+            </h3>
+            <div className="flex flex-wrap gap-4">
+              {/* Primary brewing device */}
+              <div className="flex items-center bg-gray-50 coffee:bg-gray-700 rounded-lg p-3 relative">
+                <div className="h-12 w-12 relative mr-3">
+                  <Image
+                    src={
+                      session.brewingDevice.image || "/placeholder-device.png"
+                    }
+                    alt={session.brewingDevice.name}
+                    width={48}
+                    height={48}
+                    className="object-contain"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center">
+                    <p className="font-medium text-gray-900 coffee:text-white">
+                      {session.brewingDevice.name}
+                    </p>
+                    <Star className="h-4 w-4 ml-1 fill-yellow-400 text-yellow-400" />
+                  </div>
+                  <p className="text-xs text-gray-500 coffee:text-gray-400">
+                    Primary device
+                  </p>
+                </div>
+
+                {/* No dropdown for primary device in non-edit mode */}
+              </div>
+
+              {/* Additional brewing devices */}
+              {session.additionalDevices &&
+                session.additionalDevices.length > 0 &&
+                session.additionalDevices.map((device: UserBrewingDevice, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center bg-gray-50 coffee:bg-gray-700 rounded-lg p-3 relative"
+                  >
+                    <div className="h-12 w-12 relative mr-3">
+                      <Image
+                        src={
+                          device.brewingDevice.image ||
+                          "/placeholder-device.png"
+                        }
+                        alt={device.brewingDevice.name}
+                        width={48}
+                        height={48}
+                        className="object-contain"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 coffee:text-white">
+                        {device.brewingDevice.name}
+                      </p>
+                      <p className="text-xs text-gray-500 coffee:text-gray-400">
+                        Additional device
+                      </p>
+                    </div>
+
+                    {/* Dropdown menu */}
+                    <div className="absolute top-2 right-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          toggleDropdown(device.brewingDevice.id);
+                        }}
+                        className="p-1 rounded-full hover:bg-gray-200 coffee:hover:bg-gray-600 dropdown-button"
+                      >
+                        <MoreVertical className="h-4 w-4 text-gray-500 coffee:text-gray-400" />
+                      </button>
+
+                      {dropdownStates[device.brewingDevice.id] && (
+                        <div 
+                          className="absolute right-0 mt-1 w-48 rounded-md shadow-lg bg-white coffee:bg-gray-700 ring-1 ring-black ring-opacity-5 z-10 dropdown-content"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div
+                            className="py-1"
+                            role="menu"
+                            aria-orientation="vertical"
+                          >
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMakePrimary(device.brewingDevice.id);
+                              }}
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 coffee:text-gray-300 hover:bg-gray-100 coffee:hover:bg-gray-600 w-full text-left"
+                              role="menuitem"
+                            >
+                              <Star className="h-4 w-4 mr-2" />
+                              Make Primary
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveDevice(device.brewingDevice.id);
+                              }}
+                              className="flex items-center px-4 py-2 text-sm text-red-600 coffee:text-red-400 hover:bg-gray-100 coffee:hover:bg-gray-600 w-full text-left"
+                              role="menuitem"
+                            >
+                              <Trash className="h-4 w-4 mr-2" />
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
 

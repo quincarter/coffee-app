@@ -6,23 +6,9 @@ import { useRouter } from "next/navigation";
 import { Coffee, Plus, Clock, Star } from "lucide-react";
 import BrewSessionList from "../brew-log/components/BrewSessionList";
 import QuickBrewForm from "./components/QuickBrewForm";
-import { User, UserBrewingDevice } from "@prisma/client";
-
-export type BrewSession = {
-  id: string;
-  name: string;
-  notes: string;
-  userId: string;
-  brewingDeviceId: string;
-  brewTime: string;
-  brewingDevice: {
-    name: string;
-    image: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-  isFavorite?: boolean; // Optional since it's used in the dashboard
-};
+import { User } from "@prisma/client";
+import { BrewSession, UserBrewingDevice } from "@/app/types";
+import { toast } from "react-hot-toast";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -32,6 +18,7 @@ export default function Dashboard() {
   const [userDevices, setUserDevices] = useState<Array<UserBrewingDevice>>([]);
   const [showQuickBrew, setShowQuickBrew] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  console.log("user is here", user);
   useEffect(() => {
     async function fetchDashboardData() {
       try {
@@ -66,9 +53,12 @@ export default function Dashboard() {
   }, []);
 
   const handleBrewCreated = (newBrew: any) => {
+    // Add the new brew to the recent brews list
     setRecentBrews([newBrew, ...recentBrews]);
+    // Close the quick brew form
     setShowQuickBrew(false);
-    router.push(`/brew-log?session=${newBrew.id}`);
+    // Show a success toast notification
+    toast.success(`Brew "${newBrew.name}" created successfully!`);
   };
 
   const handleSelectBrew = (brew: { id: string }) => {
@@ -104,6 +94,7 @@ export default function Dashboard() {
 
           {showQuickBrew ? (
             <QuickBrewForm
+              userId={user?.id}
               userDevices={userDevices as any}
               onBrewCreated={handleBrewCreated}
               onCancel={() => setShowQuickBrew(false)}
@@ -172,28 +163,33 @@ export default function Dashboard() {
 
             <div>
               <div className="text-2xl font-bold">
-                {recentBrews?.length > 0 
+                {recentBrews?.length > 0
                   ? (() => {
                       // Count brews per device
-                      const deviceCounts = recentBrews.reduce((acc, brew) => {
-                        const deviceId = brew.brewingDeviceId;
-                        acc[deviceId] = (acc[deviceId] || 0) + 1;
-                        return acc;
-                      }, {} as Record<string, number>);
-                      
+                      const deviceCounts = recentBrews.reduce(
+                        (acc, brew) => {
+                          const deviceId = brew.brewingDeviceId;
+                          acc[deviceId] = (acc[deviceId] || 0) + 1;
+                          return acc;
+                        },
+                        {} as Record<string, number>
+                      );
+
                       // Find the highest count
                       const maxCount = Math.max(...Object.values(deviceCounts));
-                      
+
                       // Get all devices with that count (handles ties)
                       const topDeviceIds = Object.entries(deviceCounts)
                         .filter(([_, count]) => count === maxCount)
                         .map(([deviceId]) => deviceId);
-                      
+
                       // Map to device names
                       const topDeviceNames = topDeviceIds.map(
-                        id => userDevices.find(d => d.brewingDeviceId === id)?.name || "Unknown"
+                        (id) =>
+                          userDevices.find((d) => d.brewingDeviceId === id)
+                            ?.name || "Unknown"
                       );
-                      
+
                       // Join with commas if there are ties
                       return topDeviceNames.join(", ");
                     })()

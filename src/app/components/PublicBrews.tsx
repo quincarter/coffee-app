@@ -3,30 +3,7 @@
 import { useState, useEffect } from "react";
 import BrewItem from "./BrewItem";
 import Link from "next/link";
-
-type BrewSession = {
-  id: string;
-  name: string;
-  notes: string;
-  image?: string;
-  userId: string;
-  user?: {
-    name: string;
-    image?: string;
-  };
-  brewingDeviceId: string;
-  brewingDevice: {
-    name: string;
-    image: string;
-  };
-  userBrewingDevice?: {
-    image?: string;
-  };
-  isFavorite?: boolean;
-  createdAt: string;
-  updatedAt: string;
-  isPublic?: boolean;
-};
+import { BrewSession } from "@/app/types";
 
 export default function PublicBrews() {
   const [brews, setBrews] = useState<BrewSession[]>([]);

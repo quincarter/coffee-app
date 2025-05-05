@@ -1,21 +1,7 @@
 "use client";
 
 import BrewItem from "@/app/components/BrewItem";
-
-type BrewSession = {
-  id: string;
-  name: string;
-  notes: string;
-  userId: string;
-  brewingDeviceId: string;
-  brewingDevice: {
-    name: string;
-    image: string;
-  };
-  isFavorite?: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+import { BrewSession } from "@/app/types";
 
 type Props = {
   sessions: BrewSession[];
@@ -46,9 +32,9 @@ export default function BrewSessionList({
         {sessions.map((session) => (
           <BrewItem
             key={session.id}
-            session={session}
+            session={session as any} // Use type assertion to avoid type conflicts
             isSelected={selectedSessionId === session.id}
-            onClick={() => onSelectSession(session)}
+            onClick={() => onSelectSession(session as any)} // Use type assertion here too
             variant="card"
           />
         ))}
@@ -63,9 +49,9 @@ export default function BrewSessionList({
           {sessions.map((session) => (
             <li key={session.id}>
               <BrewItem
-                session={session}
+                session={session as any} // Use type assertion
                 isSelected={selectedSessionId === session.id}
-                onClick={() => onSelectSession(session)}
+                onClick={() => onSelectSession(session as any)} // Use type assertion
                 variant="timeline"
               />
             </li>
@@ -82,9 +68,9 @@ export default function BrewSessionList({
         {sessions.map((session) => (
           <li key={session.id}>
             <BrewItem
-              session={session}
+              session={session as any} // Use type assertion
               isSelected={selectedSessionId === session.id}
-              onClick={() => onSelectSession(session)}
+              onClick={() => onSelectSession(session as any)} // Use type assertion
               variant="list"
             />
           </li>

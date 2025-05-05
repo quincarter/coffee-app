@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import ImageUpload from "@/app/components/ImageUpload";
 
 type User = {
   id: string;
