@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     const notes = body.notes || "";
     const image = body.image || null;
     const isPublic = body.isPublic || false; // Default to false if not provided
+    const additionalDeviceIds = body.additionalDeviceIds || []; // New field for additional devices
 
     const userId = body.userId || (await getSession())?.userId;
 
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the brew session
+    // Create the brew session with the primary device
     const brewSession = await prisma.userBrewSession.create({
       data: {
         userId,
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
         brewingDeviceId,
         brewTime,
         image,
-        isPublic, // Add the isPublic field
+        isPublic,
       },
       include: {
         brewingDevice: {
@@ -61,7 +62,45 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(brewSession);
+    // If there are additional devices, create the relationships
+    if (additionalDeviceIds && additionalDeviceIds.length > 0) {
+      // Create a relationship for each additional device
+      await Promise.all(
+        additionalDeviceIds.map(async (deviceId: string) => {
+          return prisma.brewSessionDevice.create({
+            data: {
+              brewSessionId: brewSession.id,
+              brewingDeviceId: deviceId,
+            },
+          });
+        })
+      );
+    }
+
+    // Fetch the complete brew session with additional devices
+    const completeBrewSession = await prisma.userBrewSession.findUnique({
+      where: { id: brewSession.id },
+      include: {
+        brewingDevice: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+        additionalDevices: {
+          include: {
+            brewingDevice: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(completeBrewSession);
   } catch (error) {
     console.error("Error creating brew session:", error);
     return NextResponse.json(
@@ -98,7 +137,7 @@ export async function GET(request: NextRequest) {
     // Parse limit parameter, default to returning all if not specified
     const limit = limitParam ? parseInt(limitParam, 10) : undefined;
 
-    // First get the brew sessions
+    // First get the brew sessions with additional devices
     const brewSessions = await prisma.userBrewSession.findMany({
       where: { userId },
       include: {
@@ -112,6 +151,17 @@ export async function GET(request: NextRequest) {
           select: {
             name: true,
             image: true,
+          },
+        },
+        additionalDevices: {
+          include: {
+            brewingDevice: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
           },
         },
       },

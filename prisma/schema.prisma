@@ -17,7 +17,7 @@ model User {
   name              String
   email             String   @unique
   password          String
-  userRole              String   @default("user")
+  userRole          String   @default("user")
   image             String?
   backgroundImage   String?
   backgroundOpacity Float?   @default(0.8)
@@ -40,15 +40,15 @@ model BrewingDevice {
   updatedAt   DateTime @updatedAt
 
   UserBrewingDevice UserBrewingDevice[]
-
-  UserBrewSession UserBrewSession[]
+  UserBrewSession   UserBrewSession[]
+  BrewSessionDevice BrewSessionDevice[]
 }
 
 model UserBrewingDevice {
   id              String   @id @default(cuid())
   name            String
   description     String?
-  image           String?  // Add this field
+  image           String?
   userId          String
   brewingDeviceId String
   createdAt       DateTime @default(now())
@@ -77,6 +77,20 @@ model UserBrewSession {
   brewingDevice   BrewingDevice @relation(fields: [brewingDeviceId], references: [id])
 
   UserBrewingDevice UserBrewingDevice[]
+  additionalDevices BrewSessionDevice[]
+}
+
+// New model to support multiple brewing devices per session
+model BrewSessionDevice {
+  id              String   @id @default(cuid())
+  brewSessionId   String
+  brewingDeviceId String
+  createdAt       DateTime @default(now())
+
+  brewSession   UserBrewSession @relation(fields: [brewSessionId], references: [id], onDelete: Cascade)
+  brewingDevice BrewingDevice   @relation(fields: [brewingDeviceId], references: [id])
+
+  @@unique([brewSessionId, brewingDeviceId])
 }
 
 model PasswordReset {

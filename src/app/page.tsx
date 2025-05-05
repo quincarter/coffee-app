@@ -83,7 +83,9 @@ export default async function Home() {
             </div>
             <div className="card bg-base-100 shadow-md">
               <div className="card-body">
-                <h3 className="card-title text-secondary">Discover Patterns</h3>
+                <h3 className="card-title text-secondary">
+                  Measure Everything
+                </h3>
                 <p>Calculate your coffee-to-water ratio for optimal flavor.</p>
               </div>
             </div>
