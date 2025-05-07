@@ -30,7 +30,6 @@ const registerFormSchema = z
   });
 
 export default function RegisterForm() {
-  const router = useRouter();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);

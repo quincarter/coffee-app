@@ -5,7 +5,7 @@ import LoginForm from "./LoginForm";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { registered?: string; reset?: string };
+  searchParams: Promise<any>;
 }) {
   // Check if user is already logged in
   const session = await getSession();
