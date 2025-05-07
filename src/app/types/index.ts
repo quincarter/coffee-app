@@ -1,5 +1,15 @@
 // Common types used across the application
 
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  image?: string | null;
+  userRole: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type BrewSession = {
   id: string;
   name: string;

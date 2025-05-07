@@ -24,8 +24,6 @@ export default function BrewItem({
 }: Props) {
   const [favorite, setFavorite] = useState(session.isFavorite || false);
 
-  console.log("Session with user:", session);
-
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the parent onClick
 

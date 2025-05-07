@@ -1,10 +1,10 @@
 "use client";
 
-import SearchableDropdown from "@/app/components/SearchableDropdown";
-import { X, Trash } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
-import { BrewSession, UserBrewingDevice } from "@/app/types";
 import ImageUpload from "@/app/components/ImageUpload";
+import SearchableDropdown from "@/app/components/SearchableDropdown";
+import { BrewSession, UserBrewingDevice } from "@/app/types";
+import { X } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
 
 type Props = {
   userId?: string;
@@ -24,9 +24,6 @@ export default function NewBrewForm({
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([]);
-  const [hours, setHours] = useState(0);
-  const [minutes, setMinutes] = useState(0);
-  const [seconds, setSeconds] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -72,20 +69,6 @@ export default function NewBrewForm({
     setShowQuickDeviceModal(true);
     // Start animation after a tiny delay to ensure the modal is in the DOM
     setTimeout(() => setModalAnimation(true), 10);
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setImageFile(file);
-
-      // Create a preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const handleQuickDeviceImageChange = (
@@ -181,7 +164,6 @@ export default function NewBrewForm({
         ...(imageUrl && { image: imageUrl }),
         isPublic,
       };
-      console.log("Submitting payload:", payload);
 
       const response = await fetch("/api/brew-sessions", {
         method: "POST",
@@ -258,21 +240,39 @@ export default function NewBrewForm({
           value={selectedDeviceIds}
           onChange={(value) => {
             if (Array.isArray(value)) {
-              // Preserve the existing order of devices that are still selected
-              const existingDevices = selectedDeviceIds.filter(id => 
-                value.includes(id)
+              // Check for duplicate device types
+              const selectedDevices = value.map((id) =>
+                userDevices.find((d) => d.id === id)
               );
-              
-              // Add newly selected devices that weren't in the previous selection
-              const newDevices = value.filter(id => 
-                !selectedDeviceIds.includes(id)
+              const deviceTypeCounts = selectedDevices.reduce(
+                (acc, device) => {
+                  if (device) {
+                    acc[device.brewingDeviceId] =
+                      (acc[device.brewingDeviceId] || 0) + 1;
+                  }
+                  return acc;
+                },
+                {} as Record<string, number>
               );
-              
-              // Combine existing (in their original order) with new devices
-              setSelectedDeviceIds([...existingDevices, ...newDevices]);
+
+              const hasDuplicates = Object.values(deviceTypeCounts).some(
+                (count) => count > 1
+              );
+
+              if (hasDuplicates) {
+                setDeviceError(
+                  "You cannot select multiple devices of the same type"
+                );
+                return;
+              }
+
+              setDeviceError(null);
+              // Simply use the value array as is - first item is primary
+              setSelectedDeviceIds(value);
             } else {
               // Single selection case - just use the value
               setSelectedDeviceIds([value].filter(Boolean));
+              setDeviceError(null);
             }
           }}
           onSearch={setSearchTerm}
@@ -280,9 +280,10 @@ export default function NewBrewForm({
           placeholder="Search your devices..."
           required
           error={
-            error && selectedDeviceIds.length === 0
+            deviceError ||
+            (error && selectedDeviceIds.length === 0
               ? "At least one brewing device is required"
-              : undefined
+              : undefined)
           }
           className={isQuickForm ? "text-sm" : ""}
           noOptionsMessage={
@@ -330,7 +331,9 @@ export default function NewBrewForm({
               type="text"
               id="hours"
               value={hoursStr}
-              onChange={(e) => setHoursStr(validateTimeInput(e.target.value, 23))}
+              onChange={(e) =>
+                setHoursStr(validateTimeInput(e.target.value, 23))
+              }
               className={
                 isQuickForm
                   ? "input input-bordered input-sm w-full"
@@ -346,7 +349,9 @@ export default function NewBrewForm({
               type="text"
               id="minutes"
               value={minutesStr}
-              onChange={(e) => setMinutesStr(validateTimeInput(e.target.value, 59))}
+              onChange={(e) =>
+                setMinutesStr(validateTimeInput(e.target.value, 59))
+              }
               className={
                 isQuickForm
                   ? "input input-bordered input-sm w-full"
@@ -362,7 +367,9 @@ export default function NewBrewForm({
               type="text"
               id="seconds"
               value={secondsStr}
-              onChange={(e) => setSecondsStr(validateTimeInput(e.target.value, 59))}
+              onChange={(e) =>
+                setSecondsStr(validateTimeInput(e.target.value, 59))
+              }
               className={
                 isQuickForm
                   ? "input input-bordered input-sm w-full"
@@ -465,12 +472,6 @@ export default function NewBrewForm({
     setDeviceError(null);
 
     try {
-      // Debug logs to see what values we have
-      console.log("Form submission values:");
-      console.log("Device name:", quickDeviceName);
-      console.log("Device description:", quickDeviceDescription);
-      console.log("Selected device type:", selectedDeviceType);
-      console.log("User ID:", userId);
 
       if (!quickDeviceName.trim()) {
         throw new Error("Device name is required");
@@ -510,8 +511,6 @@ export default function NewBrewForm({
         ...(imageUrl && { image: imageUrl }),
       };
 
-      console.log("Submitting payload:", payload);
-
       const response = await fetch("/api/user-brewing-devices", {
         method: "POST",
         headers: {
@@ -529,10 +528,9 @@ export default function NewBrewForm({
       }
 
       const newDevice = await response.json();
-      console.log("New device created:", newDevice);
 
       // Add the new device to the list and select it
-      userDevices.push(newDevice);
+      userDevices = [...userDevices, newDevice];
       setSelectedDeviceIds([...selectedDeviceIds, newDevice.id]);
 
       // Close the modal with animation
@@ -562,7 +560,6 @@ export default function NewBrewForm({
           throw new Error("Failed to fetch device types");
         }
         const data = await response.json();
-        console.log("Available device types:", data); // Debug log
         setAvailableDeviceTypes(data);
       } catch (err) {
         console.error("Error fetching device types:", err);

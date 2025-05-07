@@ -64,7 +64,9 @@ export default function SearchableDropdown({
 
   // Find the selected option labels for multiple selection
   const selectedOptions = multiple
-    ? options.filter((option) => selectedValues.includes(option.value))
+    ? selectedValues
+        .map((value) => options.find((option) => option.value === value))
+        .filter((option): option is Option => option !== undefined)
     : [];
 
   // Find the selected option label for single selection
@@ -151,7 +153,6 @@ export default function SearchableDropdown({
       e.preventDefault();
       if (filteredOptions.length > 0) {
         const selectedValue = filteredOptions[highlightedIndex].value;
-        console.log("Enter pressed, selecting:", selectedValue); // Debug log
         handleOptionClick(selectedValue);
       }
     } else if (e.key === "Escape") {
