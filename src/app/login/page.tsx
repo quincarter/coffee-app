@@ -2,16 +2,25 @@ import { getSession } from "../lib/session";
 import { redirect } from "next/navigation";
 import LoginForm from "./LoginForm";
 
+type SearchParams = {
+  registered?: string;
+  reset?: string;
+};
+
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<any>;
+  searchParams: Promise<SearchParams>;
 }) {
   // Check if user is already logged in
   const session = await getSession();
   if (session) {
     redirect("/dashboard");
   }
+
+  const params = await searchParams;
+  const registered = params.registered === "true";
+  const reset = params.reset === "success";
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 relative">
@@ -35,9 +44,9 @@ export default async function LoginPage({
 
         <LoginForm
           successMessage={
-            (await searchParams).registered === "true"
+            registered
               ? "Account created successfully! Please sign in."
-              : (await searchParams).reset === "success"
+              : reset
                 ? "Password reset successful! Please sign in."
                 : null
           }
