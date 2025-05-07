@@ -4,11 +4,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import LogoutButton from "./LogoutButton";
+import { useEffect, useState } from "react";
 
 export default function HeaderNav({ session }: { session: any }) {
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
   const isRegisterPage = pathname === "/register";
+  const [mounted, setMounted] = useState(false);
+
+  // Handle hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render anything until after hydration
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-10 bg-base-100/80 backdrop-blur-sm border-b">
@@ -62,6 +74,10 @@ export default function HeaderNav({ session }: { session: any }) {
                     width={40}
                     height={40}
                     className="rounded-full"
+                    priority
+                    onError={(e) => {
+                      e.currentTarget.src = "/default-avatar.webp";
+                    }}
                   />
                 </div>
               </div>

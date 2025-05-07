@@ -68,18 +68,12 @@ export async function POST(request: Request) {
         email: user.email,
         name: user.name,
         role: user.userRole,
-        image: user.image,
+        image: user.image || "/default-avatar.webp", // Ensure we always have an image URL
       },
     };
 
     // Encrypt the session and set as a cookie
-    const encryptedSession = await encrypt({
-      ...session,
-      user: {
-        ...session.user,
-        image: session.user.image || undefined
-      }
-    });
+    const encryptedSession = await encrypt(session);
     (await cookies()).set("session", encryptedSession, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
