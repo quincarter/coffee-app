@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import SearchableDropdown from "@/app/components/SearchableDropdown";
-import Image from "next/image";
-import { MoreVertical, Star, Trash } from "lucide-react";
-import { BrewSession, UserBrewingDevice } from "@/app/types";
-import { BrewingDevice } from "@prisma/client";
-import TimeInput from "@/app/components/TimeInput";
 import ImageUpload from "@/app/components/ImageUpload";
+import SearchableDropdown from "@/app/components/SearchableDropdown";
+import TimeInput from "@/app/components/TimeInput";
+import { UserBrewingDevice } from "@/app/types";
+import { format } from "date-fns";
+import { MoreVertical, Star, Trash } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
 type Props = {
   session: any; // Use any to avoid type conflicts
@@ -42,6 +41,7 @@ export default function BrewSessionDetail({
   const [hoursStr, setHoursStr] = useState("");
   const [minutesStr, setMinutesStr] = useState("");
   const [secondsStr, setSecondsStr] = useState("");
+  const [deviceError, setDeviceError] = useState<string | null>(null);
 
   // Toggle dropdown visibility for a specific device
   const toggleDropdown = (deviceId: string) => {
@@ -55,9 +55,10 @@ export default function BrewSessionDetail({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // Check if the click is outside any dropdown button or dropdown content
-      const isOutsideDropdown = !Array.from(document.querySelectorAll('.dropdown-button, .dropdown-content'))
-        .some(el => el.contains(event.target as Node));
-      
+      const isOutsideDropdown = !Array.from(
+        document.querySelectorAll(".dropdown-button, .dropdown-content")
+      ).some((el) => el.contains(event.target as Node));
+
       if (isOutsideDropdown) {
         setDropdownStates({});
       }
@@ -197,7 +198,11 @@ export default function BrewSessionDetail({
     }
   };
 
-  const handleTimeChange = (hours: string, minutes: string, seconds: string) => {
+  const handleTimeChange = (
+    hours: string,
+    minutes: string,
+    seconds: string
+  ) => {
     setHoursStr(hours);
     setMinutesStr(minutes);
     setSecondsStr(seconds);
@@ -315,24 +320,88 @@ export default function BrewSessionDetail({
             </label>
             <SearchableDropdown
               options={userDevices.map((device) => ({
-                value: device.brewingDeviceId,
+                value: device.id,
                 label: device.name,
               }))}
-              value={[brewingDeviceId, ...additionalDeviceIds]}
+              value={[
+                userDevices.find((d) => d.brewingDeviceId === brewingDeviceId)
+                  ?.id || "",
+                ...additionalDeviceIds
+                  .map(
+                    (id) =>
+                      userDevices.find((d) => d.brewingDeviceId === id)?.id ||
+                      ""
+                  )
+                  .filter(Boolean),
+              ]}
               onChange={(value) => {
-                if (Array.isArray(value) && value.length > 0) {
-                  // First value is the primary device
-                  setBrewingDeviceId(value[0]);
-                  // Rest are additional devices
-                  setAdditionalDeviceIds(value.slice(1));
+                if (Array.isArray(value)) {
+                  if (value.length === 0) {
+                    // If all chips are removed, clear both primary and additional devices
+                    setBrewingDeviceId("");
+                    setAdditionalDeviceIds([]);
+                    setDeviceError(null);
+                  } else {
+                    // Get the brewingDeviceId for the first selected device
+                    const primaryUserDevice = userDevices.find(
+                      (d) => d.id === value[0]
+                    );
+                    if (primaryUserDevice) {
+                      // Check for duplicate device types
+                      const selectedDevices = value.map((id) =>
+                        userDevices.find((d) => d.id === id)
+                      );
+                      const deviceTypeCounts = selectedDevices.reduce(
+                        (acc, device) => {
+                          if (device) {
+                            acc[device.brewingDeviceId] =
+                              (acc[device.brewingDeviceId] || 0) + 1;
+                          }
+                          return acc;
+                        },
+                        {} as Record<string, number>
+                      );
+
+                      const hasDuplicates = Object.values(
+                        deviceTypeCounts
+                      ).some((count) => count > 1);
+
+                      if (hasDuplicates) {
+                        setDeviceError(
+                          "You cannot select multiple devices of the same type"
+                        );
+                        return;
+                      }
+
+                      setDeviceError(null);
+                      setBrewingDeviceId(primaryUserDevice.brewingDeviceId);
+                      // Get brewingDeviceIds for the remaining devices
+                      const additionalIds = value
+                        .slice(1)
+                        .map(
+                          (id) =>
+                            userDevices.find((d) => d.id === id)
+                              ?.brewingDeviceId
+                        )
+                        .filter(Boolean) as string[];
+                      setAdditionalDeviceIds(additionalIds);
+                    }
+                  }
                 } else if (typeof value === "string" && value) {
                   // Single selection - set as primary device
-                  setBrewingDeviceId(value);
-                  setAdditionalDeviceIds([]);
+                  const selectedDevice = userDevices.find(
+                    (d) => d.id === value
+                  );
+                  if (selectedDevice) {
+                    setBrewingDeviceId(selectedDevice.brewingDeviceId);
+                    setAdditionalDeviceIds([]);
+                    setDeviceError(null);
+                  }
                 } else {
                   // No selection
                   setBrewingDeviceId("");
                   setAdditionalDeviceIds([]);
+                  setDeviceError(null);
                 }
               }}
               label=""
@@ -346,6 +415,7 @@ export default function BrewSessionDetail({
                 isLoading ? "Loading devices..." : "No devices found"
               }
               multiple={true}
+              error={deviceError || undefined}
             />
             <p className="text-xs text-gray-500 mt-1">
               First device selected is the primary brewing device
@@ -475,9 +545,17 @@ export default function BrewSessionDetail({
                 <div className="h-12 w-12 relative mr-3">
                   <Image
                     src={
-                      session.brewingDevice.image || "/placeholder-device.png"
+                      userDevices.find(
+                        (d) => d.brewingDeviceId === session.brewingDeviceId
+                      )?.image ||
+                      session.brewingDevice.image ||
+                      "/placeholder-device.png"
                     }
-                    alt={session.brewingDevice.name}
+                    alt={
+                      userDevices.find(
+                        (d) => d.brewingDeviceId === session.brewingDeviceId
+                      )?.name || session.brewingDevice.name
+                    }
                     width={48}
                     height={48}
                     className="object-contain"
@@ -486,7 +564,9 @@ export default function BrewSessionDetail({
                 <div>
                   <div className="flex items-center">
                     <p className="font-medium text-gray-900 coffee:text-white">
-                      {session.brewingDevice.name}
+                      {userDevices.find(
+                        (d) => d.brewingDeviceId === session.brewingDeviceId
+                      )?.name || session.brewingDevice.name}
                     </p>
                     <Star className="h-4 w-4 ml-1 fill-yellow-400 text-yellow-400" />
                   </div>
@@ -501,83 +581,96 @@ export default function BrewSessionDetail({
               {/* Additional brewing devices */}
               {session.additionalDevices &&
                 session.additionalDevices.length > 0 &&
-                session.additionalDevices.map((device: UserBrewingDevice, index: number) => (
-                  <div
-                    key={index}
-                    className="flex items-center bg-gray-50 coffee:bg-gray-700 rounded-lg p-3 relative"
-                  >
-                    <div className="h-12 w-12 relative mr-3">
-                      <Image
-                        src={
-                          device.brewingDevice.image ||
-                          "/placeholder-device.png"
-                        }
-                        alt={device.brewingDevice.name}
-                        width={48}
-                        height={48}
-                        className="object-contain"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 coffee:text-white">
-                        {device.brewingDevice.name}
-                      </p>
-                      <p className="text-xs text-gray-500 coffee:text-gray-400">
-                        Additional device
-                      </p>
-                    </div>
+                session.additionalDevices.map(
+                  (device: UserBrewingDevice, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-center bg-gray-50 coffee:bg-gray-700 rounded-lg p-3 relative"
+                    >
+                      <div className="h-12 w-12 relative mr-3">
+                        <Image
+                          src={
+                            userDevices.find(
+                              (d) =>
+                                d.brewingDeviceId === device.brewingDevice.id
+                            )?.image ||
+                            device.brewingDevice.image ||
+                            "/placeholder-device.png"
+                          }
+                          alt={
+                            userDevices.find(
+                              (d) =>
+                                d.brewingDeviceId === device.brewingDevice.id
+                            )?.name || device.brewingDevice.name
+                          }
+                          width={48}
+                          height={48}
+                          className="object-contain"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 coffee:text-white">
+                          {userDevices.find(
+                            (d) => d.brewingDeviceId === device.brewingDevice.id
+                          )?.name || device.brewingDevice.name}
+                        </p>
+                        <p className="text-xs text-gray-500 coffee:text-gray-400">
+                          Additional device
+                        </p>
+                      </div>
 
-                    {/* Dropdown menu */}
-                    <div className="absolute top-2 right-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          toggleDropdown(device.brewingDevice.id);
-                        }}
-                        className="p-1 rounded-full hover:bg-gray-200 coffee:hover:bg-gray-600 dropdown-button"
-                      >
-                        <MoreVertical className="h-4 w-4 text-gray-500 coffee:text-gray-400" />
-                      </button>
-
-                      {dropdownStates[device.brewingDevice.id] && (
-                        <div 
-                          className="absolute right-0 mt-1 w-48 rounded-md shadow-lg bg-white coffee:bg-gray-700 ring-1 ring-black ring-opacity-5 z-10 dropdown-content"
-                          onClick={(e) => e.stopPropagation()}
+                      {/* Dropdown menu */}
+                      <div className="absolute top-2 right-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            toggleDropdown(device.brewingDevice.id);
+                          }}
+                          className="p-1 rounded-full hover:bg-gray-200 coffee:hover:bg-gray-600 dropdown-button"
                         >
+                          <MoreVertical className="h-4 w-4 text-gray-500 coffee:text-gray-400" />
+                        </button>
+
+                        {dropdownStates[device.brewingDevice.id] && (
                           <div
-                            className="py-1"
-                            role="menu"
-                            aria-orientation="vertical"
+                            className="absolute right-0 mt-1 w-48 rounded-md shadow-lg bg-white coffee:bg-gray-700 ring-1 ring-black ring-opacity-5 z-10 dropdown-content"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleMakePrimary(device.brewingDevice.id);
-                              }}
-                              className="flex items-center px-4 py-2 text-sm text-gray-700 coffee:text-gray-300 hover:bg-gray-100 coffee:hover:bg-gray-600 w-full text-left"
-                              role="menuitem"
+                            <div
+                              className="py-1"
+                              role="menu"
+                              aria-orientation="vertical"
                             >
-                              <Star className="h-4 w-4 mr-2" />
-                              Make Primary
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveDevice(device.brewingDevice.id);
-                              }}
-                              className="flex items-center px-4 py-2 text-sm text-red-600 coffee:text-red-400 hover:bg-gray-100 coffee:hover:bg-gray-600 w-full text-left"
-                              role="menuitem"
-                            >
-                              <Trash className="h-4 w-4 mr-2" />
-                              Remove
-                            </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMakePrimary(device.brewingDevice.id);
+                                }}
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 coffee:text-gray-300 hover:bg-gray-100 coffee:hover:bg-gray-600 w-full text-left"
+                                role="menuitem"
+                              >
+                                <Star className="h-4 w-4 mr-2" />
+                                Make Primary
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveDevice(device.brewingDevice.id);
+                                }}
+                                className="flex items-center px-4 py-2 text-sm text-red-600 coffee:text-red-400 hover:bg-gray-100 coffee:hover:bg-gray-600 w-full text-left"
+                                role="menuitem"
+                              >
+                                <Trash className="h-4 w-4 mr-2" />
+                                Remove
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
             </div>
           </div>
 

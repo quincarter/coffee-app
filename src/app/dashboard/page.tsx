@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import { Coffee, Plus, Clock, Star } from "lucide-react";
 import BrewSessionList from "../brew-log/components/BrewSessionList";
 import QuickBrewForm from "./components/QuickBrewForm";
-import { User } from "@prisma/client";
-import { BrewSession, UserBrewingDevice } from "@/app/types";
+import { BrewSession, UserBrewingDevice, User } from "@/app/types";
 import { toast } from "react-hot-toast";
 
 export default function Dashboard() {
@@ -15,35 +14,49 @@ export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [recentBrews, setRecentBrews] = useState<Array<BrewSession>>([]);
   const [favoriteBrews, setFavoriteBrews] = useState<Array<BrewSession>>([]);
+  const [totalFavorites, setTotalFavorites] = useState(0);
+  const [totalBrews, setTotalBrews] = useState(0);
   const [userDevices, setUserDevices] = useState<Array<UserBrewingDevice>>([]);
   const [showQuickBrew, setShowQuickBrew] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  console.log("user is here", user);
+
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const [userRes, brewsRes, devicesRes] = await Promise.all([
-          fetch("/api/user/profile"),
-          fetch(`/api/brew-sessions?limit=5`),
-          fetch("/api/user-brewing-devices"),
-        ]);
+        const [userRes, brewsRes, devicesRes, favoritesRes, totalBrewsRes] =
+          await Promise.all([
+            fetch("/api/user/profile"),
+            fetch("/api/brew-sessions?limit=5"),
+            fetch("/api/user-brewing-devices"),
+            fetch("/api/brew-sessions/favorites?recentOnly=true"),
+            fetch("/api/brew-sessions/count"),
+          ]);
 
-        if (!userRes.ok || !brewsRes.ok || !devicesRes.ok) {
+        if (
+          !userRes.ok ||
+          !brewsRes.ok ||
+          !devicesRes.ok ||
+          !favoritesRes.ok ||
+          !totalBrewsRes.ok
+        ) {
           throw new Error("Failed to fetch dashboard data");
         }
 
         const userData = await userRes.json();
         const brewsData = await brewsRes.json();
         const devicesData = await devicesRes.json();
+        const favoritesData = await favoritesRes.json();
+        const totalBrewsData = await totalBrewsRes.json();
 
         setUser(userData);
         setRecentBrews(brewsData);
-        setFavoriteBrews(
-          brewsData?.filter((brew: BrewSession) => brew.isFavorite)
-        );
+        setFavoriteBrews(favoritesData.brews);
+        setTotalFavorites(favoritesData.total);
+        setTotalBrews(totalBrewsData.total);
         setUserDevices(devicesData);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
+        toast.error("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
@@ -55,6 +68,8 @@ export default function Dashboard() {
   const handleBrewCreated = (newBrew: any) => {
     // Add the new brew to the recent brews list
     setRecentBrews([newBrew, ...recentBrews]);
+    // Update total brews count
+    setTotalBrews((prev) => prev + 1);
     // Close the quick brew form
     setShowQuickBrew(false);
     // Show a success toast notification
@@ -131,14 +146,12 @@ export default function Dashboard() {
                 </div>
               ))}
 
-              {favoriteBrews.length > 3 && (
-                <Link
-                  href="/brew-log?filter=favorites"
-                  className="text-sm text-blue-500 hover:text-blue-600 block mt-2"
-                >
-                  View all favorites
-                </Link>
-              )}
+              <Link
+                href="/favorites"
+                className="text-sm text-blue-500 hover:text-blue-600 block mt-2"
+              >
+                View all {totalFavorites} favorites
+              </Link>
             </div>
           ) : (
             <p className="text-gray-500 coffee:text-gray-400 text-sm">
@@ -155,10 +168,15 @@ export default function Dashboard() {
 
           <div className="space-y-4">
             <div>
-              <div className="text-2xl font-bold">{recentBrews?.length}</div>
-              <div className="text-sm text-gray-500 coffee:text-gray-400">
-                Total brews
-              </div>
+              <Link href="/brew-log" className="group">
+                <div className="text-2xl font-bold group-hover:text-blue-500 transition-colors">
+                  {totalBrews}
+                </div>
+                <div className="text-sm text-gray-500 coffee:text-gray-400 flex items-center">
+                  Total brews
+                  <span className="ml-2 text-blue-500">View all →</span>
+                </div>
+              </Link>
             </div>
 
             <div>
