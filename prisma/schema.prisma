@@ -21,6 +21,9 @@ model User {
   image             String?
   backgroundImage   String?
   backgroundOpacity Float?   @default(0.8)
+  emailVerified     DateTime?
+  verifyToken       String?   @unique
+  verifyTokenExpires DateTime?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   passwordReset     PasswordReset?

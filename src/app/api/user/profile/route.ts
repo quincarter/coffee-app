@@ -6,12 +6,37 @@ import { prisma } from "@/app/lib/db";
 export async function GET() {
   try {
     const session = await getSession();
+    console.log("Session in profile API:", JSON.stringify(session, null, 2));
 
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      console.log("No session found");
+      return NextResponse.json(
+        { error: "Unauthorized", details: "No valid session found" },
+        { status: 401 }
+      );
     }
 
-    const user = await prisma.user.findUnique({
+    if (!session.userId || !session.user?.email) {
+      console.log("Invalid session data:", session);
+      return NextResponse.json(
+        {
+          error: "Invalid session",
+          details: "Session missing required user data",
+        },
+        { status: 401 }
+      );
+    }
+
+    console.log("Looking for user with ID:", session.userId);
+
+    // First, let's check if the user exists at all
+    const allUsers = await prisma.user.findMany({
+      select: { id: true, email: true },
+    });
+    console.log("All users in database:", allUsers);
+
+    // Try to find user by ID first
+    let user = await prisma.user.findUnique({
       where: { id: session.userId },
       select: {
         id: true,
@@ -19,20 +44,112 @@ export async function GET() {
         email: true,
         userRole: true,
         image: true,
+        emailVerified: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // If not found by ID, try to find by email
+    if (!user && session.user.email) {
+      console.log(
+        "User not found by ID, trying to find by email:",
+        session.user.email
+      );
+      try {
+        user = await prisma.user.findUnique({
+          where: { email: session.user.email },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            userRole: true,
+            image: true,
+            emailVerified: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+
+        // If found by email, update the ID to match the session
+        if (user) {
+          console.log("Found user by email, updating ID to match session");
+          try {
+            user = await prisma.user.update({
+              where: { email: session.user.email },
+              data: { id: session.userId },
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                userRole: true,
+                image: true,
+                emailVerified: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            });
+            console.log("Successfully updated user ID");
+          } catch (updateError) {
+            console.error("Error updating user ID:", updateError);
+            return NextResponse.json(
+              {
+                error: "Failed to update user ID",
+                details: "Could not update user ID to match session",
+                originalError:
+                  updateError instanceof Error
+                    ? updateError.message
+                    : "Unknown error",
+              },
+              { status: 500 }
+            );
+          }
+        }
+      } catch (findError) {
+        console.error("Error finding user by email:", findError);
+        return NextResponse.json(
+          {
+            error: "Failed to find user by email",
+            details: "Error occurred while searching for user by email",
+            originalError:
+              findError instanceof Error ? findError.message : "Unknown error",
+          },
+          { status: 500 }
+        );
+      }
     }
 
-    return NextResponse.json(user);
+    console.log("Found user:", JSON.stringify(user, null, 2));
+
+    if (!user) {
+      console.log("User not found in database");
+      return NextResponse.json(
+        {
+          error: "User not found",
+          details: "No user found with the provided session data",
+          sessionEmail: session.user.email,
+          sessionId: session.userId,
+        },
+        { status: 404 }
+      );
+    }
+
+    // Transform the response to match the session format
+    const response = {
+      ...user,
+      role: user.userRole, // Add role field to match session format
+      emailVerified: !!user.emailVerified, // Convert to boolean
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching user profile:", error);
     return NextResponse.json(
-      { error: "Failed to fetch user profile" },
+      {
+        error: "Failed to fetch user profile",
+        details: "An unexpected error occurred",
+        originalError: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

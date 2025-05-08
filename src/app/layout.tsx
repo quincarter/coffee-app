@@ -6,6 +6,7 @@ import "./globals.css";
 import { getSession } from "./lib/session";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import HeaderNav from "./components/HeaderNav";
+import EmailVerificationBanner from "@/app/components/EmailVerificationBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,8 +47,18 @@ export default async function RootLayout({
       <body className="min-h-screen">
         <ThemeProvider>
           <div className="flex flex-col min-h-screen relative">
-            {session && <BackgroundImage />}
+            {session && (
+              <BackgroundImage
+                backgroundImage={
+                  session.user?.backgroundImage || "/chemex-brewing-landing.png"
+                }
+                opacity={session.user?.backgroundOpacity || 0.4}
+              />
+            )}
             <HeaderNav session={session} />
+
+            {/* Email verification banner for logged-in users */}
+            {session && <EmailVerificationBanner />}
 
             {/* Main content with padding for mobile bottom nav only when logged in */}
             <main className={`flex-grow ${session ? "pb-16 md:pb-0" : ""}`}>

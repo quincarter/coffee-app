@@ -32,14 +32,31 @@ export default function Dashboard() {
             fetch("/api/brew-sessions/count"),
           ]);
 
-        if (
-          !userRes.ok ||
-          !brewsRes.ok ||
-          !devicesRes.ok ||
-          !favoritesRes.ok ||
-          !totalBrewsRes.ok
-        ) {
-          throw new Error("Failed to fetch dashboard data");
+        // Check each response individually
+        if (!userRes.ok) {
+          throw new Error(
+            `Failed to fetch user profile: ${userRes.status} ${userRes.statusText}`
+          );
+        }
+        if (!brewsRes.ok) {
+          throw new Error(
+            `Failed to fetch brew sessions: ${brewsRes.status} ${brewsRes.statusText}`
+          );
+        }
+        if (!devicesRes.ok) {
+          throw new Error(
+            `Failed to fetch user devices: ${devicesRes.status} ${devicesRes.statusText}`
+          );
+        }
+        if (!favoritesRes.ok) {
+          throw new Error(
+            `Failed to fetch favorites: ${favoritesRes.status} ${favoritesRes.statusText}`
+          );
+        }
+        if (!totalBrewsRes.ok) {
+          throw new Error(
+            `Failed to fetch total brews: ${totalBrewsRes.status} ${totalBrewsRes.statusText}`
+          );
         }
 
         const userData = await userRes.json();
@@ -56,7 +73,11 @@ export default function Dashboard() {
         setUserDevices(devicesData);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
-        toast.error("Failed to load dashboard data");
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to load dashboard data"
+        );
       } finally {
         setLoading(false);
       }
@@ -244,7 +265,7 @@ export default function Dashboard() {
             </p>
             <button
               onClick={() => setShowQuickBrew(true)}
-              className="mt-4 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg inline-flex items-center transition"
+              className="mt-4 btn btn-primary inline-flex items-center"
             >
               <Plus className="mr-2 h-4 w-4" />
               Start your first brew

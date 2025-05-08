@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { parseRegisterInput } from "@/app/lib/validations";
-import { encrypt } from "@/app/lib/session";
+import { encrypt, Session } from "@/app/lib/session";
 import { cookies } from "next/headers";
 import { hash } from "bcrypt";
 import prisma from "@/app/lib/db";
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     });
 
     // Create a session with user data
-    const session = {
+    const session: Session = {
       userId: user.id,
       user: {
         id: user.id,
@@ -69,6 +69,8 @@ export async function POST(request: Request) {
         name: user.name,
         role: user.userRole,
         image: user.image || "/default-avatar.webp", // Ensure we always have an image URL
+        backgroundImage: user.backgroundImage || "/default-background.webp",
+        backgroundOpacity: user.backgroundOpacity || 0.5,
       },
     };
 
@@ -80,6 +82,29 @@ export async function POST(request: Request) {
       maxAge: 60 * 60 * 24 * 7, // 1 week
       path: "/",
     });
+
+    // Send verification email
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error(
+          "Failed to send verification email:",
+          await response.text()
+        );
+      }
+    } catch (error) {
+      console.error("Error sending verification email:", error);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
