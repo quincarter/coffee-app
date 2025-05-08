@@ -1,47 +1,26 @@
-import { NextResponse } from "next/server";
-import { compare } from "bcrypt";
-import { z } from "zod";
-import prisma from "@/app/lib/db";
-import { encrypt } from "@/app/lib/session";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { encrypt, Session } from "@/app/lib/session";
+import prisma from "@/app/lib/db";
+import bcrypt from "bcrypt";
 
-// Login validation schema
-const loginSchema = z.object({
-  email: z.string().email({ message: "Valid email is required" }),
-  password: z.string().min(1, { message: "Password is required" }),
-});
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const { email, password } = await request.json();
 
     // Validate input
-    const result = loginSchema.safeParse(body);
-    if (!result.success) {
-      const formattedErrors: { [key: string]: string[] } = {};
-
-      result.error.errors.forEach((error) => {
-        const path = error.path.join(".");
-        if (!formattedErrors[path]) {
-          formattedErrors[path] = [];
-        }
-        formattedErrors[path].push(error.message);
-      });
-
+    if (!email || !password) {
       return NextResponse.json(
-        { error: "Invalid credentials", errors: formattedErrors },
+        { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
-    const { email, password } = result.data;
-
-    // Find user by email
+    // Find user
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email },
     });
 
-    // If no user found or password doesn't match
     if (!user) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -49,9 +28,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Compare password with stored hash
-    const passwordMatch = await compare(password, user.password);
-
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -59,32 +37,38 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create session data
-    const session = {
+    // Create session
+    const session: Session = {
       userId: user.id,
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
         role: user.userRole,
-        image: user.image || "/default-avatar.webp", // Ensure we always have an image URL
+        image: user.image ?? "",
+        backgroundImage: user.backgroundImage ?? "",
+        backgroundOpacity: user.backgroundOpacity ?? 1,
       },
     };
 
+    console.log("Creating session for user:", session);
     // Encrypt session and set cookie
     const encryptedSession = await encrypt(session);
+    console.log("Encrypted session created");
+
     (await cookies()).set("session", encryptedSession, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7, // 1 week
       path: "/",
     });
+    console.log("Session cookie set");
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(
-      { error: "An unexpected error occurred" },
+      { error: "Failed to process login" },
       { status: 500 }
     );
   }

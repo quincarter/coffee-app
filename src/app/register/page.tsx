@@ -1,4 +1,5 @@
 import { getSession } from "../lib/session";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import RegisterForm from "@/app/register/RegisterForm";
 
@@ -12,10 +13,11 @@ export default async function RegisterPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 relative">
       <div className="absolute inset-0 z-0">
-        <img
+        <Image
           src="/chemex-brewing-landing.png"
           alt="Coffee brewing background"
           className="object-cover opacity-80 w-full h-full"
+          fill
         />
       </div>
       <div className="w-full max-w-md space-y-8 rounded-lg border p-6 shadow-md bg-base-100/90 relative z-10">

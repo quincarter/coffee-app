@@ -1,71 +1,65 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getSession } from "./app/lib/session";
 
-// Define which paths are protected and which are public
-const protectedPaths = ["/dashboard", "/profile", "/settings"];
-const authPaths = ["/login", "/register", "/login/magic", "/forgot-password", "/reset-password"];
-const apiAuthPaths = ["/api/auth/magic-link", "/api/auth/verify-magic-link"];
+// Paths that don't require email verification
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/register",
+  "/verify-email",
+  "/verify-email-required",
+  "/api/auth/verify-email",
+  "/api/login",
+  "/api/register",
+  "/forgot-password",
+  "/reset-password",
+  "/api/forgot-password",
+  "/api/reset-password",
+];
 
-export function middleware(request: NextRequest) {
-  try {
-    const { pathname } = request.nextUrl;
-    const isProtectedPath = protectedPaths.some((path) =>
-      pathname.startsWith(path)
-    );
-    const isAuthPath = authPaths.some((path) => 
-      pathname === path || pathname.startsWith(path)
-    );
-    const isApiAuthPath = apiAuthPaths.some((path) =>
-      pathname.startsWith(path)
-    );
+export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  console.log("MIDDLEWARE: path", path);
 
-    // Get the session cookie
-    const sessionCookie = request.cookies.get("session");
-    const hasSession = !!sessionCookie?.value;
-
-    // Redirect authenticated users away from auth pages
-    if (isAuthPath && hasSession) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    // Redirect unauthenticated users to login
-    if (isProtectedPath && !hasSession) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    // Allow API auth endpoints to be accessed without redirection
-    if (isApiAuthPath) {
-      return NextResponse.next();
-    }
-
-    return NextResponse.next();
-  } catch (error) {
-    console.error("Middleware error:", error);
-    // In case of error, allow the request to proceed
-    // The protected routes will handle authentication internally as a fallback
+  // Allow public paths
+  if (PUBLIC_PATHS.some((publicPath) => path.startsWith(publicPath))) {
     return NextResponse.next();
   }
+
+  // Check if user is logged in
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Check if email is verified
+  const response = await fetch(`${request.nextUrl.origin}/api/user/profile`, {
+    headers: { cookie: request.headers.get("cookie") || "" }, // Pass cookies for auth
+  });
+  const data = await response.json();
+
+  if (!data.emailVerified) {
+    // Don't redirect if already on the verify page
+    if (path !== "/verify-email-required") {
+      return NextResponse.redirect(
+        new URL("/verify-email-required", request.url)
+      );
+    }
+  }
+
+  return NextResponse.next();
 }
 
-// Configure the paths that should be processed by this middleware
 export const config = {
   matcher: [
-    // Protected paths
-    "/dashboard",
-    "/dashboard/:path*",
-    "/profile",
-    "/profile/:path*",
-    "/settings",
-    "/settings/:path*",
-    
-    // Auth paths
-    "/login",
-    "/login/:path*",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
-    
-    // API auth paths
-    "/api/auth/:path*"
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    "/((?!_next/static|_next/image|favicon.ico|public/).*)",
   ],
 };
