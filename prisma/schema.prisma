@@ -32,6 +32,7 @@ model User {
   // Relations
   brewingSessions   UserBrewSession[]
   brewingDevices    UserBrewingDevice[]
+  brewProfiles      BrewProfile[]
 }
 
 model BrewingDevice {
@@ -45,6 +46,7 @@ model BrewingDevice {
   UserBrewingDevice UserBrewingDevice[]
   UserBrewSession   UserBrewSession[]
   BrewSessionDevice BrewSessionDevice[]
+  brewProfiles      BrewProfile[]
 }
 
 model UserBrewingDevice {
@@ -81,6 +83,8 @@ model UserBrewSession {
 
   UserBrewingDevice UserBrewingDevice[]
   additionalDevices BrewSessionDevice[]
+  brewProfileId     String?
+  brewProfile       BrewProfile? @relation("BrewProfileToUserBrewSession", fields: [brewProfileId], references: [id])
 }
 
 // New model to support multiple brewing devices per session
@@ -114,5 +118,56 @@ model MagicLink {
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model CoffeeRoaster {
+  id          String   @id @default(cuid())
+  name        String
+  address     String?
+  mapsLink    String?
+  phoneNumber String?
+  notes       String?
+  image       String?  // Added image field
+  website     String?  // Added website field
+  createdBy   String   // userId
+  updatedBy   String?  // userId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  coffees     Coffee[]
+}
+
+model Coffee {
+  id          String   @id @default(cuid())
+  name        String
+  roasterId   String
+  roaster     CoffeeRoaster @relation(fields: [roasterId], references: [id])
+  createdBy   String   // userId
+  updatedBy   String?  // userId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  brewProfiles BrewProfile[]
+}
+
+model BrewProfile {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  coffeeId        String
+  coffee          Coffee   @relation(fields: [coffeeId], references: [id])
+  brewDeviceId    String
+  brewDevice      BrewingDevice @relation(fields: [brewDeviceId], references: [id])
+  waterAmount     Float    // in grams
+  coffeeAmount    Float    // in grams
+  ratio           String   // e.g., "1:16"
+  roasterNotes    String?
+  tastingNotes    String?
+  roastDate       DateTime?
+  wash            String?
+  process         String?
+  roastLevel      String?
+  isPublic        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  brewSessions    UserBrewSession[] @relation("BrewProfileToUserBrewSession")
 }
 

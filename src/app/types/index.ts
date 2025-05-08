@@ -14,17 +14,17 @@ export type BrewSession = {
   id: string;
   name: string;
   notes: string;
-  image?: string | null; // Allow null values
+  image?: string | null;
   userId: string;
   user?: {
     name: string;
-    image?: string | null; // Allow null values
+    image?: string | null;
   };
   brewingDeviceId: string;
   brewTime: string;
   brewingDevice: {
     name: string;
-    image: string | null; // Allow null values
+    image: string | null;
   };
   additionalDevices?: {
     id: string;
@@ -34,13 +34,14 @@ export type BrewSession = {
     brewingDevice: {
       id: string;
       name: string;
-      image: string | null; // Allow null values
+      image: string | null;
     };
   }[];
   isFavorite?: boolean;
   createdAt: string;
   updatedAt: string;
   isPublic?: boolean;
+  brewProfileId?: string;
 };
 
 export type UserBrewingDevice = {
@@ -48,7 +49,7 @@ export type UserBrewingDevice = {
   name: string;
   description: string;
   brewingDeviceId: string;
-  image?: string | null; // Add image property
+  image?: string | null;
   brewingDevice: {
     id: string;
     name: string;
@@ -56,4 +57,46 @@ export type UserBrewingDevice = {
   };
   createdAt: string;
   updatedAt: string;
+};
+
+export interface BrewProfile {
+  id: string;
+  userId: string;
+  isPublic: boolean;
+  waterAmount: number;
+  coffeeAmount: number;
+  ratio: string;
+  roastLevel?: string;
+  process?: string;
+  createdAt: string;
+  user: {
+    name: string;
+    image?: string;
+  };
+  coffee: {
+    name: string;
+    roaster: {
+      name: string;
+      image?: string;
+    };
+  };
+  brewDevice: {
+    name: string;
+    image?: string;
+  };
+}
+
+// Add any other types that might be needed across the application
+export type Session = {
+  userId: string;
+  user: {
+    backgroundImage: string;
+    backgroundOpacity: number;
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    image?: string;
+  };
+  exp?: number;
 };
