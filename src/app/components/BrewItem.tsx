@@ -106,6 +106,51 @@ export default function BrewItem({
           </span>
         </div>
 
+        {/* Brew Profile Information */}
+        {session.brewProfile && (
+          <div className="mt-2 bg-gray-50 coffee:bg-gray-700 rounded p-2">
+            <div className="flex items-center mb-1">
+              {session.brewProfile.coffee?.image && (
+                <div className="h-6 w-6 relative mr-2 rounded overflow-hidden">
+                  <Image
+                    src={session.brewProfile.coffee.image}
+                    alt={session.brewProfile.coffee.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <span className="text-xs font-medium">
+                {session.brewProfile.coffee?.name || "Unknown Coffee"}
+                {session.brewProfile.coffee?.roaster && (
+                  <span className="text-gray-500 coffee:text-gray-400 ml-1">
+                    by {session.brewProfile.coffee.roaster.name}
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="bg-blue-100 coffee:bg-blue-900/30 text-blue-800 coffee:text-blue-300 px-2 py-0.5 rounded-full">
+                {session.brewProfile.coffeeAmount}g /{" "}
+                {session.brewProfile.waterAmount}g
+              </span>
+              <span className="bg-green-100 coffee:bg-green-900/30 text-green-800 coffee:text-green-300 px-2 py-0.5 rounded-full">
+                {session.brewProfile.ratio}
+              </span>
+              {session.brewProfile.roastLevel && (
+                <span className="bg-amber-100 coffee:bg-amber-900/30 text-amber-800 coffee:text-amber-300 px-2 py-0.5 rounded-full">
+                  {session.brewProfile.roastLevel}
+                </span>
+              )}
+              {session.brewProfile.process && (
+                <span className="bg-purple-100 coffee:bg-purple-900/30 text-purple-800 coffee:text-purple-300 px-2 py-0.5 rounded-full">
+                  {session.brewProfile.process}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         <p className="text-sm text-gray-500 coffee:text-gray-400 mt-2 line-clamp-2">
           {session.notes || "No notes"}
         </p>
@@ -148,7 +193,7 @@ export default function BrewItem({
           </div>
 
           <div
-            className={`min-w-0 flex-1 bg-white coffee:bg-gray-800 p-4 rounded-lg shadow cursor-pointer hover:shadow-md ${
+            className={`min-w-0 max-w-3xl flex-1 bg-white coffee:bg-gray-800 p-4 rounded-lg shadow cursor-pointer hover:shadow-md ${
               isSelected ? "ring-2 ring-blue-500" : ""
             }`}
             onClick={onClick}
@@ -177,6 +222,51 @@ export default function BrewItem({
                   fill
                   className="object-cover"
                 />
+              </div>
+            )}
+
+            {/* Brew Profile Information */}
+            {session.brewProfile && (
+              <div className="mt-2 bg-gray-50 coffee:bg-gray-700 rounded p-2">
+                <div className="flex items-center mb-1">
+                  {session.brewProfile.coffee?.image && (
+                    <div className="h-6 w-6 relative mr-2 rounded overflow-hidden">
+                      <Image
+                        src={session.brewProfile.coffee.image}
+                        alt={session.brewProfile.coffee.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+                  <span className="text-xs font-medium">
+                    {session.brewProfile.coffee?.name || "Unknown Coffee"}
+                    {session.brewProfile.coffee?.roaster && (
+                      <span className="text-gray-500 coffee:text-gray-400 ml-1">
+                        by {session.brewProfile.coffee.roaster.name}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <span className="bg-blue-100 coffee:bg-blue-900/30 text-blue-800 coffee:text-blue-300 px-2 py-0.5 rounded-full">
+                    {session.brewProfile.coffeeAmount}g /{" "}
+                    {session.brewProfile.waterAmount}g
+                  </span>
+                  <span className="bg-green-100 coffee:bg-green-900/30 text-green-800 coffee:text-green-300 px-2 py-0.5 rounded-full">
+                    {session.brewProfile.ratio}
+                  </span>
+                  {session.brewProfile.roastLevel && (
+                    <span className="bg-amber-100 coffee:bg-amber-900/30 text-amber-800 coffee:text-amber-300 px-2 py-0.5 rounded-full">
+                      {session.brewProfile.roastLevel}
+                    </span>
+                  )}
+                  {session.brewProfile.process && (
+                    <span className="bg-purple-100 coffee:bg-purple-900/30 text-purple-800 coffee:text-purple-300 px-2 py-0.5 rounded-full">
+                      {session.brewProfile.process}
+                    </span>
+                  )}
+                </div>
               </div>
             )}
 
@@ -240,6 +330,51 @@ export default function BrewItem({
           </p>
         </div>
       </div>
+      {/* Brew Profile Information */}
+      {session.brewProfile && (
+        <div className="mt-2 bg-gray-50 coffee:bg-gray-700 rounded p-2">
+          <div className="flex items-center mb-1">
+            {session.brewProfile.coffee?.image && (
+              <div className="h-6 w-6 relative mr-2 rounded overflow-hidden">
+                <Image
+                  src={session.brewProfile.coffee.image}
+                  alt={session.brewProfile.coffee.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            )}
+            <span className="text-xs font-medium">
+              {session.brewProfile.coffee?.name || "Unknown Coffee"}
+              {session.brewProfile.coffee?.roaster && (
+                <span className="text-gray-500 coffee:text-gray-400 ml-1">
+                  by {session.brewProfile.coffee.roaster.name}
+                </span>
+              )}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="bg-blue-100 coffee:bg-blue-900/30 text-blue-800 coffee:text-blue-300 px-2 py-0.5 rounded-full">
+              {session.brewProfile.coffeeAmount}g /{" "}
+              {session.brewProfile.waterAmount}g
+            </span>
+            <span className="bg-green-100 coffee:bg-green-900/30 text-green-800 coffee:text-green-300 px-2 py-0.5 rounded-full">
+              {session.brewProfile.ratio}
+            </span>
+            {session.brewProfile.roastLevel && (
+              <span className="bg-amber-100 coffee:bg-amber-900/30 text-amber-800 coffee:text-amber-300 px-2 py-0.5 rounded-full">
+                {session.brewProfile.roastLevel}
+              </span>
+            )}
+            {session.brewProfile.process && (
+              <span className="bg-purple-100 coffee:bg-purple-900/30 text-purple-800 coffee:text-purple-300 px-2 py-0.5 rounded-full">
+                {session.brewProfile.process}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="mt-2 sm:flex sm:justify-between">
         <div className="sm:flex">
           <p className="flex items-center text-sm text-gray-500 coffee:text-gray-400">

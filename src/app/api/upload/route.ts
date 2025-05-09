@@ -56,6 +56,12 @@ export async function POST(request: Request) {
       case "background":
         directory = "user-background-images";
         break;
+      case "coffee":
+        directory = "coffee-images";
+        break;
+      case "coffee-roaster":
+        directory = "coffee-roaster-images";
+        break;
       default:
         directory = "misc";
         break;

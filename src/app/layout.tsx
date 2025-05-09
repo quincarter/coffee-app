@@ -21,6 +21,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "BrewMe",
   description: "A Coffee App For Coffee Nerds",
+  icons: {
+    icon: "/brew-me-logo.png",
+    apple: "/brew-me-logo.png",
+  },
 };
 
 export const viewport: Viewport = {

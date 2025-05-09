@@ -59,6 +59,25 @@ export default async function BrewLogPage({
           },
         },
       },
+      brewProfile: {
+        include: {
+          coffee: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              roaster: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+          },
+          brewDevice: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
     take: 10, // Limit to most recent 10 sessions
@@ -97,6 +116,25 @@ export default async function BrewLogPage({
                 image: true,
               },
             },
+          },
+        },
+        brewProfile: {
+          include: {
+            coffee: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                roaster: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                  },
+                },
+              },
+            },
+            brewDevice: true,
           },
         },
       },

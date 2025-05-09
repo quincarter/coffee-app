@@ -91,6 +91,48 @@ async function main() {
     },
   ];
 
+  // Define default coffee processes
+  const defaultProcesses = [
+    { name: "Natural", createdBy: "system" },
+    { name: "Honey", createdBy: "system" },
+    { name: "Thermal Shock", createdBy: "system" },
+    { name: "Washed", createdBy: "system" },
+    { name: "Anaerobic", createdBy: "system" },
+    { name: "Carbonic Maceration", createdBy: "system" },
+    { name: "Wet", createdBy: "system" },
+    { name: "Dry", createdBy: "system" },
+  ];
+
+  // Define some common tasting notes
+  const commonTastingNotes = [
+    { name: "Chocolate", createdBy: "system" },
+    { name: "Caramel", createdBy: "system" },
+    { name: "Nutty", createdBy: "system" },
+    { name: "Fruity", createdBy: "system" },
+    { name: "Berry", createdBy: "system" },
+    { name: "Citrus", createdBy: "system" },
+    { name: "Floral", createdBy: "system" },
+    { name: "Spicy", createdBy: "system" },
+    { name: "Earthy", createdBy: "system" },
+    { name: "Sweet", createdBy: "system" },
+    { name: "Acidic", createdBy: "system" },
+    { name: "Bitter", createdBy: "system" },
+  ];
+
+  // Define some common coffee origins
+  const commonOrigins = [
+    { name: "Ethiopia", createdBy: "system" },
+    { name: "Colombia", createdBy: "system" },
+    { name: "Brazil", createdBy: "system" },
+    { name: "Costa Rica", createdBy: "system" },
+    { name: "Guatemala", createdBy: "system" },
+    { name: "Kenya", createdBy: "system" },
+    { name: "Indonesia", createdBy: "system" },
+    { name: "Mexico", createdBy: "system" },
+    { name: "Peru", createdBy: "system" },
+    { name: "Honduras", createdBy: "system" },
+  ];
+
   console.log("Starting to seed brewing devices...");
 
   // Check for existing devices to avoid duplicates
@@ -109,7 +151,63 @@ async function main() {
     }
   }
 
-  console.log("Seeding completed successfully!");
+  console.log("Brewing devices seeding completed!");
+
+  // Seed coffee processes
+  console.log("Starting to seed coffee processes...");
+  for (const process of defaultProcesses) {
+    const existingProcess = await prisma.coffeeProcess.findFirst({
+      where: { name: { equals: process.name, mode: "insensitive" } },
+    });
+
+    if (!existingProcess) {
+      await prisma.coffeeProcess.create({
+        data: process,
+      });
+      console.log(`Created coffee process: ${process.name}`);
+    } else {
+      console.log(`Coffee process already exists: ${process.name}`);
+    }
+  }
+  console.log("Coffee processes seeding completed!");
+
+  // Seed tasting notes
+  console.log("Starting to seed tasting notes...");
+  for (const note of commonTastingNotes) {
+    const existingNote = await prisma.coffeeTastingNote.findFirst({
+      where: { name: { equals: note.name, mode: "insensitive" } },
+    });
+
+    if (!existingNote) {
+      await prisma.coffeeTastingNote.create({
+        data: note,
+      });
+      console.log(`Created tasting note: ${note.name}`);
+    } else {
+      console.log(`Tasting note already exists: ${note.name}`);
+    }
+  }
+  console.log("Tasting notes seeding completed!");
+
+  // Seed coffee origins
+  console.log("Starting to seed coffee origins...");
+  for (const origin of commonOrigins) {
+    const existingOrigin = await prisma.coffeeOrigin.findFirst({
+      where: { name: { equals: origin.name, mode: "insensitive" } },
+    });
+
+    if (!existingOrigin) {
+      await prisma.coffeeOrigin.create({
+        data: origin,
+      });
+      console.log(`Created coffee origin: ${origin.name}`);
+    } else {
+      console.log(`Coffee origin already exists: ${origin.name}`);
+    }
+  }
+  console.log("Coffee origins seeding completed!");
+
+  console.log("All seeding completed successfully!");
 }
 
 main()

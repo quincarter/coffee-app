@@ -26,7 +26,7 @@ async function createSnapshot() {
     }
 
     // Create snapshot using pg_dump
-    const command = `pg_dump "${databaseUrl}" > "${snapshotPath}"`;
+    const command = `pg_dump --format=custom --no-owner --no-privileges --clean --if-exists --no-acl --file=\"${snapshotPath}\" \"${databaseUrl}\"`;
     await execAsync(command);
 
     console.log(`✅ Database snapshot created: ${snapshotPath}`);
@@ -45,9 +45,22 @@ async function restoreSnapshot(snapshotPath: string) {
       throw new Error("DATABASE_URL not found in environment variables");
     }
 
-    // Restore snapshot using psql
-    const command = `psql "${databaseUrl}" < "${snapshotPath}"`;
-    await execAsync(command);
+    // Parse database name from URL
+    const match = databaseUrl.match(/\/([^\/\?]+)(\?.*)?$/);
+    if (!match) {
+      throw new Error("Could not parse database name from DATABASE_URL");
+    }
+    const dbName = match[1];
+
+    // Drop and recreate the database
+    const dropCommand = `dropdb \"${dbName}\" --if-exists`;
+    const createCommand = `createdb \"${dbName}\"`;
+    await execAsync(dropCommand);
+    await execAsync(createCommand);
+
+    // Restore snapshot using pg_restore
+    const restoreCommand = `pg_restore --no-owner --no-privileges --clean --if-exists --no-acl --dbname=\"${databaseUrl}\" \"${snapshotPath}\"`;
+    await execAsync(restoreCommand);
 
     console.log(`✅ Database restored from snapshot: ${snapshotPath}`);
   } catch (error) {
@@ -82,38 +95,35 @@ async function listSnapshots() {
 // Export functions for use in other scripts
 export { createSnapshot, restoreSnapshot, listSnapshots };
 
-// If this script is run directly
-if (require.main === module) {
-  const command = process.argv[2];
-  const snapshotPath = process.argv[3];
+const command = process.argv[2];
+const snapshotPath = process.argv[3];
 
-  switch (command) {
-    case "create":
-      createSnapshot()
-        .then(() => process.exit(0))
-        .catch(() => process.exit(1));
-      break;
-    case "restore":
-      if (!snapshotPath) {
-        console.error("❌ Please provide a snapshot path");
-        process.exit(1);
-      }
-      restoreSnapshot(snapshotPath)
-        .then(() => process.exit(0))
-        .catch(() => process.exit(1));
-      break;
-    case "list":
-      listSnapshots()
-        .then(() => process.exit(0))
-        .catch(() => process.exit(1));
-      break;
-    default:
-      console.log(`
+switch (command) {
+  case "create":
+    createSnapshot()
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1));
+    break;
+  case "restore":
+    if (!snapshotPath) {
+      console.error("❌ Please provide a snapshot path");
+      process.exit(1);
+    }
+    restoreSnapshot(snapshotPath)
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1));
+    break;
+  case "list":
+    listSnapshots()
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1));
+    break;
+  default:
+    console.log(`
 Usage:
   npm run db:snapshot create    # Create a new snapshot
   npm run db:snapshot restore <path>  # Restore from a snapshot
   npm run db:snapshot list     # List available snapshots
-      `);
-      process.exit(1);
-  }
+    `);
+    process.exit(1);
 }

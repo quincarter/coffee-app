@@ -41,6 +41,25 @@ export async function GET(
             },
           },
         },
+        brewProfile: {
+          include: {
+            coffee: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                roaster: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                  },
+                },
+              },
+            },
+            brewDevice: true,
+          },
+        },
       },
     });
 
@@ -78,7 +97,14 @@ export async function PATCH(
     }
 
     const id = (await params).id;
-    const { name, notes, brewTime, brewingDeviceId, additionalDeviceIds } = await request.json();
+    const {
+      name,
+      notes,
+      brewTime,
+      brewingDeviceId,
+      additionalDeviceIds,
+      brewProfileId,
+    } = await request.json();
 
     const brewSession = await prisma.userBrewSession.findUnique({
       where: { id },
@@ -101,7 +127,9 @@ export async function PATCH(
     if (name !== undefined) updateData.name = name;
     if (notes !== undefined) updateData.notes = notes;
     if (brewTime !== undefined) updateData.brewTime = brewTime;
-    if (brewingDeviceId !== undefined) updateData.brewingDeviceId = brewingDeviceId;
+    if (brewingDeviceId !== undefined)
+      updateData.brewingDeviceId = brewingDeviceId;
+    if (brewProfileId !== undefined) updateData.brewProfileId = brewProfileId;
 
     // Update the brew session
     const updatedSession = await prisma.userBrewSession.update({
@@ -129,6 +157,25 @@ export async function PATCH(
                 image: true,
               },
             },
+          },
+        },
+        brewProfile: {
+          include: {
+            coffee: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                roaster: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                  },
+                },
+              },
+            },
+            brewDevice: true,
           },
         },
       },
@@ -180,6 +227,25 @@ export async function PATCH(
                   image: true,
                 },
               },
+            },
+          },
+          brewProfile: {
+            include: {
+              coffee: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                  roaster: {
+                    select: {
+                      id: true,
+                      name: true,
+                      image: true,
+                    },
+                  },
+                },
+              },
+              brewDevice: true,
             },
           },
         },

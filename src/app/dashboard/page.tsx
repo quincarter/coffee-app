@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Coffee, Plus, Clock, Star } from "lucide-react";
+import { Coffee, Plus, Clock, Star, BookOpen } from "lucide-react";
 import BrewSessionList from "../brew-log/components/BrewSessionList";
 import QuickBrewForm from "./components/QuickBrewForm";
-import { BrewSession, UserBrewingDevice, User } from "@/app/types";
+import { BrewSession, UserBrewingDevice, User, BrewProfile } from "@/app/types";
 import { toast } from "react-hot-toast";
+import BrewProfileCard from "../components/BrewProfileCard";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -19,18 +20,36 @@ export default function Dashboard() {
   const [userDevices, setUserDevices] = useState<Array<UserBrewingDevice>>([]);
   const [showQuickBrew, setShowQuickBrew] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [recentProfiles, setRecentProfiles] = useState<Array<BrewProfile>>([]);
+  const [totalProfiles, setTotalProfiles] = useState(0);
 
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const [userRes, brewsRes, devicesRes, favoritesRes, totalBrewsRes] =
-          await Promise.all([
-            fetch("/api/user/profile"),
-            fetch("/api/brew-sessions?limit=5"),
-            fetch("/api/user-brewing-devices"),
-            fetch("/api/brew-sessions/favorites?recentOnly=true"),
-            fetch("/api/brew-sessions/count"),
-          ]);
+        const [
+          userRes,
+          brewsRes,
+          devicesRes,
+          favoritesRes,
+          totalBrewsRes,
+          profilesRes,
+          totalProfilesRes,
+        ] = await Promise.all([
+          fetch("/api/user/profile"),
+          fetch("/api/brew-sessions?limit=5"),
+          fetch("/api/user-brewing-devices"),
+          fetch("/api/brew-sessions/favorites?recentOnly=true"),
+          fetch("/api/brew-sessions/count"),
+          fetch("/api/brew-profiles?limit=3"),
+          fetch("/api/brew-profiles/count"),
+        ]);
+
+        // Check if user is authenticated
+        if (userRes.status === 401) {
+          // Redirect to login page if not authenticated
+          router.push("/login");
+          return;
+        }
 
         // Check each response individually
         if (!userRes.ok) {
@@ -58,12 +77,24 @@ export default function Dashboard() {
             `Failed to fetch total brews: ${totalBrewsRes.status} ${totalBrewsRes.statusText}`
           );
         }
+        if (!profilesRes.ok) {
+          throw new Error(
+            `Failed to fetch brew profiles: ${profilesRes.status} ${profilesRes.statusText}`
+          );
+        }
+        if (!totalProfilesRes.ok) {
+          throw new Error(
+            `Failed to fetch total profiles: ${totalProfilesRes.status} ${totalProfilesRes.statusText}`
+          );
+        }
 
         const userData = await userRes.json();
         const brewsData = await brewsRes.json();
         const devicesData = await devicesRes.json();
         const favoritesData = await favoritesRes.json();
         const totalBrewsData = await totalBrewsRes.json();
+        const profilesData = await profilesRes.json();
+        const totalProfilesData = await totalProfilesRes.json();
 
         setUser(userData);
         setRecentBrews(brewsData);
@@ -71,6 +102,8 @@ export default function Dashboard() {
         setTotalFavorites(favoritesData.total);
         setTotalBrews(totalBrewsData.total);
         setUserDevices(devicesData);
+        setRecentProfiles(profilesData);
+        setTotalProfiles(totalProfilesData.total);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         toast.error(
@@ -84,7 +117,7 @@ export default function Dashboard() {
     }
 
     fetchDashboardData();
-  }, []);
+  }, [router]);
 
   const handleBrewCreated = (newBrew: any) => {
     // Add the new brew to the recent brews list
@@ -169,7 +202,7 @@ export default function Dashboard() {
 
               <Link
                 href="/favorites"
-                className="text-sm text-blue-500 hover:text-blue-600 block mt-2"
+                className="btn btn-xs btn-outline btn-primary w-full mt-2"
               >
                 View all {totalFavorites} favorites
               </Link>
@@ -190,12 +223,12 @@ export default function Dashboard() {
           <div className="space-y-4">
             <div>
               <Link href="/brew-log" className="group">
-                <div className="text-2xl font-bold group-hover:text-blue-500 transition-colors">
+                <div className="text-2xl font-bold group-hover:text-primary transition-colors">
                   {totalBrews}
                 </div>
                 <div className="text-sm text-gray-500 coffee:text-gray-400 flex items-center">
                   Total brews
-                  <span className="ml-2 text-blue-500">View all →</span>
+                  <span className="ml-2 text-primary">View all →</span>
                 </div>
               </Link>
             </div>
@@ -242,24 +275,77 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Brew Profiles Section */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold flex items-center">
+            <BookOpen className="mr-2 h-5 w-5 text-purple-500" />
+            Brew Profiles
+          </h2>
+          <Link
+            href="/brew-profiles"
+            className="btn btn-sm btn-outline btn-primary"
+          >
+            View all
+          </Link>
+        </div>
+
+        {recentProfiles?.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {recentProfiles.map((profile) => (
+              <BrewProfileCard key={profile.id} profile={profile} />
+            ))}
+            <Link
+              href="/brew-profiles/new"
+              className="bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden hover:shadow-md transition-shadow flex items-center justify-center p-5 h-full"
+            >
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 coffee:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Plus className="h-6 w-6 text-blue-500" />
+                </div>
+                <p className="font-medium">Create New Profile</p>
+                <p className="text-sm text-gray-500 coffee:text-gray-400 mt-1">
+                  Save your perfect brew recipe
+                </p>
+              </div>
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white coffee:bg-gray-800 rounded-lg shadow p-6 text-center">
+            <p className="text-gray-500 coffee:text-gray-400">
+              You haven&apos;t created any brew profiles yet.
+            </p>
+            <Link
+              href="/brew-profiles/new"
+              className="mt-4 btn btn-primary inline-flex items-center"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create your first brew profile
+            </Link>
+          </div>
+        )}
+      </div>
+
       {/* Recent Brews Timeline */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Recent Brews</h2>
-          <Link href="/brew-log" className="text-blue-500 hover:text-blue-600">
+          <Link href="/brew-log" className="btn btn-sm btn-outline btn-primary">
             View all
           </Link>
         </div>
 
         {recentBrews?.length > 0 ? (
-          <BrewSessionList
-            sessions={recentBrews}
-            selectedSessionId={undefined}
-            onSelectSession={handleSelectBrew}
-            variant="timeline"
-          />
+          <div className="max-w-3xl mx-auto">
+            <BrewSessionList
+              sessions={recentBrews}
+              selectedSessionId={undefined}
+              onSelectSession={handleSelectBrew}
+              variant="timeline"
+            />
+          </div>
         ) : (
-          <div className="bg-white coffee:bg-gray-800 rounded-lg shadow p-6 text-center">
+          <div className="bg-white coffee:bg-gray-800 rounded-lg shadow p-6 text-center max-w-3xl mx-auto">
             <p className="text-gray-500 coffee:text-gray-400">
               You haven&apos;t logged any brews yet.
             </p>

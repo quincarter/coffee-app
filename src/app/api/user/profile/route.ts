@@ -33,7 +33,6 @@ export async function GET() {
     const allUsers = await prisma.user.findMany({
       select: { id: true, email: true },
     });
-    console.log("All users in database:", allUsers);
 
     // Try to find user by ID first
     let user = await prisma.user.findUnique({
@@ -73,7 +72,6 @@ export async function GET() {
 
         // If found by email, update the ID to match the session
         if (user) {
-          console.log("Found user by email, updating ID to match session");
           try {
             user = await prisma.user.update({
               where: { email: session.user.email },
@@ -118,8 +116,6 @@ export async function GET() {
         );
       }
     }
-
-    console.log("Found user:", JSON.stringify(user, null, 2));
 
     if (!user) {
       console.log("User not found in database");
