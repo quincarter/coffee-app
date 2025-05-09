@@ -179,56 +179,54 @@ export default function BrewProfileDetailPage({
 
       <div className="bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden">
         <div className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">
-                {profile.coffee?.name}
-              </h1>
-              <div className="flex items-center">
-                <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 coffee:bg-gray-700 mr-2">
-                  {profile.coffee?.roaster?.image ? (
-                    <Image
-                      src={profile.coffee.roaster.image}
-                      alt={profile.coffee.roaster.name}
-                      width={24}
-                      height={24}
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                      ☕
-                    </div>
-                  )}
-                </div>
-                <span className="text-gray-600 coffee:text-gray-300">
-                  {profile.coffee?.roaster?.name}
-                </span>
-              </div>
-            </div>
+          {/* Action buttons - shown in a row above the title on all devices */}
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
+            {isOwner && (
+              <>
+                <Link
+                  href={`/brew-profiles/${profile.id}/edit`}
+                  className="btn btn-outline btn-sm"
+                >
+                  <Edit size={16} className="mr-1" />
+                  <span className="hidden sm:inline">Edit</span>
+                </Link>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="btn btn-outline btn-error btn-sm"
+                >
+                  <Trash size={16} className="mr-1" />
+                  <span className="hidden sm:inline">Delete</span>
+                </button>
+              </>
+            )}
+            <button onClick={handleShare} className="btn btn-outline btn-sm">
+              <Share size={16} className="mr-1" />
+              <span className="hidden sm:inline">Share</span>
+            </button>
+          </div>
 
-            <div className="flex gap-2">
-              {isOwner && (
-                <>
-                  <Link
-                    href={`/brew-profiles/${profile.id}/edit`}
-                    className="btn btn-outline btn-sm"
-                  >
-                    <Edit size={16} className="mr-1" />
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="btn btn-outline btn-error btn-sm"
-                  >
-                    <Trash size={16} className="mr-1" />
-                    Delete
-                  </button>
-                </>
-              )}
-              <button onClick={handleShare} className="btn btn-outline btn-sm">
-                <Share size={16} className="mr-1" />
-                Share
-              </button>
+          {/* Title and roaster info */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold mb-2">{profile.coffee?.name}</h1>
+            <div className="flex items-center">
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 coffee:bg-gray-700 mr-2">
+                {profile.coffee?.roaster?.image ? (
+                  <Image
+                    src={profile.coffee.roaster.image}
+                    alt={profile.coffee.roaster.name}
+                    width={24}
+                    height={24}
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                    ☕
+                  </div>
+                )}
+              </div>
+              <span className="text-gray-600 coffee:text-gray-300">
+                {profile.coffee?.roaster?.name}
+              </span>
             </div>
           </div>
 
