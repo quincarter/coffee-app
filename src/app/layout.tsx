@@ -18,12 +18,38 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Define the base URL for metadata
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
   title: "BrewMe",
   description: "A Coffee App For Coffee Nerds",
+  metadataBase: new URL(baseUrl),
   icons: {
     icon: "/brew-me-logo.png",
     apple: "/brew-me-logo.png",
+  },
+  openGraph: {
+    title: "BrewMe",
+    description: "A Coffee App For Coffee Nerds",
+    url: baseUrl,
+    siteName: "BrewMe",
+    images: [
+      {
+        url: `${baseUrl}/chemex-brewing-landing.png`,
+        width: 1200,
+        height: 630,
+        alt: "BrewMe Coffee App",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BrewMe",
+    description: "A Coffee App For Coffee Nerds",
+    images: [`${baseUrl}/chemex-brewing-landing.png`],
   },
 };
 
