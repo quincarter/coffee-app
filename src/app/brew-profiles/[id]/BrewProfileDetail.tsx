@@ -109,12 +109,24 @@ export default function BrewProfileDetail({ id }: { id: string }) {
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      setToastMessage("Link copied to clipboard!");
-      setShowToast(true);
+      // Hide any existing toast first to ensure animation works properly
+      setShowToast(false);
+
+      // Small delay to ensure state updates before showing new toast
+      setTimeout(() => {
+        setToastMessage("Link copied to clipboard!");
+        setShowToast(true);
+      }, 100);
     } catch (err) {
       console.error("Failed to copy link:", err);
-      setToastMessage("Failed to copy link");
-      setShowToast(true);
+      // Hide any existing toast first
+      setShowToast(false);
+
+      // Small delay to ensure state updates before showing new toast
+      setTimeout(() => {
+        setToastMessage("Failed to copy link");
+        setShowToast(true);
+      }, 100);
     }
   };
 
@@ -420,13 +432,16 @@ export default function BrewProfileDetail({ id }: { id: string }) {
       )}
 
       {/* Toast notification */}
-      {showToast && (
-        <Toast
-          message={toastMessage}
-          type="success"
-          onClose={() => setShowToast(false)}
-        />
-      )}
+      <div className="toast-container">
+        {showToast && (
+          <Toast
+            message={toastMessage}
+            type="success"
+            duration={3000}
+            onClose={() => setShowToast(false)}
+          />
+        )}
+      </div>
     </div>
   );
 }
