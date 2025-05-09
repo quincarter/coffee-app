@@ -16,16 +16,19 @@ const PUBLIC_PATHS = [
   "/reset-password",
   "/api/forgot-password",
   "/api/reset-password",
+  "/api/public",
 ];
 
 // Paths that require authentication
 const PROTECTED_PATHS = [
   "/dashboard",
   "/brew-log",
-  "/brew-profiles",
   "/profile",
   "/settings",
   "/favorites",
+  // "/brew-profiles" - Now accessible to unauthenticated users
+  "/brew-profiles/create", // Still protect the create page
+  "/brew-profiles/edit", // Still protect edit pages
 ];
 
 export async function middleware(request: NextRequest) {
@@ -34,6 +37,14 @@ export async function middleware(request: NextRequest) {
 
   // Allow public paths
   if (PUBLIC_PATHS.some((publicPath) => path.startsWith(publicPath))) {
+    return NextResponse.next();
+  }
+
+  // Check if this is a direct link to a brew profile
+  const brewProfileMatch = path.match(/^\/brew-profiles\/([^\/]+)$/);
+  if (brewProfileMatch) {
+    // Allow direct access to individual brew profile pages
+    // The page component will handle checking if it's public or private
     return NextResponse.next();
   }
 

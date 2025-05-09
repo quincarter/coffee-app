@@ -14,33 +14,53 @@ export default function BrewProfilesPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("all"); // all, mine, public
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Filters
   const [roasters, setRoasters] = useState<any[]>([]);
   const [selectedRoaster, setSelectedRoaster] = useState("");
   const [devices, setDevices] = useState<any[]>([]);
   const [selectedDevice, setSelectedDevice] = useState("");
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Fetch brew profiles
-        const profilesRes = await fetch("/api/brew-profiles");
-        if (!profilesRes.ok) {
-          throw new Error("Failed to fetch brew profiles");
+
+        // Check if user is logged in
+        const userRes = await fetch("/api/user/profile");
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setIsLoggedIn(true);
+          setCurrentUserId(userData.id);
+
+          // Fetch user's brew profiles if logged in
+          const profilesRes = await fetch("/api/brew-profiles");
+          if (profilesRes.ok) {
+            const profilesData = await profilesRes.json();
+            setProfiles(profilesData);
+          }
+        } else {
+          setIsLoggedIn(false);
+          setCurrentUserId(null);
+
+          // Fetch only public profiles if not logged in
+          const publicProfilesRes = await fetch("/api/public/brew-profiles");
+          if (publicProfilesRes.ok) {
+            const publicProfilesData = await publicProfilesRes.json();
+            setProfiles(publicProfilesData);
+          }
         }
-        const profilesData = await profilesRes.json();
-        setProfiles(profilesData);
-        
+
         // Fetch roasters for filtering
         const roastersRes = await fetch("/api/coffee-roasters");
         if (roastersRes.ok) {
           const roastersData = await roastersRes.json();
           setRoasters(roastersData);
         }
-        
+
         // Fetch brewing devices for filtering
         const devicesRes = await fetch("/api/brewing-devices");
         if (devicesRes.ok) {
@@ -60,15 +80,19 @@ export default function BrewProfilesPage() {
 
   const filteredProfiles = profiles.filter((profile: any) => {
     // Filter by type (all, mine, public)
-    if (filter === "mine" && profile.userId !== "current-user-id") return false; // Replace with actual user ID
+    if (filter === "mine") {
+      if (!isLoggedIn) return false; // Hide "mine" filter results if not logged in
+      if (profile.userId !== currentUserId) return false;
+    }
     if (filter === "public" && !profile.isPublic) return false;
-    
+
     // Filter by roaster if selected
-    if (selectedRoaster && profile.coffee?.roasterId !== selectedRoaster) return false;
-    
+    if (selectedRoaster && profile.coffee?.roasterId !== selectedRoaster)
+      return false;
+
     // Filter by device if selected
     if (selectedDevice && profile.brewDeviceId !== selectedDevice) return false;
-    
+
     // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -80,7 +104,7 @@ export default function BrewProfilesPage() {
         profile.roastLevel?.toLowerCase().includes(term)
       );
     }
-    
+
     return true;
   });
 
@@ -95,13 +119,20 @@ export default function BrewProfilesPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Brew Profiles</h1>
-        <Link
-          href="/brew-profiles/new"
-          className="btn btn-primary btn-sm flex items-center gap-2"
-        >
-          <Plus size={16} />
-          New Profile
-        </Link>
+        {isLoggedIn && (
+          <Link
+            href="/brew-profiles/new"
+            className="btn btn-primary btn-sm flex items-center gap-2"
+          >
+            <Plus size={16} />
+            New Profile
+          </Link>
+        )}
+        {!isLoggedIn && (
+          <Link href="/login" className="btn btn-outline btn-sm">
+            Log in to create profiles
+          </Link>
+        )}
       </div>
 
       <div className="bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 p-4 mb-6">
@@ -109,7 +140,7 @@ export default function BrewProfilesPage() {
           <Filter size={16} className="text-gray-500" />
           <span className="text-sm font-medium">Filters</span>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {/* Profile type filter */}
           <div>
@@ -120,12 +151,14 @@ export default function BrewProfilesPage() {
               >
                 All
               </button>
-              <button
-                className={`btn btn-sm ${filter === "mine" ? "btn-primary" : "btn-outline"}`}
-                onClick={() => setFilter("mine")}
-              >
-                My Profiles
-              </button>
+              {isLoggedIn && (
+                <button
+                  className={`btn btn-sm ${filter === "mine" ? "btn-primary" : "btn-outline"}`}
+                  onClick={() => setFilter("mine")}
+                >
+                  My Profiles
+                </button>
+              )}
               <button
                 className={`btn btn-sm ${filter === "public" ? "btn-primary" : "btn-outline"}`}
                 onClick={() => setFilter("public")}
@@ -134,11 +167,11 @@ export default function BrewProfilesPage() {
               </button>
             </div>
           </div>
-          
+
           {/* Roaster filter */}
           <div>
             <SearchableDropdown
-              options={roasters.map(roaster => ({
+              options={roasters.map((roaster) => ({
                 value: roaster.id,
                 label: roaster.name,
               }))}
@@ -154,11 +187,11 @@ export default function BrewProfilesPage() {
               multiple={false}
             />
           </div>
-          
+
           {/* Device filter */}
           <div>
             <SearchableDropdown
-              options={devices.map(device => ({
+              options={devices.map((device) => ({
                 value: device.id,
                 label: device.name,
               }))}
@@ -174,7 +207,7 @@ export default function BrewProfilesPage() {
               multiple={false}
             />
           </div>
-          
+
           {/* Search */}
           <div>
             <div className="relative">
@@ -185,7 +218,10 @@ export default function BrewProfilesPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              {(searchTerm || selectedRoaster || selectedDevice || filter !== "all") && (
+              {(searchTerm ||
+                selectedRoaster ||
+                selectedDevice ||
+                filter !== "all") && (
                 <button
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   onClick={handleClearFilters}
@@ -213,13 +249,20 @@ export default function BrewProfilesPage() {
               ? "No brew profiles match your filters"
               : "No brew profiles found"}
           </p>
-          {searchTerm || selectedRoaster || selectedDevice || filter !== "all" ? (
+          {searchTerm ||
+          selectedRoaster ||
+          selectedDevice ||
+          filter !== "all" ? (
             <button onClick={handleClearFilters} className="btn btn-outline">
               Clear Filters
             </button>
-          ) : (
+          ) : isLoggedIn ? (
             <Link href="/brew-profiles/new" className="btn btn-primary">
               Create Your First Brew Profile
+            </Link>
+          ) : (
+            <Link href="/login" className="btn btn-primary">
+              Log in to Create Profiles
             </Link>
           )}
         </div>

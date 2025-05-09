@@ -16,6 +16,7 @@ import {
   Tag,
 } from "lucide-react";
 import CoffeeImage from "@/app/components/coffee/CoffeeImage";
+import Toast from "@/app/components/Toast";
 
 export default function BrewProfileDetailPage({
   params,
@@ -27,17 +28,54 @@ export default function BrewProfileDetailPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
+  // Fetch user info to determine if they're logged in and the owner
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch("/api/user/profile");
+        if (response.ok) {
+          const userData = await response.json();
+          setIsLoggedIn(true);
+          setCurrentUserId(userData.id);
+        } else {
+          setIsLoggedIn(false);
+          setCurrentUserId(null);
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+        setIsLoggedIn(false);
+        setCurrentUserId(null);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
+
+  // Fetch brew profile data
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
         const id = (await params).id;
-        const response = await fetch(`/api/brew-profiles/${id}`);
+
+        // First try to fetch as an authenticated user
+        let response = await fetch(`/api/brew-profiles/${id}`);
+
+        // If unauthorized (not logged in), try to fetch as public
+        if (response.status === 401) {
+          response = await fetch(`/api/public/brew-profiles/${id}`);
+        }
 
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error("Brew profile not found");
+          } else if (response.status === 403) {
+            throw new Error("This brew profile is private");
           } else {
             throw new Error("Failed to fetch brew profile");
           }
@@ -76,9 +114,12 @@ export default function BrewProfileDetailPage({
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
+      setToastMessage("Link copied to clipboard!");
+      setShowToast(true);
     } catch (err) {
       console.error("Failed to copy link:", err);
+      setToastMessage("Failed to copy link");
+      setShowToast(true);
     }
   };
 
@@ -97,8 +138,8 @@ export default function BrewProfileDetailPage({
           <p>{error}</p>
         </div>
         <div className="mt-4">
-          <Link href="/brew-profiles" className="btn btn-outline">
-            Back to Brew Profiles
+          <Link href="/" className="btn btn-outline">
+            Back to Home
           </Link>
         </div>
       </div>
@@ -112,25 +153,27 @@ export default function BrewProfileDetailPage({
           <p>Brew profile not found</p>
         </div>
         <div className="mt-4">
-          <Link href="/brew-profiles" className="btn btn-outline">
-            Back to Brew Profiles
+          <Link href="/" className="btn btn-outline">
+            Back to Home
           </Link>
         </div>
       </div>
     );
   }
 
-  const isOwner = profile.userId === "current-user-id"; // Replace with actual user ID check
+  // Check if the user is logged in and is the owner of the profile
+
+  const isOwner = isLoggedIn && currentUserId === profile.userId;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <Link
-          href="/brew-profiles"
+          href={isLoggedIn ? "/brew-profiles" : "/"}
           className="flex items-center text-gray-600 coffee:text-gray-300 hover:text-primary transition-colors"
         >
           <ArrowLeft size={16} className="mr-1" />
-          Back to Brew Profiles
+          {isLoggedIn ? "Back to Brew Profiles" : "Back to Home"}
         </Link>
       </div>
 
@@ -382,6 +425,15 @@ export default function BrewProfileDetailPage({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Toast notification */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type="success"
+          onClose={() => setShowToast(false)}
+        />
       )}
     </div>
   );
