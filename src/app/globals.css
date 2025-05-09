@@ -75,3 +75,24 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans, Arial, Helvetica, sans-serif);
 }
+
+/* Toast container styles */
+.toast-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+}
+
+/* Ensure toasts are visible on mobile devices */
+@media (max-width: 768px) {
+  .toast-container {
+    padding-bottom: 5rem; /* Add extra padding at the bottom on mobile to avoid the navigation bar */
+  }
+}
