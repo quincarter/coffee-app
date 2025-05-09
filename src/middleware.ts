@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getSession } from "./app/lib/session";
 
-// Paths that don't require email verification
+// Paths that don't require authentication
 const PUBLIC_PATHS = [
   "/",
   "/login",
@@ -18,6 +18,16 @@ const PUBLIC_PATHS = [
   "/api/reset-password",
 ];
 
+// Paths that require authentication
+const PROTECTED_PATHS = [
+  "/dashboard",
+  "/brew-log",
+  "/brew-profiles",
+  "/profile",
+  "/settings",
+  "/favorites",
+];
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   console.log("MIDDLEWARE: path", path);
@@ -27,24 +37,31 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check if user is logged in
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  // Check if path requires authentication
+  const requiresAuth = PROTECTED_PATHS.some(
+    (protectedPath) =>
+      path === protectedPath || path.startsWith(`${protectedPath}/`)
+  );
 
-  // Check if email is verified
-  const response = await fetch(`${request.nextUrl.origin}/api/user/profile`, {
-    headers: { cookie: request.headers.get("cookie") || "" }, // Pass cookies for auth
-  });
-  const data = await response.json();
+  if (requiresAuth) {
+    // Check if user is logged in
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    // Check if email is verified for authenticated routes
+    const response = await fetch(`${request.nextUrl.origin}/api/user/profile`, {
+      headers: { cookie: request.headers.get("cookie") || "" }, // Pass cookies for auth
+    });
+    const data = await response.json();
 
-  if (!data.emailVerified) {
-    // Don't redirect if already on the verify page
-    if (path !== "/verify-email-required") {
-      return NextResponse.redirect(
-        new URL("/verify-email-required", request.url)
-      );
+    if (!data.emailVerified) {
+      // Don't redirect if already on the verify page
+      if (path !== "/verify-email-required") {
+        return NextResponse.redirect(
+          new URL("/verify-email-required", request.url)
+        );
+      }
     }
   }
 

@@ -2,7 +2,7 @@
 
 import ImageUpload from "@/app/components/ImageUpload";
 import SearchableDropdown from "@/app/components/SearchableDropdown";
-import { BrewSession, UserBrewingDevice } from "@/app/types";
+import { BrewProfile, BrewSession, UserBrewingDevice } from "@/app/types";
 import { X } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
@@ -43,6 +43,10 @@ export default function NewBrewForm({
   const [hoursStr, setHoursStr] = useState("");
   const [minutesStr, setMinutesStr] = useState("");
   const [secondsStr, setSecondsStr] = useState("");
+  const [brewProfiles, setBrewProfiles] = useState<BrewProfile[]>([]);
+  const [selectedBrewProfileId, setSelectedBrewProfileId] =
+    useState<string>("");
+  const [loadingProfiles, setLoadingProfiles] = useState(false);
 
   const validateTimeInput = (value: string, max: number): string => {
     // Allow empty string or numbers only
@@ -163,6 +167,7 @@ export default function NewBrewForm({
         brewTime,
         ...(imageUrl && { image: imageUrl }),
         isPublic,
+        ...(selectedBrewProfileId && { brewProfileId: selectedBrewProfileId }),
       };
 
       const response = await fetch("/api/brew-sessions", {
@@ -194,6 +199,7 @@ export default function NewBrewForm({
       setSecondsStr("");
       setImageFile(null);
       setImagePreview(null);
+      setSelectedBrewProfileId("");
     } catch (err) {
       console.error("Submission error:", err);
       setError("An error occurred while creating the brew session");
@@ -229,6 +235,41 @@ export default function NewBrewForm({
           placeholder="Morning Coffee"
           required
         />
+      </div>
+
+      {/* Brew Profile Selection */}
+      <div className={isQuickForm ? "mb-4" : "mb-4"}>
+        <SearchableDropdown
+          options={brewProfiles.map((profile) => ({
+            value: profile.id,
+            label: `${profile.coffee.name} (${profile.ratio})`,
+          }))}
+          value={selectedBrewProfileId}
+          onChange={(value) => {
+            // Handle both string and string[] types
+            if (Array.isArray(value)) {
+              // If multiple selection is enabled but we only want one value
+              handleBrewProfileSelect(value[0] || "");
+            } else {
+              // Single selection
+              handleBrewProfileSelect(value);
+            }
+          }}
+          label="Brew Profile (Optional)"
+          placeholder="Select a brew profile..."
+          className={isQuickForm ? "text-sm" : ""}
+          noOptionsMessage={
+            loadingProfiles
+              ? "Loading brew profiles..."
+              : brewProfiles.length === 0
+                ? "You don't have any brew profiles yet"
+                : "No brew profiles found"
+          }
+          multiple={false}
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Selecting a brew profile will pre-fill some fields
+        </p>
       </div>
 
       <div className={isQuickForm ? "mb-4" : "mb-4"}>
@@ -466,13 +507,50 @@ export default function NewBrewForm({
     </>
   );
 
+  // Handle brew profile selection
+  const handleBrewProfileSelect = (profileId: string) => {
+    setSelectedBrewProfileId(profileId);
+
+    if (!profileId) {
+      // Reset form if no profile is selected
+      return;
+    }
+
+    // Find the selected profile
+    const selectedProfile = brewProfiles.find(
+      (profile) => profile.id === profileId
+    );
+    if (!selectedProfile) return;
+
+    // Update form with profile data
+    // First, find the user device that matches the brew device from the profile
+    // The BrewProfile type in the interface doesn't match the schema exactly
+    // We need to use type assertion to access the properties
+    const profileData = selectedProfile as any;
+
+    const matchingDevice = userDevices.find(
+      (device) => device.brewingDeviceId === profileData.brewDeviceId
+    );
+
+    if (matchingDevice) {
+      setSelectedDeviceIds([matchingDevice.id]);
+    }
+
+    // Set notes from profile's tasting notes if available
+    if (
+      profileData.tastingNotes &&
+      typeof profileData.tastingNotes === "string"
+    ) {
+      setNotes(profileData.tastingNotes);
+    }
+  };
+
   const handleQuickDeviceAdd = async (e: FormEvent) => {
     e.preventDefault();
     setIsAddingDevice(true);
     setDeviceError(null);
 
     try {
-
       if (!quickDeviceName.trim()) {
         throw new Error("Device name is required");
       }
@@ -551,6 +629,30 @@ export default function NewBrewForm({
       setIsAddingDevice(false);
     }
   };
+
+  // Fetch brew profiles
+  useEffect(() => {
+    async function fetchBrewProfiles() {
+      if (!userId) return;
+
+      try {
+        setLoadingProfiles(true);
+        const response = await fetch("/api/brew-profiles");
+        if (!response.ok) {
+          throw new Error("Failed to fetch brew profiles");
+        }
+        const data = await response.json();
+        setBrewProfiles(data);
+      } catch (err) {
+        console.error("Error fetching brew profiles:", err);
+        setError("Failed to load brew profiles. Please try again later.");
+      } finally {
+        setLoadingProfiles(false);
+      }
+    }
+
+    fetchBrewProfiles();
+  }, [userId]);
 
   useEffect(() => {
     async function fetchDeviceTypes() {

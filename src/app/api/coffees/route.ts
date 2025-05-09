@@ -7,6 +7,7 @@ export async function GET() {
     const coffees = await prisma.coffee.findMany({
       include: {
         roaster: true,
+        tastingNotes: true,
       },
       orderBy: {
         name: "asc",
@@ -31,7 +32,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, roasterId, createdBy } = body;
+    const {
+      name,
+      roasterId,
+      createdBy,
+      description,
+      countryOfOrigin,
+      elevation,
+      process,
+      tastingNotes,
+      image,
+    } = body;
 
     // Validate required fields
     if (!name) {
@@ -54,10 +65,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!roaster) {
-      return NextResponse.json(
-        { error: "Roaster not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Roaster not found" }, { status: 404 });
     }
 
     // Check if coffee already exists for this roaster
@@ -65,7 +73,7 @@ export async function POST(request: NextRequest) {
       where: {
         name: {
           equals: name,
-          mode: 'insensitive', // Case-insensitive search
+          mode: "insensitive", // Case-insensitive search
         },
         roasterId,
       },
@@ -82,11 +90,30 @@ export async function POST(request: NextRequest) {
     const coffee = await prisma.coffee.create({
       data: {
         name,
+        description: description || null,
+        image: image || null,
         roasterId,
+        countryOfOrigin: countryOfOrigin || null,
+        elevation: elevation || null,
+        process: process || null,
         createdBy: createdBy || session.userId,
+        // Handle tasting notes if provided
+        ...(tastingNotes &&
+          tastingNotes.length > 0 && {
+            tastingNotes: {
+              connectOrCreate: tastingNotes.map((note: string) => ({
+                where: { name: note },
+                create: {
+                  name: note,
+                  createdBy: createdBy || session.userId,
+                },
+              })),
+            },
+          }),
       },
       include: {
         roaster: true,
+        tastingNotes: true,
       },
     });
 

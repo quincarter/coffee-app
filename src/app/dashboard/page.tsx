@@ -26,16 +26,30 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const [userRes, brewsRes, devicesRes, favoritesRes, totalBrewsRes, profilesRes, totalProfilesRes] =
-          await Promise.all([
-            fetch("/api/user/profile"),
-            fetch("/api/brew-sessions?limit=5"),
-            fetch("/api/user-brewing-devices"),
-            fetch("/api/brew-sessions/favorites?recentOnly=true"),
-            fetch("/api/brew-sessions/count"),
-            fetch("/api/brew-profiles?limit=3"),
-            fetch("/api/brew-profiles/count"),
-          ]);
+        const [
+          userRes,
+          brewsRes,
+          devicesRes,
+          favoritesRes,
+          totalBrewsRes,
+          profilesRes,
+          totalProfilesRes,
+        ] = await Promise.all([
+          fetch("/api/user/profile"),
+          fetch("/api/brew-sessions?limit=5"),
+          fetch("/api/user-brewing-devices"),
+          fetch("/api/brew-sessions/favorites?recentOnly=true"),
+          fetch("/api/brew-sessions/count"),
+          fetch("/api/brew-profiles?limit=3"),
+          fetch("/api/brew-profiles/count"),
+        ]);
+
+        // Check if user is authenticated
+        if (userRes.status === 401) {
+          // Redirect to login page if not authenticated
+          router.push("/login");
+          return;
+        }
 
         // Check each response individually
         if (!userRes.ok) {
@@ -103,7 +117,7 @@ export default function Dashboard() {
     }
 
     fetchDashboardData();
-  }, []);
+  }, [router]);
 
   const handleBrewCreated = (newBrew: any) => {
     // Add the new brew to the recent brews list
@@ -188,7 +202,7 @@ export default function Dashboard() {
 
               <Link
                 href="/favorites"
-                className="text-sm text-blue-500 hover:text-blue-600 block mt-2"
+                className="btn btn-xs btn-outline btn-primary w-full mt-2"
               >
                 View all {totalFavorites} favorites
               </Link>
@@ -209,12 +223,12 @@ export default function Dashboard() {
           <div className="space-y-4">
             <div>
               <Link href="/brew-log" className="group">
-                <div className="text-2xl font-bold group-hover:text-blue-500 transition-colors">
+                <div className="text-2xl font-bold group-hover:text-primary transition-colors">
                   {totalBrews}
                 </div>
                 <div className="text-sm text-gray-500 coffee:text-gray-400 flex items-center">
                   Total brews
-                  <span className="ml-2 text-blue-500">View all →</span>
+                  <span className="ml-2 text-primary">View all →</span>
                 </div>
               </Link>
             </div>
@@ -261,38 +275,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Brews Timeline */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Recent Brews</h2>
-          <Link href="/brew-log" className="text-blue-500 hover:text-blue-600">
-            View all
-          </Link>
-        </div>
-
-        {recentBrews?.length > 0 ? (
-          <BrewSessionList
-            sessions={recentBrews}
-            selectedSessionId={undefined}
-            onSelectSession={handleSelectBrew}
-            variant="timeline"
-          />
-        ) : (
-          <div className="bg-white coffee:bg-gray-800 rounded-lg shadow p-6 text-center">
-            <p className="text-gray-500 coffee:text-gray-400">
-              You haven&apos;t logged any brews yet.
-            </p>
-            <button
-              onClick={() => setShowQuickBrew(true)}
-              className="mt-4 btn btn-primary inline-flex items-center"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Start your first brew
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* Brew Profiles Section */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
@@ -300,7 +282,10 @@ export default function Dashboard() {
             <BookOpen className="mr-2 h-5 w-5 text-purple-500" />
             Brew Profiles
           </h2>
-          <Link href="/brew-profiles" className="text-blue-500 hover:text-blue-600">
+          <Link
+            href="/brew-profiles"
+            className="btn btn-sm btn-outline btn-primary"
+          >
             View all
           </Link>
         </div>
@@ -337,6 +322,40 @@ export default function Dashboard() {
               <Plus className="mr-2 h-4 w-4" />
               Create your first brew profile
             </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Recent Brews Timeline */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Recent Brews</h2>
+          <Link href="/brew-log" className="btn btn-sm btn-outline btn-primary">
+            View all
+          </Link>
+        </div>
+
+        {recentBrews?.length > 0 ? (
+          <div className="max-w-3xl mx-auto">
+            <BrewSessionList
+              sessions={recentBrews}
+              selectedSessionId={undefined}
+              onSelectSession={handleSelectBrew}
+              variant="timeline"
+            />
+          </div>
+        ) : (
+          <div className="bg-white coffee:bg-gray-800 rounded-lg shadow p-6 text-center max-w-3xl mx-auto">
+            <p className="text-gray-500 coffee:text-gray-400">
+              You haven&apos;t logged any brews yet.
+            </p>
+            <button
+              onClick={() => setShowQuickBrew(true)}
+              className="mt-4 btn btn-primary inline-flex items-center"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Start your first brew
+            </button>
           </div>
         )}
       </div>

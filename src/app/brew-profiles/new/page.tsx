@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import BrewProfileForm from "@/app/components/BrewProfileForm";
+import BrewProfileForm from "@/app/components/brew/BrewProfileForm";
 
 export default function NewBrewProfilePage() {
   const router = useRouter();
-  
+
   const handleProfileCreated = (profile: any) => {
     router.push(`/brew-profiles/${profile.id}`);
   };

@@ -3,10 +3,11 @@
 import ImageUpload from "@/app/components/ImageUpload";
 import SearchableDropdown from "@/app/components/SearchableDropdown";
 import TimeInput from "@/app/components/TimeInput";
-import { UserBrewingDevice } from "@/app/types";
+import { BrewProfile, UserBrewingDevice } from "@/app/types";
 import { format } from "date-fns";
-import { MoreVertical, Star, Trash } from "lucide-react";
+import { Coffee, MoreVertical, Star, Trash } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -29,6 +30,10 @@ export default function BrewSessionDetail({
   const [brewingDeviceId, setBrewingDeviceId] = useState(
     session.brewingDeviceId
   );
+  const [brewProfileId, setBrewProfileId] = useState(
+    session.brewProfileId || ""
+  );
+  const [brewProfiles, setBrewProfiles] = useState<any[]>([]);
   const [additionalDeviceIds, setAdditionalDeviceIds] = useState<string[]>([]);
   const [userDevices, setUserDevices] = useState<UserBrewingDevice[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -159,6 +164,7 @@ export default function BrewSessionDetail({
     setNotes(session.notes);
     setBrewingDeviceId(session.brewingDeviceId);
     setImagePreview(session.image || null);
+    setBrewProfileId(session.brewProfileId || "");
 
     // Extract additional device IDs from session
     if (session.additionalDevices && session.additionalDevices.length > 0) {
@@ -179,9 +185,23 @@ export default function BrewSessionDetail({
     }
   }, [isEditing]);
 
-  // Fetch user's brewing devices when the component mounts
+  // Fetch user's brewing devices and brew profiles when the component mounts
   useEffect(() => {
+    const fetchBrewProfiles = async () => {
+      try {
+        const response = await fetch("/api/brew-profiles");
+        if (!response.ok) {
+          throw new Error("Failed to fetch brew profiles");
+        }
+        const data = await response.json();
+        setBrewProfiles(data);
+      } catch (error) {
+        console.error("Error fetching brew profiles:", error);
+      }
+    };
+
     fetchUserDevices();
+    fetchBrewProfiles();
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -256,6 +276,7 @@ export default function BrewSessionDetail({
           brewingDeviceId,
           additionalDeviceIds,
           image: imageUrl,
+          brewProfileId: brewProfileId || null,
         }),
       });
 
@@ -434,6 +455,32 @@ export default function BrewSessionDetail({
                 onChange={handleTimeChange}
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 coffee:text-gray-300 mb-1">
+              Brew Profile
+            </label>
+            <SearchableDropdown
+              options={brewProfiles.map((profile) => ({
+                value: profile.id,
+                label: `${profile.coffee?.name || "Unknown Coffee"} - ${profile.brewDevice?.name || "Unknown Device"}`,
+              }))}
+              value={brewProfileId}
+              onChange={(value) => {
+                if (Array.isArray(value)) {
+                  setBrewProfileId(value[0] || "");
+                } else {
+                  setBrewProfileId(value);
+                }
+              }}
+              label=""
+              placeholder="Select a brew profile (optional)"
+              disabled={isLoading || isSubmitting}
+              className="mt-1"
+              noOptionsMessage="No brew profiles found"
+              multiple={false}
+            />
           </div>
 
           <div>
@@ -673,6 +720,81 @@ export default function BrewSessionDetail({
                 )}
             </div>
           </div>
+
+          {/* Brew Profile Section */}
+          {session.brewProfile && (
+            <div className="mt-6">
+              <h3 className="text-lg font-medium text-gray-900 coffee:text-white mb-2">
+                Brew Profile
+              </h3>
+              <div className="bg-gray-50 coffee:bg-gray-700 rounded-lg p-4">
+                <div className="flex items-center mb-3">
+                  {session.brewProfile.coffee?.image && (
+                    <div className="h-12 w-12 relative mr-3 rounded overflow-hidden">
+                      <Image
+                        src={session.brewProfile.coffee.image}
+                        alt={session.brewProfile.coffee.name}
+                        width={48}
+                        height={48}
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-medium text-gray-900 coffee:text-white">
+                      {session.brewProfile.coffee?.name || "Unknown Coffee"}
+                    </h4>
+                    {session.brewProfile.coffee?.roaster && (
+                      <p className="text-sm text-gray-600 coffee:text-gray-300">
+                        {session.brewProfile.coffee.roaster.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <p className="text-sm text-gray-500 coffee:text-gray-400">
+                      Water
+                    </p>
+                    <p className="font-medium">
+                      {session.brewProfile.waterAmount}g
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 coffee:text-gray-400">
+                      Coffee
+                    </p>
+                    <p className="font-medium">
+                      {session.brewProfile.coffeeAmount}g
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 coffee:text-gray-400">
+                      Ratio
+                    </p>
+                    <p className="font-medium">{session.brewProfile.ratio}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 coffee:text-gray-400">
+                      Device
+                    </p>
+                    <p className="font-medium">
+                      {session.brewProfile.brewDevice?.name}
+                    </p>
+                  </div>
+                </div>
+
+                <Link
+                  href={`/brew-profiles/${session.brewProfile.id}`}
+                  className="text-blue-600 coffee:text-blue-400 text-sm font-medium hover:underline flex items-center"
+                >
+                  <Coffee size={16} className="mr-1" />
+                  View full brew profile
+                </Link>
+              </div>
+            </div>
+          )}
 
           <div className="mt-6">
             <h3 className="text-lg font-medium text-gray-900 coffee:text-white mb-2">

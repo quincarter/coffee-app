@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
     const image = body.image || null;
     const isPublic = body.isPublic || false; // Default to false if not provided
     const additionalDeviceIds = body.additionalDeviceIds || []; // New field for additional devices
+    const brewProfileId = body.brewProfileId || null; // Optional brew profile ID
 
     const userId = body.userId || (await getSession())?.userId;
 
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest) {
         brewTime,
         image,
         isPublic,
+        ...(brewProfileId && { brewProfileId }),
       },
       include: {
         brewingDevice: {
@@ -95,6 +97,25 @@ export async function POST(request: NextRequest) {
                 image: true,
               },
             },
+          },
+        },
+        brewProfile: {
+          include: {
+            coffee: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                roaster: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                  },
+                },
+              },
+            },
+            brewDevice: true,
           },
         },
       },
@@ -164,6 +185,25 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        brewProfile: {
+          include: {
+            coffee: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                roaster: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                  },
+                },
+              },
+            },
+            brewDevice: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
       ...(limit && !isNaN(limit) ? { take: limit } : {}),
@@ -179,11 +219,11 @@ export async function GET(request: NextRequest) {
     });
 
     // Combine the data
-    const enrichedBrewSessions = brewSessions.map(session => {
+    const enrichedBrewSessions = brewSessions.map((session) => {
       const userDevice = userBrewingDevices.find(
-        device => device.brewingDeviceId === session.brewingDeviceId
+        (device) => device.brewingDeviceId === session.brewingDeviceId
       );
-      
+
       return {
         ...session,
         userBrewingDevice: userDevice || null,

@@ -137,15 +137,46 @@ model CoffeeRoaster {
 }
 
 model Coffee {
-  id          String   @id @default(cuid())
-  name        String
-  roasterId   String
-  roaster     CoffeeRoaster @relation(fields: [roasterId], references: [id])
-  createdBy   String   // userId
-  updatedBy   String?  // userId
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  brewProfiles BrewProfile[]
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  image           String?  // URL to the coffee image
+  roasterId       String
+  roaster         CoffeeRoaster @relation(fields: [roasterId], references: [id])
+  countryOfOrigin String?
+  elevation       String?
+  process         String?
+  createdBy       String   // userId
+  updatedBy       String?  // userId
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  brewProfiles    BrewProfile[]
+  tastingNotes    CoffeeTastingNote[] @relation("CoffeeToTastingNote")
+}
+
+model CoffeeTastingNote {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdBy String   // userId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  coffees   Coffee[] @relation("CoffeeToTastingNote")
+}
+
+model CoffeeOrigin {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdBy String   // userId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CoffeeProcess {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdBy String   // userId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model BrewProfile {

@@ -26,8 +26,17 @@ export async function GET(
           },
         },
         coffee: {
-          include: {
-            roaster: true,
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            roaster: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
           },
         },
         brewDevice: true,
@@ -112,8 +121,17 @@ export async function PATCH(
           },
         },
         coffee: {
-          include: {
-            roaster: true,
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            roaster: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
           },
         },
         brewDevice: true,

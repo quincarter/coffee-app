@@ -15,6 +15,7 @@ import {
   Calendar,
   Tag,
 } from "lucide-react";
+import CoffeeImage from "@/app/components/coffee/CoffeeImage";
 
 export default function BrewProfileDetailPage({
   params,
@@ -188,6 +189,17 @@ export default function BrewProfileDetailPage({
             </div>
           </div>
 
+          {/* Coffee Image */}
+          {profile.coffee?.image && (
+            <div className="mb-6">
+              <CoffeeImage
+                image={profile.coffee.image}
+                alt={profile.coffee.name}
+                height="md"
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div>
               <h2 className="text-lg font-medium mb-4">Brew Details</h2>
@@ -350,7 +362,7 @@ export default function BrewProfileDetailPage({
 
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white coffee:bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-medium mb-4">Delete Brew Profile</h3>
             <p className="mb-6">

@@ -11,8 +11,10 @@ export async function GET(request: NextRequest) {
 
     const userId = session.userId;
     const { searchParams } = new URL(request.url);
-    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined;
-    
+    const limit = searchParams.get("limit")
+      ? parseInt(searchParams.get("limit")!)
+      : undefined;
+
     const profiles = await prisma.brewProfile.findMany({
       where: { userId },
       include: {
@@ -24,8 +26,17 @@ export async function GET(request: NextRequest) {
           },
         },
         coffee: {
-          include: {
-            roaster: true,
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            roaster: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
           },
         },
         brewDevice: true,
@@ -95,8 +106,17 @@ export async function POST(request: Request) {
           },
         },
         coffee: {
-          include: {
-            roaster: true,
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            roaster: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
           },
         },
         brewDevice: true,
