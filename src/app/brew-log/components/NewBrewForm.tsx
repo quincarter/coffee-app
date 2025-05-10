@@ -334,7 +334,7 @@ export default function NewBrewForm({
           }
           allowAddNew={true}
           onAddNew={handleAddNewDevice}
-          addNewText="Add a new brewing device"
+          // addNewText prop removed
           multiple={true}
         />
         <p className="text-xs text-gray-500 mt-1">

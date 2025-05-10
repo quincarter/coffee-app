@@ -321,7 +321,13 @@ export default function BrewProfilesPage() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-auto"
+          style={{
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(min(100%, 450px), 1fr))",
+          }}
+        >
           {filteredProfiles.map((profile: any) => (
             <BrewProfileCard key={profile.id} profile={profile} />
           ))}

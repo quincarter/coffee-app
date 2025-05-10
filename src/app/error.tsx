@@ -49,17 +49,19 @@ export default function Error({
           <div className="flex justify-center mb-6">
             <div className="relative w-24 h-24">
               <Image
-                src="/brewme-logo.png"
-                alt="BrewMe Logo"
+                src="/coffee-spill.png"
+                alt="Coffee Spilled Oops!"
                 fill
                 className="object-contain"
               />
             </div>
           </div>
-          
-          <h1 className="text-2xl font-bold text-center text-amber-800 mb-2">Something Went Wrong</h1>
+
+          <h1 className="text-2xl font-bold text-center text-amber-800 mb-2">
+            Something Went Wrong
+          </h1>
           <p className="text-center text-amber-700 mb-6">{message}</p>
-          
+
           <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
             <button
               onClick={() => reset()}
@@ -68,7 +70,7 @@ export default function Error({
               <RefreshCw size={18} />
               Try Again
             </button>
-            <Link 
+            <Link
               href="/"
               className="btn btn-outline flex items-center justify-center gap-2"
             >
@@ -76,17 +78,21 @@ export default function Error({
               Back to Home
             </Link>
           </div>
-          
+
           <div className="mt-8 pt-6 border-t border-amber-200">
             <p className="text-center text-amber-600 text-sm">
-              If the problem persists, try refreshing your coffee... and the page!
+              If the problem persists, try refreshing your coffee... and the
+              page!
             </p>
           </div>
         </div>
       </div>
-      
+
       <div className="mt-8 text-center text-amber-700 text-sm">
-        <p>© {new Date().getFullYear()} BrewMe - Perfect coffee, one brew at a time</p>
+        <p>
+          © {new Date().getFullYear()} BrewMe - Perfect coffee, one brew at a
+          time
+        </p>
       </div>
     </div>
   );

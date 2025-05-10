@@ -9,6 +9,7 @@ import CoffeeImage from "./CoffeeImage";
 import BottomSheet from "../ui/BottomSheet";
 import SearchableDropdown from "../SearchableDropdown";
 import ImageUpload from "../ImageUpload";
+import FavoriteButton from "../FavoriteButton";
 
 type CoffeeCardProps = {
   coffee: {
@@ -39,13 +40,19 @@ type CoffeeCardProps = {
   };
   currentUserId?: string;
   showEditButton?: boolean;
+  showFavorite?: boolean;
 };
 
 export default function CoffeeCard({
   coffee,
   currentUserId,
   showEditButton = true,
+  showFavorite = true,
 }: CoffeeCardProps) {
+  // Debug log to check values
+  console.log("CoffeeCard - currentUserId:", currentUserId);
+  console.log("CoffeeCard - coffee.createdBy:", coffee.createdBy);
+
   const isOwner = currentUserId && coffee.createdBy === currentUserId;
 
   // State for edit modal
@@ -85,21 +92,21 @@ export default function CoffeeCard({
   const fetchDropdownData = async () => {
     try {
       // Fetch tasting notes
-      const tastingNotesResponse = await fetch("/api/tasting-notes");
+      const tastingNotesResponse = await fetch("/api/coffee-tasting-notes");
       if (tastingNotesResponse.ok) {
         const tastingNotesData = await tastingNotesResponse.json();
         setAvailableTastingNotes(tastingNotesData);
       }
 
       // Fetch origins
-      const originsResponse = await fetch("/api/origins");
+      const originsResponse = await fetch("/api/coffee-origins");
       if (originsResponse.ok) {
         const originsData = await originsResponse.json();
         setAvailableOrigins(originsData);
       }
 
       // Fetch processes
-      const processesResponse = await fetch("/api/processes");
+      const processesResponse = await fetch("/api/coffee-processes");
       if (processesResponse.ok) {
         const processesData = await processesResponse.json();
         setAvailableProcesses(processesData);
@@ -154,10 +161,10 @@ export default function CoffeeCard({
         imageUrl = uploadData.url;
       }
 
-      // Prepare tasting notes data
-      const tastingNotesData = formData.tastingNotes.map((name) => ({ name }));
+      // Log tasting notes for debugging
+      console.log("Submitting tasting notes:", formData.tastingNotes);
 
-      // Update coffee
+      // Update coffee - send tasting notes as strings directly
       const response = await fetch(`/api/coffees/${coffee.id}`, {
         method: "PUT",
         headers: {
@@ -166,7 +173,7 @@ export default function CoffeeCard({
         body: JSON.stringify({
           ...formData,
           image: imageUrl,
-          tastingNotes: tastingNotesData,
+          tastingNotes: formData.tastingNotes,
         }),
       });
 
@@ -224,15 +231,26 @@ export default function CoffeeCard({
             </div>
           </Link>
 
-          {isOwner && showEditButton && (
-            <button
-              className="btn btn-outline btn-xs ml-2"
-              onClick={handleEditClick}
-            >
-              <Edit size={14} className="mr-1" />
-              Edit
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            {currentUserId && showEditButton && (
+              <button
+                className="btn btn-outline btn-xs"
+                onClick={handleEditClick}
+              >
+                <Edit size={14} className="mr-1" />
+                Edit
+              </button>
+            )}
+            {showFavorite && (
+              <div onClick={(e) => e.preventDefault()}>
+                <FavoriteButton
+                  entityType="coffee"
+                  entityId={coffee.id}
+                  size="sm"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         <Link href={`/coffees/${coffee.id}`} className="block">

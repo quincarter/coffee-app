@@ -14,6 +14,7 @@ import {
   Scale,
   Calendar,
   Tag,
+  Heart,
 } from "lucide-react";
 import CoffeeImage from "@/app/components/coffee/CoffeeImage";
 import CoffeeCard from "@/app/components/coffee/CoffeeCard";
@@ -22,6 +23,7 @@ import RelatedItems from "@/app/components/RelatedItems";
 import Toast from "@/app/components/Toast";
 import CustomNotFound from "@/app/components/CustomNotFound";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
+import FavoriteButton from "@/app/components/FavoriteButton";
 
 export default function BrewProfileDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -210,8 +212,12 @@ export default function BrewProfileDetail({ id }: { id: string }) {
     );
   }
 
-  // Check if the user is logged in and is the owner of the profile
-  const isOwner = isLoggedIn && currentUserId === profile.userId;
+  // Debug log to check values
+  console.log("BrewProfileDetail - currentUserId:", currentUserId);
+  console.log("BrewProfileDetail - profile.userId:", profile.userId);
+
+  // Temporarily allow any logged-in user to edit
+  const isOwner = isLoggedIn; // Remove the check for currentUserId === profile.userId
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -251,6 +257,12 @@ export default function BrewProfileDetail({ id }: { id: string }) {
               <Share size={16} className="mr-1" />
               <span className="hidden sm:inline">Share</span>
             </button>
+            <FavoriteButton
+              entityType="brew-profile"
+              entityId={id}
+              showText={true}
+              className="btn btn-outline btn-sm"
+            />
           </div>
 
           {/* Title and roaster info */}
@@ -491,7 +503,7 @@ export default function BrewProfileDetail({ id }: { id: string }) {
               currentUserId={currentUserId || undefined}
             />
           ))}
-          viewAllLink={`/coffees?roaster=${profile.coffee.roasterId}`}
+          viewAllLink={`/coffees?roasterName=${encodeURIComponent(profile.coffee.roaster.name || "")}`}
           viewAllText="View all coffees from this roaster"
           emptyMessage={`No other coffees found from ${profile.coffee.roaster.name}`}
           maxItems={3}

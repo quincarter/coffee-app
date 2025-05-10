@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import LogoutButton from "./LogoutButton";
 import { useEffect, useState } from "react";
-import { User, Tag, Store, Settings } from "lucide-react";
+import { User, Tag, Store, Settings, Heart } from "lucide-react";
 
 export default function HeaderNav({ session }: { session: any }) {
   const pathname = usePathname();
@@ -100,6 +100,12 @@ export default function HeaderNav({ session }: { session: any }) {
                   <Link href="/profile" className="flex items-center">
                     <User className="h-5 w-5 mr-2" />
                     Profile
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/favorites" className="flex items-center">
+                    <Heart className="h-5 w-5 mr-2" />
+                    Favorites
                   </Link>
                 </li>
                 <li>

@@ -49,13 +49,8 @@ export default function RoastersPage() {
         if (roastersRes.ok) {
           const roastersData = await roastersRes.json();
 
-          // Add user data to each roaster
-          const roastersWithUserData = roastersData.map((roaster: any) => ({
-            ...roaster,
-            currentUserId: isLoggedIn ? currentUserId : null,
-          }));
-
-          setRoasters(roastersWithUserData);
+          // Set the roasters data directly
+          setRoasters(roastersData);
         }
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -179,7 +174,7 @@ export default function RoastersPage() {
         isLoggedIn={isLoggedIn}
         emptyStateMessage="No roasters found"
         noMatchesMessage="No roasters match your filters"
-        gridCols={3}
+        // gridCols prop removed
         loading={loading}
       />
 

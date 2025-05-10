@@ -33,6 +33,7 @@ model User {
   brewingSessions   UserBrewSession[]
   brewingDevices    UserBrewingDevice[]
   brewProfiles      BrewProfile[]
+  favorites         UserFavorite[]
 }
 
 model BrewingDevice {
@@ -121,19 +122,39 @@ model MagicLink {
 }
 
 model CoffeeRoaster {
+  id               String   @id @default(cuid())
+  name             String
+  address          String?  // Main address (will keep for backward compatibility)
+  mapsLink         String?  // Main location maps link
+  phoneNumber      String?  // Main phone number
+  notes            String?
+  image            String?  // Added image field
+  website          String?  // Added website field
+  hasSingleLocation Boolean @default(false) // Indicates if roaster has only one location (use main info)
+  createdBy        String   // userId
+  updatedBy        String?  // userId
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  coffees          Coffee[]
+  locations        RoasterLocation[]
+  favorites        UserFavorite[] @relation("RoasterFavorites")
+}
+
+model RoasterLocation {
   id          String   @id @default(cuid())
-  name        String
-  address     String?
+  name        String   // Location name (e.g., "Downtown", "Westside")
+  address     String
   mapsLink    String?
   phoneNumber String?
-  notes       String?
-  image       String?  // Added image field
-  website     String?  // Added website field
+  image       String?
+  isMainLocation Boolean @default(false)
+  roasterId   String
+  roaster     CoffeeRoaster @relation(fields: [roasterId], references: [id], onDelete: Cascade)
   createdBy   String   // userId
   updatedBy   String?  // userId
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  coffees     Coffee[]
+  favorites   UserFavorite[] @relation("LocationFavorites")
 }
 
 model Coffee {
@@ -152,6 +173,7 @@ model Coffee {
   updatedAt       DateTime @updatedAt
   brewProfiles    BrewProfile[]
   tastingNotes    CoffeeTastingNote[] @relation("CoffeeToTastingNote")
+  favorites       UserFavorite[] @relation("CoffeeFavorites")
 }
 
 model CoffeeTastingNote {
@@ -200,5 +222,30 @@ model BrewProfile {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   brewSessions    UserBrewSession[] @relation("BrewProfileToUserBrewSession")
+  favorites       UserFavorite[] @relation("BrewProfileFavorites")
+}
+
+// Model for user favorites
+model UserFavorite {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityType      String   // "brew-profile", "coffee", "roaster", "location"
+  entityId        String   // ID of the favorited entity
+  createdAt       DateTime @default(now())
+
+  // Relations to specific entities - using separate fields for each entity type
+  brewProfileId   String?
+  coffeeId        String?
+  roasterId       String?
+  locationId      String?
+
+  // Define relations with map to avoid constraint name conflicts
+  brewProfile     BrewProfile? @relation("BrewProfileFavorites", fields: [brewProfileId], references: [id], onDelete: Cascade)
+  coffee          Coffee? @relation("CoffeeFavorites", fields: [coffeeId], references: [id], onDelete: Cascade)
+  roaster         CoffeeRoaster? @relation("RoasterFavorites", fields: [roasterId], references: [id], onDelete: Cascade)
+  location        RoasterLocation? @relation("LocationFavorites", fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entityType, entityId])
 }
 

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { Coffee, Droplet, Scale } from "lucide-react";
 import CoffeeImage from "./coffee/CoffeeImage";
+import FavoriteButton from "./FavoriteButton";
 
 type BrewProfileCardProps = {
   profile: {
@@ -33,9 +34,13 @@ type BrewProfileCardProps = {
       image?: string;
     };
   };
+  showFavorite?: boolean;
 };
 
-export default function BrewProfileCard({ profile }: BrewProfileCardProps) {
+export default function BrewProfileCard({
+  profile,
+  showFavorite = true,
+}: BrewProfileCardProps) {
   return (
     <>
       <Link
@@ -69,9 +74,20 @@ export default function BrewProfileCard({ profile }: BrewProfileCardProps) {
                 </span>
               </div>
             </div>
-            {profile.isPublic && (
-              <span className="badge badge-primary badge-sm">Public</span>
-            )}
+            <div className="flex items-center gap-1">
+              {profile.isPublic && (
+                <span className="badge badge-primary badge-sm">Public</span>
+              )}
+              {showFavorite && (
+                <div onClick={(e) => e.preventDefault()}>
+                  <FavoriteButton
+                    entityType="brew-profile"
+                    entityId={profile.id}
+                    size="sm"
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Coffee Image */}
