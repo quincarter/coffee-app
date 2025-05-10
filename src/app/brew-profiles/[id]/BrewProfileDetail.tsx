@@ -16,7 +16,12 @@ import {
   Tag,
 } from "lucide-react";
 import CoffeeImage from "@/app/components/coffee/CoffeeImage";
+import CoffeeCard from "@/app/components/coffee/CoffeeCard";
+import BrewProfileCard from "@/app/components/BrewProfileCard";
+import RelatedItems from "@/app/components/RelatedItems";
 import Toast from "@/app/components/Toast";
+import CustomNotFound from "@/app/components/CustomNotFound";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
 
 export default function BrewProfileDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -28,6 +33,12 @@ export default function BrewProfileDetail({ id }: { id: string }) {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+
+  // Related items
+  const [similarProfiles, setSimilarProfiles] = useState<any[]>([]);
+  const [moreCoffeesFromRoaster, setMoreCoffeesFromRoaster] = useState<any[]>(
+    []
+  );
 
   // Fetch user info to determine if they're logged in and the owner
   useEffect(() => {
@@ -89,6 +100,57 @@ export default function BrewProfileDetail({ id }: { id: string }) {
     fetchProfile();
   }, [id]);
 
+  // Fetch related items
+  useEffect(() => {
+    const fetchRelatedItems = async () => {
+      if (!profile || !profile.coffee) return;
+
+      try {
+        // Fetch similar brew profiles
+        const profilesResponse = await fetch("/api/brew-profiles");
+        if (profilesResponse.ok) {
+          const allProfiles = await profilesResponse.json();
+
+          // Find profiles with the same coffee or similar brewing device
+          const similar = allProfiles.filter((p: any) => {
+            if (p.id === id) return false; // Exclude current profile
+
+            // Same coffee
+            if (p.coffeeId === profile.coffeeId) return true;
+
+            // Same brewing device
+            if (p.brewDeviceId === profile.brewDeviceId) return true;
+
+            return false;
+          });
+
+          setSimilarProfiles(similar.slice(0, 3));
+        }
+
+        // Fetch more coffees from the same roaster
+        if (profile.coffee.roasterId) {
+          const coffeesResponse = await fetch("/api/coffees");
+          if (coffeesResponse.ok) {
+            const allCoffees = await coffeesResponse.json();
+
+            // Filter coffees from the same roaster (excluding the current coffee)
+            const roasterCoffees = allCoffees.filter(
+              (c: any) =>
+                c.roasterId === profile.coffee.roasterId &&
+                c.id !== profile.coffeeId
+            );
+
+            setMoreCoffeesFromRoaster(roasterCoffees.slice(0, 3));
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching related items:", err);
+      }
+    };
+
+    fetchRelatedItems();
+  }, [id, profile]);
+
   const handleDelete = async () => {
     try {
       const response = await fetch(`/api/brew-profiles/${id}`, {
@@ -132,39 +194,19 @@ export default function BrewProfileDetail({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 flex justify-center items-center h-64">
-        <div className="loading loading-spinner loading-lg"></div>
+      <div className="container mx-auto px-4 py-8">
+        <LoadingSpinner />
       </div>
     );
   }
 
-  if (error) {
+  if (error || !profile) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="alert alert-error">
-          <p>{error}</p>
-        </div>
-        <div className="mt-4">
-          <Link href="/" className="btn btn-outline">
-            Back to Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="alert alert-warning">
-          <p>Brew profile not found</p>
-        </div>
-        <div className="mt-4">
-          <Link href="/" className="btn btn-outline">
-            Back to Home
-          </Link>
-        </div>
-      </div>
+      <CustomNotFound
+        explorePath="/brew-profiles"
+        exploreText="Explore Brew Profiles"
+        customMessage={error || "Brew profile not found"}
+      />
     );
   }
 
@@ -213,37 +255,55 @@ export default function BrewProfileDetail({ id }: { id: string }) {
 
           {/* Title and roaster info */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold mb-2">{profile.coffee?.name}</h1>
-            <div className="flex items-center">
-              <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 coffee:bg-gray-700 mr-2">
-                {profile.coffee?.roaster?.image ? (
-                  <Image
-                    src={profile.coffee.roaster.image}
-                    alt={profile.coffee.roaster.name}
-                    width={24}
-                    height={24}
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                    ☕
-                  </div>
-                )}
-              </div>
-              <span className="text-gray-600 coffee:text-gray-300">
-                {profile.coffee?.roaster?.name}
-              </span>
+            <div className="flex items-center mb-2">
+              <h1 className="text-2xl font-bold">{profile.coffee?.name}</h1>
+              {profile.coffee?.id && (
+                <Link
+                  href={`/coffees/${profile.coffee.id}`}
+                  className="ml-2 text-primary hover:text-primary-focus transition-colors"
+                  aria-label="View coffee details"
+                >
+                  <ArrowLeft size={18} className="rotate-180" />
+                </Link>
+              )}
             </div>
+            {profile.coffee?.roaster?.id && (
+              <Link
+                href={`/roasters/${profile.coffee.roaster.id}`}
+                className="flex items-center hover:text-primary transition-colors"
+              >
+                <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 coffee:bg-gray-700 mr-2">
+                  {profile.coffee?.roaster?.image ? (
+                    <Image
+                      src={profile.coffee.roaster.image}
+                      alt={profile.coffee.roaster.name}
+                      width={24}
+                      height={24}
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                      ☕
+                    </div>
+                  )}
+                </div>
+                <span className="text-gray-600 coffee:text-gray-300 hover:underline">
+                  {profile.coffee?.roaster?.name}
+                </span>
+              </Link>
+            )}
           </div>
 
           {/* Coffee Image */}
-          {profile.coffee?.image && (
+          {profile.coffee?.image && profile.coffee?.id && (
             <div className="mb-6">
-              <CoffeeImage
-                image={profile.coffee.image}
-                alt={profile.coffee.name}
-                height="md"
-              />
+              <Link href={`/coffees/${profile.coffee.id}`}>
+                <CoffeeImage
+                  image={profile.coffee.image}
+                  alt={profile.coffee.name}
+                  height="md"
+                />
+              </Link>
             </div>
           )}
 
@@ -256,7 +316,7 @@ export default function BrewProfileDetail({ id }: { id: string }) {
                   <Coffee size={18} className="mr-2 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500 coffee:text-gray-400">
-                      Coffee
+                      Coffee Amount
                     </p>
                     <p>{profile.coffeeAmount}g</p>
                   </div>
@@ -406,6 +466,38 @@ export default function BrewProfileDetail({ id }: { id: string }) {
           </div>
         </div>
       </div>
+
+      {/* Similar brew profiles section */}
+      {similarProfiles.length > 0 && (
+        <RelatedItems
+          title="Similar Brew Profiles"
+          items={similarProfiles.map((relatedProfile) => (
+            <BrewProfileCard key={relatedProfile.id} profile={relatedProfile} />
+          ))}
+          emptyMessage="No similar brew profiles found"
+          maxItems={3}
+          className="mt-8 border-t border-gray-200 coffee:border-gray-700 pt-6"
+        />
+      )}
+
+      {/* More coffees from this roaster section */}
+      {moreCoffeesFromRoaster.length > 0 && profile.coffee?.roaster && (
+        <RelatedItems
+          title={`More from ${profile.coffee.roaster.name}`}
+          items={moreCoffeesFromRoaster.map((relatedCoffee) => (
+            <CoffeeCard
+              key={relatedCoffee.id}
+              coffee={relatedCoffee}
+              currentUserId={currentUserId || undefined}
+            />
+          ))}
+          viewAllLink={`/coffees?roaster=${profile.coffee.roasterId}`}
+          viewAllText="View all coffees from this roaster"
+          emptyMessage={`No other coffees found from ${profile.coffee.roaster.name}`}
+          maxItems={3}
+          className="mt-8 border-t border-gray-200 coffee:border-gray-700 pt-6"
+        />
+      )}
 
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (

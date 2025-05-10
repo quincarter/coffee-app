@@ -78,56 +78,6 @@ export default function AdditionalInfoForm({
           />
         </div>
 
-        {/* Wash */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Wash</label>
-          <input
-            type="text"
-            value={formData.wash || ""}
-            onChange={(e) => handleChange("wash", e.target.value)}
-            className="input input-bordered w-full"
-            placeholder="Washing method"
-            disabled={disabled}
-          />
-        </div>
-
-        {/* Process */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Process</label>
-          <select
-            value={formData.process || ""}
-            onChange={(e) => handleChange("process", e.target.value)}
-            className="select select-bordered w-full"
-            disabled={disabled}
-          >
-            <option value="">Select process method</option>
-            <option value="Wet">Wet</option>
-            <option value="Dry">Dry</option>
-            <option value="Anaerobic">Anaerobic</option>
-            <option value="Carbonic Maceration">Carbonic Maceration</option>
-            <option value="Washed">Washed</option>
-            <option value="Natural">Natural</option>
-          </select>
-        </div>
-
-        {/* Roast Level */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Roast Level</label>
-          <select
-            value={formData.roastLevel || ""}
-            onChange={(e) => handleChange("roastLevel", e.target.value)}
-            className="select select-bordered w-full"
-            disabled={disabled}
-          >
-            <option value="">Select roast level</option>
-            <option value="Light">Light</option>
-            <option value="Medium-Light">Medium-Light</option>
-            <option value="Medium">Medium</option>
-            <option value="Medium-Dark">Medium-Dark</option>
-            <option value="Dark">Dark</option>
-          </select>
-        </div>
-
         {/* Public/Private Toggle */}
         <div className="form-control">
           <label className="label cursor-pointer justify-start gap-2">

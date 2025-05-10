@@ -362,7 +362,9 @@ export default function CoffeeSelector({
                 label=""
                 placeholder="Select or type a country..."
                 allowAddNew={true}
-                onAddNew={() => {}}
+                onAddNew={(_newValue) => {
+                  // New value will be added to the form data automatically
+                }}
                 multiple={false}
               />
             </div>
@@ -392,7 +394,9 @@ export default function CoffeeSelector({
                 label=""
                 placeholder="Select or type a process method..."
                 allowAddNew={true}
-                onAddNew={() => {}}
+                onAddNew={(_newValue) => {
+                  // New value will be added to the form data automatically
+                }}
                 multiple={false}
               />
             </div>
@@ -459,7 +463,10 @@ export default function CoffeeSelector({
                 label=""
                 placeholder="Select or type tasting notes..."
                 allowAddNew={true}
-                onAddNew={() => {}}
+                onAddNew={(_newNote) => {
+                  // No need to do anything special here, the note will be added to the form data
+                  // and then saved to the database when the form is submitted
+                }}
                 multiple={true}
               />
             </div>
