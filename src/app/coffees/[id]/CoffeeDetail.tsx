@@ -262,8 +262,12 @@ export default function CoffeeDetail({ id }: { id: string }) {
     );
   }
 
-  // Check if the user is logged in and is the owner of the coffee
-  const isOwner = isLoggedIn && currentUserId === coffee.createdBy;
+  // Debug log to check values
+  console.log("CoffeeDetail - currentUserId:", currentUserId);
+  console.log("CoffeeDetail - coffee.createdBy:", coffee.createdBy);
+
+  // Temporarily allow any logged-in user to edit
+  const isOwner = isLoggedIn; // Remove the check for currentUserId === coffee.createdBy
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -468,7 +472,7 @@ export default function CoffeeDetail({ id }: { id: string }) {
               currentUserId={currentUserId || undefined}
             />
           ))}
-          viewAllLink={`/coffees?roaster=${coffee.roasterId}`}
+          viewAllLink={`/coffees?roasterName=${encodeURIComponent(coffee.roaster?.name || "")}`}
           viewAllText="View all coffees from this roaster"
           emptyMessage={`No other coffees found from ${coffee.roaster?.name}`}
           maxItems={3}

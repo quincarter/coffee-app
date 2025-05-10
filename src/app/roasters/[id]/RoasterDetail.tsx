@@ -14,12 +14,16 @@ import {
   Phone,
   Globe,
   Coffee,
+  MapPinned,
+  Plus,
 } from "lucide-react";
 import CoffeeCard from "@/app/components/coffee/CoffeeCard";
 import Toast from "@/app/components/Toast";
 import CustomNotFound from "@/app/components/CustomNotFound";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import CoffeeCreationModal from "@/app/components/coffee/CoffeeCreationModal";
+import LocationCard from "@/app/components/coffee/LocationCard";
+import LocationCreationModal from "@/app/components/coffee/LocationCreationModal";
 
 export default function RoasterDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -35,6 +39,7 @@ export default function RoasterDetail({ id }: { id: string }) {
 
   // State for coffee creation modal
   const [showCoffeeModal, setShowCoffeeModal] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
   const [coffeeImage, setCoffeeImage] = useState<File | null>(null);
@@ -485,6 +490,238 @@ export default function RoasterDetail({ id }: { id: string }) {
             </div>
           </div>
 
+          {/* Locations section */}
+          <div className="mt-8 border-t border-gray-200 coffee:border-gray-700 pt-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-medium">Locations</h2>
+              <div className="flex items-center gap-2">
+                {isOwner && (
+                  <div className="flex items-center">
+                    <label className="cursor-pointer flex items-center">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-primary checkbox-sm mr-2"
+                        checked={roaster.hasSingleLocation}
+                        onChange={async () => {
+                          try {
+                            const response = await fetch(
+                              `/api/coffee-roasters/${id}`,
+                              {
+                                method: "PUT",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  ...roaster,
+                                  hasSingleLocation: !roaster.hasSingleLocation,
+                                }),
+                              }
+                            );
+
+                            if (response.ok) {
+                              const data = await response.json();
+                              setRoaster(data);
+                              setToastMessage(
+                                data.hasSingleLocation
+                                  ? "Using main roaster info as single location"
+                                  : "Multiple locations enabled"
+                              );
+                              setShowToast(true);
+                            }
+                          } catch (err) {
+                            console.error("Error updating roaster:", err);
+                          }
+                        }}
+                      />
+                      <span className="text-sm">Single location only</span>
+                    </label>
+                  </div>
+                )}
+                {isLoggedIn && !roaster.hasSingleLocation && (
+                  <button
+                    onClick={() => setShowLocationModal(true)}
+                    className="btn btn-primary btn-sm"
+                  >
+                    <MapPinned size={16} className="mr-1" />
+                    Add Location
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {roaster.hasSingleLocation ? (
+              // Show main roaster info as a single location
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                <div className="bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden">
+                  <div className="p-4">
+                    {/* Location header with image */}
+                    <div className="flex items-center mb-3">
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 coffee:bg-gray-700 mr-3 flex-shrink-0">
+                        {roaster.image ? (
+                          <Image
+                            src={roaster.image}
+                            alt={roaster.name}
+                            width={48}
+                            height={48}
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl">
+                            🏬
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-grow">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-medium">
+                            Main Location
+                            <span className="ml-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full">
+                              Main
+                            </span>
+                          </h3>
+                        </div>
+                        <p className="text-sm text-gray-500 coffee:text-gray-400">
+                          {roaster.name}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Location details */}
+                    <div className="space-y-2">
+                      {roaster.address && (
+                        <div className="flex items-start">
+                          <MapPin
+                            size={16}
+                            className="mr-2 text-gray-500 mt-0.5"
+                          />
+                          <div>
+                            {roaster.mapsLink ? (
+                              <a
+                                href={roaster.mapsLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline"
+                              >
+                                {roaster.address}
+                              </a>
+                            ) : (
+                              <span>{roaster.address}</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {roaster.phoneNumber && (
+                        <div className="flex items-center">
+                          <Phone size={16} className="mr-2 text-gray-500" />
+                          <a
+                            href={`tel:${roaster.phoneNumber}`}
+                            className="text-primary hover:underline"
+                          >
+                            {roaster.phoneNumber}
+                          </a>
+                        </div>
+                      )}
+
+                      {roaster.website && (
+                        <div className="flex items-center">
+                          <Globe size={16} className="mr-2 text-gray-500" />
+                          <a
+                            href={roaster.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            {roaster.website.replace(/^https?:\/\//, "")}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : roaster.locations && roaster.locations.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                {roaster.locations.map((location: any) => (
+                  <LocationCard
+                    key={location.id}
+                    location={location}
+                    roasterName={roaster.name}
+                    onUpdate={() => {
+                      // Refresh roaster data to get updated locations
+                      const fetchRoaster = async () => {
+                        try {
+                          const response = await fetch(
+                            `/api/coffee-roasters/${id}`
+                          );
+                          if (response.ok) {
+                            const data = await response.json();
+                            setRoaster(data);
+                          }
+                        } catch (err) {
+                          console.error("Error refreshing roaster data:", err);
+                        }
+                      };
+                      fetchRoaster();
+                    }}
+                    onDelete={() => {
+                      // Refresh roaster data to get updated locations
+                      const fetchRoaster = async () => {
+                        try {
+                          const response = await fetch(
+                            `/api/coffee-roasters/${id}`
+                          );
+                          if (response.ok) {
+                            const data = await response.json();
+                            setRoaster(data);
+                          }
+                        } catch (err) {
+                          console.error("Error refreshing roaster data:", err);
+                        }
+                      };
+                      fetchRoaster();
+                    }}
+                    onSetMainLocation={() => {
+                      // Refresh roaster data to get updated locations
+                      const fetchRoaster = async () => {
+                        try {
+                          const response = await fetch(
+                            `/api/coffee-roasters/${id}`
+                          );
+                          if (response.ok) {
+                            const data = await response.json();
+                            setRoaster(data);
+                          }
+                        } catch (err) {
+                          console.error("Error refreshing roaster data:", err);
+                        }
+                      };
+                      fetchRoaster();
+                    }}
+                    isOwner={isOwner}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 coffee:bg-gray-700 rounded-lg p-6 text-center mb-8">
+                <p className="text-gray-500 coffee:text-gray-400">
+                  {roaster.hasSingleLocation
+                    ? "Using main roaster information as the single location."
+                    : "No locations found for this roaster."}
+                </p>
+                {isLoggedIn && !roaster.hasSingleLocation && (
+                  <button
+                    onClick={() => setShowLocationModal(true)}
+                    className="btn btn-primary btn-sm mt-4"
+                  >
+                    <MapPinned size={16} className="mr-1" />
+                    Add First Location
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Coffees section */}
           <div className="mt-8 border-t border-gray-200 coffee:border-gray-700 pt-6">
             <div className="flex justify-between items-center mb-4">
@@ -589,6 +826,34 @@ export default function RoasterDetail({ id }: { id: string }) {
         availableTastingNotes={availableTastingNotes}
         availableOrigins={availableOrigins}
         availableProcesses={availableProcesses}
+      />
+
+      {/* Location Creation Modal */}
+      <LocationCreationModal
+        show={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        roasterId={id}
+        roasterName={roaster.name}
+        isFirstLocation={!roaster.locations || roaster.locations.length === 0}
+        onSuccess={() => {
+          setShowLocationModal(false);
+          // Refresh roaster data to get updated locations
+          const fetchRoaster = async () => {
+            try {
+              const response = await fetch(`/api/coffee-roasters/${id}`);
+              if (response.ok) {
+                const data = await response.json();
+                setRoaster(data);
+                // Show success toast
+                setToastMessage("Location added successfully!");
+                setShowToast(true);
+              }
+            } catch (err) {
+              console.error("Error refreshing roaster data:", err);
+            }
+          };
+          fetchRoaster();
+        }}
       />
     </div>
   );

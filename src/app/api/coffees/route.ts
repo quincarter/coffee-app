@@ -2,9 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/db";
 import { getSession } from "@/app/lib/session";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const createdBy = searchParams.get("createdBy");
+
+    // Build where clause based on query parameters
+    const where: any = {};
+
+    // Filter by creator if specified
+    if (createdBy) {
+      where.createdBy = createdBy;
+    }
+
     const coffees = await prisma.coffee.findMany({
+      where,
       include: {
         roaster: true,
         tastingNotes: true,

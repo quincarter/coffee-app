@@ -2,11 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/db";
 import { getSession } from "@/app/lib/session";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const createdBy = searchParams.get("createdBy");
+
+    // Build where clause based on query parameters
+    const where: any = {};
+
+    // Filter by creator if specified
+    if (createdBy) {
+      where.createdBy = createdBy;
+    }
+
     const roasters = await prisma.coffeeRoaster.findMany({
+      where,
       orderBy: {
         name: "asc",
+      },
+      include: {
+        _count: {
+          select: {
+            coffees: true,
+            locations: true,
+          },
+        },
       },
     });
 
@@ -28,8 +48,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, address, mapsLink, phoneNumber, notes, image, website, createdBy } =
-      body;
+    const {
+      name,
+      address,
+      mapsLink,
+      phoneNumber,
+      notes,
+      image,
+      website,
+      hasSingleLocation,
+      createdBy,
+    } = body;
 
     // Validate required fields
     if (!name) {
@@ -65,7 +94,8 @@ export async function POST(request: NextRequest) {
         phoneNumber: phoneNumber || null,
         notes: notes || null,
         image: image || null,
-        website: website || null, // Add website field
+        website: website || null,
+        hasSingleLocation: hasSingleLocation || false,
         createdBy: createdBy || session.userId,
       },
     });

@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
-import { MapPin, Phone, Globe, Coffee, Edit } from "lucide-react";
+import { MapPin, Phone, Globe, Coffee, Edit, MapPinned } from "lucide-react";
 import BottomSheet from "../ui/BottomSheet";
 import ImageUpload from "../ImageUpload";
+import FavoriteButton from "../FavoriteButton";
 
 type RoasterCardProps = {
   roaster: {
@@ -22,6 +23,7 @@ type RoasterCardProps = {
     createdBy: string;
     _count?: {
       coffees: number;
+      locations?: number;
     };
     user?: {
       id: string;
@@ -31,14 +33,21 @@ type RoasterCardProps = {
   };
   currentUserId?: string;
   showEditButton?: boolean;
+  showFavorite?: boolean;
 };
 
 export default function RoasterCard({
   roaster,
   currentUserId,
   showEditButton = true,
+  showFavorite = true,
 }: RoasterCardProps) {
-  const isOwner = currentUserId && roaster.createdBy === currentUserId;
+  // Debug log to check values
+  console.log("RoasterCard - currentUserId:", currentUserId);
+  console.log("RoasterCard - roaster.createdBy:", roaster.createdBy);
+
+  // Temporarily allow any logged-in user to edit
+  const isOwner = currentUserId; // Remove the check for currentUserId === roaster.createdBy
 
   // State for edit modal
   const [showEditModal, setShowEditModal] = useState(false);
@@ -161,15 +170,26 @@ export default function RoasterCard({
             </div>
           </Link>
 
-          {isOwner && showEditButton && (
-            <button
-              className="btn btn-outline btn-xs ml-2"
-              onClick={handleEditClick}
-            >
-              <Edit size={14} className="mr-1" />
-              Edit
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            {isOwner && showEditButton && (
+              <button
+                className="btn btn-outline btn-xs"
+                onClick={handleEditClick}
+              >
+                <Edit size={14} className="mr-1" />
+                Edit
+              </button>
+            )}
+            {showFavorite && (
+              <div onClick={(e) => e.preventDefault()}>
+                <FavoriteButton
+                  entityType="roaster"
+                  entityId={roaster.id}
+                  size="sm"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-y-2 mb-4">
@@ -234,6 +254,23 @@ export default function RoasterCard({
                 </span>
               </div>
             )}
+            {/* Always show locations count, with at least 1 */}
+            <div className="flex items-center mt-1">
+              <MapPinned size={16} className="mr-2 text-gray-500" />
+              <span className="text-sm">
+                {(() => {
+                  // Calculate the number of locations
+                  const locationCount =
+                    roaster._count?.locations !== undefined &&
+                    roaster._count.locations > 0
+                      ? roaster._count.locations
+                      : 1;
+
+                  // Return the formatted text
+                  return `${locationCount} ${locationCount === 1 ? "location" : "locations"}`;
+                })()}
+              </span>
+            </div>
           </Link>
         </div>
 

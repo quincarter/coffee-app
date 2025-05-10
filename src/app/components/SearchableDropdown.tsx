@@ -24,7 +24,7 @@ type SearchableDropdownProps = {
   noOptionsMessage?: string;
   onAddNew?: (newValue: string) => void;
   allowAddNew?: boolean;
-  addNewText?: string;
+  // addNewText?: string; // No longer used
   multiple?: boolean;
 };
 
@@ -43,7 +43,7 @@ export default function SearchableDropdown({
   noOptionsMessage = "No options found",
   onAddNew,
   allowAddNew = false,
-  addNewText = "Add new item",
+  // addNewText = "Add new item", // Unused variable
   multiple = false,
 }: SearchableDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -263,6 +263,16 @@ export default function SearchableDropdown({
     }
   }, [multiple, selectedOption, searchTerm, isOpen]);
 
+  // Update the display when value changes
+  useEffect(() => {
+    if (!multiple && value && !searchTerm) {
+      const option = options.find((opt) => opt.value === value);
+      if (option && inputRef.current) {
+        inputRef.current.placeholder = option.label;
+      }
+    }
+  }, [multiple, value, options, searchTerm]);
+
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       {label && (
@@ -278,7 +288,7 @@ export default function SearchableDropdown({
 
       {/* Selected chips for multiple selection */}
       {multiple && selectedOptions.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
           {selectedOptions.map((option, index) => (
             <Chip
               key={option.value}
@@ -291,15 +301,25 @@ export default function SearchableDropdown({
       )}
 
       {/* Selected chip for single selection */}
-      {!multiple && selectedOption && !searchTerm && (
-        <div className="flex flex-wrap gap-2 mb-2">
+      {!multiple && value && !searchTerm && (
+        <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
           <Chip
-            label={selectedOption.label}
+            label={
+              selectedOption?.label ||
+              options.find((opt) => opt.value === value)?.label ||
+              (typeof value === "string" ? value : "")
+            }
             onRemove={() => {
               onChange(multiple ? [] : "");
             }}
           />
         </div>
+      )}
+
+      {/* Empty space placeholder when no chips are selected to maintain consistent height */}
+      {((multiple && selectedOptions.length === 0) ||
+        (!multiple && (!value || searchTerm))) && (
+        <div className="min-h-[32px] mb-2"></div>
       )}
 
       <div className="relative">
