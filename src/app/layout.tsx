@@ -7,6 +7,7 @@ import { getSession } from "./lib/session";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import HeaderNav from "./components/HeaderNav";
 import EmailVerificationBanner from "@/app/components/EmailVerificationBanner";
+import { BarChart3, ClipboardList, Scale, Tag, Store } from "lucide-react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -103,20 +104,7 @@ export default async function RootLayout({
                     href="/dashboard"
                     className="flex flex-col items-center p-1"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                      />
-                    </svg>
+                    <BarChart3 className="h-6 w-6" />
                     <span className="text-xs">Dashboard</span>
                   </Link>
 
@@ -124,20 +112,7 @@ export default async function RootLayout({
                     href="/brew-log"
                     className="flex flex-col items-center p-1"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
+                    <ClipboardList className="h-6 w-6" />
                     <span className="text-xs">Brew Log</span>
                   </Link>
 
@@ -145,20 +120,7 @@ export default async function RootLayout({
                     href="/brew-profiles"
                     className="flex flex-col items-center p-1"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
-                      />
-                    </svg>
+                    <Scale className="h-6 w-6" />
                     <span className="text-xs">Measure</span>
                   </Link>
 
@@ -166,42 +128,16 @@ export default async function RootLayout({
                     href="/coffees"
                     className="flex flex-col items-center p-1"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
-                      />
-                    </svg>
+                    <Tag className="h-6 w-6" />
                     <span className="text-xs">Coffees</span>
                   </Link>
 
                   <Link
-                    href="/profile"
+                    href="/roasters"
                     className="flex flex-col items-center p-1"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    <span className="text-xs">Profile</span>
+                    <Store className="h-6 w-6" />
+                    <span className="text-xs">Roasters</span>
                   </Link>
                 </div>
               </nav>
