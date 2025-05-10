@@ -3,6 +3,7 @@
 import { useState } from "react";
 import SearchableDropdown from "../SearchableDropdown";
 import BottomSheet from "../ui/BottomSheet";
+import ImageUpload from "../ImageUpload";
 
 type CoffeeFormData = {
   name: string;
@@ -39,6 +40,8 @@ export default function CoffeeCreationModal({
   availableOrigins,
   availableProcesses,
 }: CoffeeCreationModalProps) {
+  const [coffeeImage, setCoffeeImage] = useState<File | null>(null);
+
   const handleChange = (field: keyof CoffeeFormData, value: any) => {
     setFormData({
       ...formData,
@@ -96,7 +99,9 @@ export default function CoffeeCreationModal({
             label=""
             placeholder="Select or type a country..."
             allowAddNew={true}
-            onAddNew={() => {}}
+            onAddNew={(_newValue) => {
+              // New value will be added to the form data automatically
+            }}
             multiple={false}
           />
         </div>
@@ -120,7 +125,9 @@ export default function CoffeeCreationModal({
             label=""
             placeholder="Select or type a process method..."
             allowAddNew={true}
-            onAddNew={() => {}}
+            onAddNew={(_newValue) => {
+              // New value will be added to the form data automatically
+            }}
             multiple={false}
           />
         </div>
@@ -134,6 +141,20 @@ export default function CoffeeCreationModal({
             onChange={(e) => handleChange("elevation", e.target.value)}
             className="input input-bordered w-full"
             placeholder="e.g., 1200-1500 masl"
+          />
+        </div>
+
+        {/* Coffee Image */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Coffee Image</label>
+          <ImageUpload
+            initialImage={null}
+            onImageChange={(file) => {
+              setCoffeeImage(file);
+            }}
+            label=""
+            height="sm"
+            className="mt-1"
           />
         </div>
 
@@ -158,7 +179,9 @@ export default function CoffeeCreationModal({
             label=""
             placeholder="Select or type tasting notes..."
             allowAddNew={true}
-            onAddNew={() => {}}
+            onAddNew={(_newValue) => {
+              // New value will be added to the form data automatically
+            }}
             multiple={true}
           />
         </div>

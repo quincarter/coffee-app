@@ -6,10 +6,12 @@ import Link from "next/link";
 import { Plus, Filter } from "lucide-react";
 import BrewProfileCard from "../components/BrewProfileCard";
 import SearchableDropdown from "../components/SearchableDropdown";
+import LoadingSpinner from "../components/LoadingSpinner";
+import BrewProfileCreationModal from "../components/brew/BrewProfileCreationModal";
 
 export default function BrewProfilesPage() {
   const router = useRouter();
-  const [profiles, setProfiles] = useState([]);
+  const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("all"); // all, mine, public
@@ -23,6 +25,9 @@ export default function BrewProfilesPage() {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // State for brew profile creation modal
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -115,20 +120,40 @@ export default function BrewProfilesPage() {
     setSearchTerm("");
   };
 
+  // Handle profile creation
+  const handleProfileCreated = (profile: any) => {
+    // Add the new profile to the list
+    setProfiles((prevProfiles) => [
+      {
+        ...profile,
+        currentUserId: currentUserId,
+      },
+      ...prevProfiles,
+    ]);
+
+    // Close the modal
+    setShowProfileModal(false);
+
+    // Navigate to the new profile
+    router.push(`/brew-profiles/${profile.id}`);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Brew Profiles</h1>
-        {isLoggedIn && (
-          <Link
-            href="/brew-profiles/new"
+        {loading ? (
+          // Skeleton loader for the button while loading
+          <div className="h-9 w-36 bg-gray-200 coffee:bg-gray-700 rounded animate-pulse"></div>
+        ) : isLoggedIn ? (
+          <button
+            onClick={() => setShowProfileModal(true)}
             className="btn btn-primary btn-sm flex items-center gap-2"
           >
             <Plus size={16} />
             New Profile
-          </Link>
-        )}
-        {!isLoggedIn && (
+          </button>
+        ) : (
           <Link href="/login" className="btn btn-outline btn-sm">
             Log in to create profiles
           </Link>
@@ -148,20 +173,27 @@ export default function BrewProfilesPage() {
               <button
                 className={`btn btn-sm ${filter === "all" ? "btn-primary" : "btn-outline"}`}
                 onClick={() => setFilter("all")}
+                disabled={loading}
               >
                 All
               </button>
-              {isLoggedIn && (
-                <button
-                  className={`btn btn-sm ${filter === "mine" ? "btn-primary" : "btn-outline"}`}
-                  onClick={() => setFilter("mine")}
-                >
-                  My Profiles
-                </button>
+              {loading ? (
+                // Skeleton loader for "My Profiles" button while loading
+                <div className="h-8 w-24 bg-gray-200 coffee:bg-gray-700 rounded animate-pulse"></div>
+              ) : (
+                isLoggedIn && (
+                  <button
+                    className={`btn btn-sm ${filter === "mine" ? "btn-primary" : "btn-outline"}`}
+                    onClick={() => setFilter("mine")}
+                  >
+                    My Profiles
+                  </button>
+                )
               )}
               <button
                 className={`btn btn-sm ${filter === "public" ? "btn-primary" : "btn-outline"}`}
                 onClick={() => setFilter("public")}
+                disabled={loading}
               >
                 Public
               </button>
@@ -170,64 +202,85 @@ export default function BrewProfilesPage() {
 
           {/* Roaster filter */}
           <div>
-            <SearchableDropdown
-              options={roasters.map((roaster) => ({
-                value: roaster.id,
-                label: roaster.name,
-              }))}
-              value={selectedRoaster}
-              onChange={(value) => {
-                if (Array.isArray(value)) {
-                  setSelectedRoaster(value[0] || "");
-                } else {
-                  setSelectedRoaster(value);
-                }
-              }}
-              placeholder="Filter by roaster..."
-              multiple={false}
-            />
+            {loading ? (
+              // Skeleton loader for roaster filter
+              <div className="h-10 bg-gray-200 coffee:bg-gray-700 rounded animate-pulse"></div>
+            ) : (
+              <SearchableDropdown
+                options={roasters.map((roaster) => ({
+                  value: roaster.id,
+                  label: roaster.name,
+                }))}
+                value={selectedRoaster}
+                onChange={(value) => {
+                  if (Array.isArray(value)) {
+                    setSelectedRoaster(value[0] || "");
+                  } else {
+                    setSelectedRoaster(value);
+                  }
+                }}
+                placeholder="Filter by roaster..."
+                multiple={false}
+                disabled={loading}
+              />
+            )}
           </div>
 
           {/* Device filter */}
           <div>
-            <SearchableDropdown
-              options={devices.map((device) => ({
-                value: device.id,
-                label: device.name,
-              }))}
-              value={selectedDevice}
-              onChange={(value) => {
-                if (Array.isArray(value)) {
-                  setSelectedDevice(value[0] || "");
-                } else {
-                  setSelectedDevice(value);
-                }
-              }}
-              placeholder="Filter by device..."
-              multiple={false}
-            />
+            {loading ? (
+              // Skeleton loader for device filter
+              <div className="h-10 bg-gray-200 coffee:bg-gray-700 rounded animate-pulse"></div>
+            ) : (
+              <SearchableDropdown
+                options={devices.map((device) => ({
+                  value: device.id,
+                  label: device.name,
+                }))}
+                value={selectedDevice}
+                onChange={(value) => {
+                  if (Array.isArray(value)) {
+                    setSelectedDevice(value[0] || "");
+                  } else {
+                    setSelectedDevice(value);
+                  }
+                }}
+                placeholder="Filter by device..."
+                multiple={false}
+                disabled={loading}
+              />
+            )}
           </div>
 
           {/* Search */}
           <div>
             <div className="relative">
-              <input
-                type="text"
-                placeholder="Search profiles..."
-                className="input input-bordered w-full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {(searchTerm ||
-                selectedRoaster ||
-                selectedDevice ||
-                filter !== "all") && (
-                <button
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  onClick={handleClearFilters}
-                >
-                  Clear
-                </button>
+              {loading ? (
+                // Skeleton loader for search input
+                <div className="h-10 bg-gray-200 coffee:bg-gray-700 rounded animate-pulse"></div>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Search profiles..."
+                    className="input input-bordered w-full"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    disabled={loading}
+                  />
+                  {(searchTerm ||
+                    selectedRoaster ||
+                    selectedDevice ||
+                    filter !== "all") && (
+                    <button
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      onClick={handleClearFilters}
+                      disabled={loading}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -235,9 +288,7 @@ export default function BrewProfilesPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="loading loading-spinner loading-lg"></div>
-        </div>
+        <LoadingSpinner />
       ) : error ? (
         <div className="alert alert-error">
           <p>{error}</p>
@@ -257,9 +308,12 @@ export default function BrewProfilesPage() {
               Clear Filters
             </button>
           ) : isLoggedIn ? (
-            <Link href="/brew-profiles/new" className="btn btn-primary">
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className="btn btn-primary"
+            >
               Create Your First Brew Profile
-            </Link>
+            </button>
           ) : (
             <Link href="/login" className="btn btn-primary">
               Log in to Create Profiles
@@ -273,6 +327,14 @@ export default function BrewProfilesPage() {
           ))}
         </div>
       )}
+
+      {/* Brew Profile Creation Modal */}
+      <BrewProfileCreationModal
+        show={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onProfileCreated={handleProfileCreated}
+        userId={currentUserId || undefined}
+      />
     </div>
   );
 }

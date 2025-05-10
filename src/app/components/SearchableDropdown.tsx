@@ -22,7 +22,7 @@ type SearchableDropdownProps = {
   className?: string;
   error?: string;
   noOptionsMessage?: string;
-  onAddNew?: () => void;
+  onAddNew?: (newValue: string) => void;
   allowAddNew?: boolean;
   addNewText?: string;
   multiple?: boolean;
@@ -64,9 +64,14 @@ export default function SearchableDropdown({
 
   // Find the selected option labels for multiple selection
   const selectedOptions = multiple
-    ? selectedValues
-        .map((value) => options.find((option) => option.value === value))
-        .filter((option): option is Option => option !== undefined)
+    ? selectedValues.map((value) => {
+        // First try to find in existing options
+        const existingOption = options.find((option) => option.value === value);
+        if (existingOption) return existingOption;
+
+        // If not found, create a new option object
+        return { value, label: value };
+      })
     : [];
 
   // Find the selected option label for single selection
@@ -154,9 +159,71 @@ export default function SearchableDropdown({
       if (filteredOptions.length > 0) {
         const selectedValue = filteredOptions[highlightedIndex].value;
         handleOptionClick(selectedValue);
+      } else if (searchTerm && allowAddNew) {
+        // If no options match but we have a search term and allowAddNew is true,
+        // add the search term as a new option
+        handleAddNewItem();
       }
     } else if (e.key === "Escape") {
       setIsOpen(false);
+    }
+  };
+
+  // Function to handle adding a new item
+  const handleAddNewItem = (e?: React.MouseEvent) => {
+    // If this was triggered by a click event, prevent default behavior
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    if (!searchTerm.trim()) return;
+
+    // Create a new option with the search term
+    const newOption = {
+      value: searchTerm.trim(),
+      label: searchTerm.trim(),
+    };
+
+    // Check if this option already exists to avoid duplicates
+    const optionExists = options.some(
+      (option) => option.value.toLowerCase() === newOption.value.toLowerCase()
+    );
+
+    // Add the new option to the selected values
+    if (multiple) {
+      // Only add if it's not already selected
+      if (!selectedValues.includes(newOption.value)) {
+        const newValues = [...selectedValues, newOption.value];
+        onChange(newValues);
+      }
+
+      // For multiple selection, keep the dropdown open
+      // and clear any blur timeout that might be pending
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+        blurTimeoutRef.current = null;
+      }
+
+      // Focus the input again to keep the dropdown open
+      if (inputRef.current) {
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        }, 10);
+      }
+    } else {
+      onChange(newOption.value);
+      setIsOpen(false);
+    }
+
+    // Clear the search term
+    setSearchTerm("");
+
+    // Notify parent component about the new item (optional)
+    if (onAddNew && !optionExists) {
+      onAddNew(newOption.value);
     }
   };
 
@@ -299,12 +366,16 @@ export default function SearchableDropdown({
               </>
             )}
 
-            {allowAddNew && onAddNew && (
+            {allowAddNew && searchTerm && (
               <li
-                className="relative cursor-pointer select-none py-2 pl-3 pr-9 text-primary hover:bg-gray-100 coffee:hover:bg-gray-700 border-t"
-                onClick={onAddNew}
+                className="relative cursor-pointer select-none py-2 pl-3 pr-9 text-primary hover:bg-gray-100 coffee:hover:bg-gray-700 border-t w-full"
+                onClick={(e) => handleAddNewItem(e)}
+                onMouseDown={handleOptionMouseDown}
+                role="option"
               >
-                + {addNewText}
+                <div className="w-full h-full flex items-center">
+                  + Add "{searchTerm}"
+                </div>
               </li>
             )}
           </ul>

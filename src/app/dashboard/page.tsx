@@ -9,6 +9,7 @@ import QuickBrewForm from "./components/QuickBrewForm";
 import { BrewSession, UserBrewingDevice, User, BrewProfile } from "@/app/types";
 import { toast } from "react-hot-toast";
 import BrewProfileCard from "../components/BrewProfileCard";
+import BrewProfileCreationModal from "../components/brew/BrewProfileCreationModal";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -22,6 +23,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [recentProfiles, setRecentProfiles] = useState<Array<BrewProfile>>([]);
   const [totalProfiles, setTotalProfiles] = useState(0);
+
+  // State for brew profile creation modal
+  const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -132,6 +136,27 @@ export default function Dashboard() {
 
   const handleSelectBrew = (brew: { id: string }) => {
     router.push(`/brew-log?session=${brew.id}`);
+  };
+
+  // Handle profile creation
+  const handleProfileCreated = (profile: any) => {
+    // Add the new profile to the list
+    setRecentProfiles((prevProfiles) => [
+      profile,
+      ...prevProfiles.slice(0, 2), // Keep only the first 3 profiles including the new one
+    ]);
+
+    // Update total profiles count
+    setTotalProfiles((prev) => prev + 1);
+
+    // Close the modal
+    setShowProfileModal(false);
+
+    // Show a success toast notification
+    toast.success(`Brew profile created successfully!`);
+
+    // Navigate to the new profile
+    router.push(`/brew-profiles/${profile.id}`);
   };
 
   if (loading) {
@@ -295,8 +320,8 @@ export default function Dashboard() {
             {recentProfiles.map((profile) => (
               <BrewProfileCard key={profile.id} profile={profile} />
             ))}
-            <Link
-              href="/brew-profiles/new"
+            <button
+              onClick={() => setShowProfileModal(true)}
               className="bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden hover:shadow-md transition-shadow flex items-center justify-center p-5 h-full"
             >
               <div className="text-center">
@@ -308,20 +333,20 @@ export default function Dashboard() {
                   Save your perfect brew recipe
                 </p>
               </div>
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="bg-white coffee:bg-gray-800 rounded-lg shadow p-6 text-center">
             <p className="text-gray-500 coffee:text-gray-400">
               You haven&apos;t created any brew profiles yet.
             </p>
-            <Link
-              href="/brew-profiles/new"
+            <button
+              onClick={() => setShowProfileModal(true)}
               className="mt-4 btn btn-primary inline-flex items-center"
             >
               <Plus className="mr-2 h-4 w-4" />
               Create your first brew profile
-            </Link>
+            </button>
           </div>
         )}
       </div>
@@ -359,6 +384,14 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Brew Profile Creation Modal */}
+      <BrewProfileCreationModal
+        show={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onProfileCreated={handleProfileCreated}
+        userId={user?.id}
+      />
     </div>
   );
 }
