@@ -24,17 +24,17 @@
   --color-neutral: oklch(35% 0.08 60); /* dark roast */
   --color-neutral-content: oklch(98% 0.01 80); /* light text on neutral */
 
-  --color-info: oklch(70% 0.2 220); /* blue for water */
+  --color-info: oklch(45% 0.15 220); /* deep water blue */
   --color-info-content: oklch(98% 0.01 220); /* light text on info */
 
-  --color-success: oklch(65% 0.15 140); /* fresh beans green */
+  --color-success: oklch(45% 0.15 140); /* deep forest green */
   --color-success-content: oklch(98% 0.01 140); /* light text on success */
 
-  --color-warning: oklch(80% 0.15 80); /* caramel */
+  --color-warning: oklch(60% 0.15 80); /* rich caramel */
   --color-warning-content: oklch(25% 0.05 80); /* dark text on warning */
 
-  --color-error: oklch(65% 0.2 30); /* cherry */
-  --color-error-content: oklch(98% 0.01 30); /* light text on error */
+  --color-error: oklch(50% 0.25 25); /* rich red */
+  --color-error-content: oklch(98% 0.01 25); /* light text on error */
 
   /* border radius */
   --radius-selector: 0.5rem;

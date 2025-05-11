@@ -29,6 +29,8 @@ const PROTECTED_PATHS = [
   // "/brew-profiles" - Now accessible to unauthenticated users
   "/brew-profiles/create", // Still protect the create page
   "/brew-profiles/edit", // Still protect edit pages
+  "/api/brew-sessions", // Protect brew sessions API
+  "/api/user", // Protect user-related API routes
 ];
 
 export async function middleware(request: NextRequest) {
@@ -49,10 +51,15 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check if path requires authentication
-  const requiresAuth = PROTECTED_PATHS.some(
+  const isProtectedPath = PROTECTED_PATHS.some(
     (protectedPath) =>
       path === protectedPath || path.startsWith(`${protectedPath}/`)
   );
+
+  // Handle API routes that require authentication
+  const isProtectedApiRoute =
+    path.startsWith("/api/") && !PUBLIC_PATHS.some((p) => path.startsWith(p));
+  const requiresAuth = isProtectedPath || isProtectedApiRoute;
 
   if (requiresAuth) {
     // Check if user is logged in
