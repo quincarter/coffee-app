@@ -170,7 +170,9 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <AdminBanner />
+      <div className="w-full space-y-8 shadow-md bg-base-100 relative z-10 mb-6">
+        <AdminBanner />
+      </div>
 
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-2">
