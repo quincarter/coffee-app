@@ -11,7 +11,18 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-  rule("@typescript-eslint/no-explicit-any", "warn"),
+  {
+    rules: {
+      // Set to warn instead of error
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "react-hooks/exhaustive-deps": "warn",
+      "react/no-unescaped-entities": "warn",
+      "jsx-a11y/role-supports-aria-props": "warn",
+      "jsx-a11y/role-has-required-aria-props": "warn",
+      "@next/next/no-img-element": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;

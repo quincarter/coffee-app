@@ -48,6 +48,9 @@ export default function CoffeesPageClient({
     initialCurrentUserId
   );
 
+  // Use a ref to track if we've already fetched data
+  const dataFetchedRef = useRef(false);
+
   // State for coffee creation modal
   const [showCoffeeModal, setShowCoffeeModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -206,9 +209,6 @@ export default function CoffeesPageClient({
     if (initialCoffees.length === 0) {
       // Track if the component is mounted
       let isMounted = true;
-
-      // Use a ref to track if we've already fetched data
-      const dataFetchedRef = useRef(false);
 
       const fetchData = async () => {
         // Skip if we've already fetched data or the component is unmounted
