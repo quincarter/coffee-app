@@ -2,8 +2,7 @@ import { Suspense } from "react";
 import prisma from "@/app/lib/db";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { getSession } from "../lib/session";
-import FilterableListServer from "../components/FilterableListServer";
-import CoffeeCardStatic from "../components/coffee/CoffeeCardStatic";
+import CoffeesPageClient from "../components/coffee/CoffeesPageClient";
 
 export default async function CoffeesPage() {
   // Fetch data server-side
@@ -55,54 +54,18 @@ export default async function CoffeesPage() {
     // We'll handle errors in the UI
   }
 
-  // Prepare filters for the FilterableList component
-  const filters = [
-    {
-      name: "roasterId",
-      options: roasters.map((roaster) => ({
-        value: roaster.id,
-        label: roaster.name,
-      })),
-      placeholder: "Filter by roaster...",
-    },
-    {
-      name: "countryOfOrigin",
-      options: origins.map((origin) => ({
-        value: origin.name,
-        label: origin.name,
-      })),
-      placeholder: "Filter by origin...",
-    },
-    {
-      name: "process",
-      options: processes.map((process) => ({
-        value: process.name,
-        label: process.name,
-      })),
-      placeholder: "Filter by process...",
-    },
-  ];
-
-  // Create static coffee cards for server rendering
-  const staticCoffeeCards = coffees.map((coffee) => (
-    <CoffeeCardStatic key={coffee.id} coffee={coffee} />
-  ));
+  // No need to prepare filters or static cards as we're using the client component
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <FilterableListServer
-        title="Coffees"
-        items={coffees}
-        staticItems={staticCoffeeCards}
-        filters={filters}
-        searchPlaceholder="Search coffees..."
-        createButtonLabel="Add New Coffee"
-        createButtonLink="/coffees/new"
-        loginButtonLabel="Log in to add coffees"
-        loginButtonLink="/login"
-        isLoggedIn={isLoggedIn}
-        emptyStateMessage="No coffees found"
-        noMatchesMessage="No coffees match your filters"
+      {/* Use the client component to handle authentication */}
+      <CoffeesPageClient
+        initialCoffees={coffees}
+        initialRoasters={roasters}
+        initialOrigins={origins}
+        initialProcesses={processes}
+        initialIsLoggedIn={isLoggedIn}
+        initialCurrentUserId={session?.userId || null}
       />
     </Suspense>
   );
