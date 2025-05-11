@@ -14,6 +14,7 @@ import {
   Tag,
   Coffee,
   Heart,
+  Plus,
 } from "lucide-react";
 import CoffeeImage from "@/app/components/coffee/CoffeeImage";
 import BrewProfileCard from "@/app/components/BrewProfileCard";
@@ -23,6 +24,7 @@ import Toast from "@/app/components/Toast";
 import CustomNotFound from "@/app/components/CustomNotFound";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import FavoriteButton from "@/app/components/FavoriteButton";
+import BrewProfileCreationModal from "@/app/components/brew/BrewProfileCreationModal";
 
 export default function CoffeeDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -35,6 +37,8 @@ export default function CoffeeDetail({ id }: { id: string }) {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profiles, setProfiles] = useState<any[]>([]);
 
   // Related coffees
   const [roasterCoffees, setRoasterCoffees] = useState<any[]>([]);
@@ -264,6 +268,24 @@ export default function CoffeeDetail({ id }: { id: string }) {
     );
   }
 
+  // Handle profile creation
+  const handleProfileCreated = (profile: any) => {
+    // Add the new profile to the list
+    setProfiles((prevProfiles) => [
+      {
+        ...profile,
+        currentUserId: currentUserId,
+      },
+      ...prevProfiles,
+    ]);
+
+    // Close the modal
+    setShowProfileModal(false);
+
+    // Navigate to the new profile
+    router.push(`/brew-profiles/${profile.id}`);
+  };
+
   // Temporarily allow any logged-in user to edit
   const isOwner = isLoggedIn; // Remove the check for currentUserId === coffee.createdBy
 
@@ -442,13 +464,13 @@ export default function CoffeeDetail({ id }: { id: string }) {
                   <p className="text-gray-500 coffee:text-gray-400">
                     No brew profiles found for this coffee.
                   </p>
-                  <Link
-                    href={`/brew-profiles/new?coffee=${coffee.id}`}
+                  <button
+                    onClick={() => setShowProfileModal(true)}
                     className="btn btn-primary btn-sm mt-4"
                   >
-                    <Coffee size={16} className="mr-1" />
-                    Create First Brew Profile
-                  </Link>
+                    <Plus size={16} />
+                    Create First Profile
+                  </button>
                 </div>
               )}
             </div>
@@ -536,6 +558,13 @@ export default function CoffeeDetail({ id }: { id: string }) {
           />
         )}
       </div>
+      {/* Brew Profile Creation Modal */}
+      <BrewProfileCreationModal
+        show={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onProfileCreated={handleProfileCreated}
+        userId={currentUserId || undefined}
+      />
     </div>
   );
 }
