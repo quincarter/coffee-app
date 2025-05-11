@@ -775,8 +775,8 @@ export default function RoasterDetail({
       </div>
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white coffee:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+        <div className="fixed inset-0 flex items-center justify-center z-110 backdrop-blur">
+          <div className="bg-white coffee:bg-gray-800 rounded-lg p-6 max-w-md w-full shadow-lg">
             <h3 className="text-lg font-medium mb-4">Delete Roaster</h3>
             <p className="mb-6">
               Are you sure you want to delete this roaster? This action cannot
@@ -814,7 +814,7 @@ export default function RoasterDetail({
         onSubmit={(imageUrl) => {
           handleSubmitCoffee(imageUrl);
         }}
-        isRoasterPage={true}
+        isRoasterPage
         formData={coffeeFormData}
         setFormData={setCoffeeFormData}
         isLoading={isSubmitting}

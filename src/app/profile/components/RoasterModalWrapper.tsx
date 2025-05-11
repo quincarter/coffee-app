@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import RoasterCreationModal from "@/app/components/coffee/RoasterCreationModal";
+import { RoasterFormData } from "@/app/types";
 
 type RoasterModalWrapperProps = {
   show: boolean;
@@ -14,14 +15,7 @@ export default function RoasterModalWrapper({
   onClose,
   onRoasterCreated,
 }: RoasterModalWrapperProps) {
-  type RoasterFormData = {
-    name: string;
-    address: string;
-    mapsLink: string;
-    phoneNumber: string;
-    notes: string;
-    website: string;
-  };
+
 
   const [roasterFormData, setRoasterFormData] = useState<RoasterFormData>({
     name: "",
@@ -30,9 +24,9 @@ export default function RoasterModalWrapper({
     phoneNumber: "",
     notes: "",
     website: "",
+    image: null,
   });
 
-  const [roasterImage, setRoasterImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
 
@@ -46,27 +40,6 @@ export default function RoasterModalWrapper({
         throw new Error("Roaster name is required");
       }
 
-      // Upload image if provided
-      let imageUrl = null;
-      if (roasterImage) {
-        const formData = new FormData();
-        formData.append("file", roasterImage);
-        formData.append("context", "roaster");
-
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!uploadRes.ok) {
-          const uploadError = await uploadRes.json();
-          throw new Error(uploadError.error || "Failed to upload image");
-        }
-
-        const uploadData = await uploadRes.json();
-        imageUrl = uploadData.url;
-      }
-
       // Create roaster
       const response = await fetch("/api/coffee-roasters", {
         method: "POST",
@@ -75,7 +48,6 @@ export default function RoasterModalWrapper({
         },
         body: JSON.stringify({
           ...roasterFormData,
-          image: imageUrl,
           hasSingleLocation: true, // Default to single location for simplicity
         }),
       });
@@ -95,8 +67,8 @@ export default function RoasterModalWrapper({
         phoneNumber: "",
         notes: "",
         website: "",
+        image: null,
       });
-      setRoasterImage(null);
 
       // Call the callback with the new roaster
       onRoasterCreated(newRoaster);
@@ -115,8 +87,6 @@ export default function RoasterModalWrapper({
       onSubmit={handleSubmitRoaster}
       formData={roasterFormData}
       setFormData={setRoasterFormData}
-      roasterImage={roasterImage}
-      setRoasterImage={setRoasterImage}
       isLoading={isSubmitting}
       error={modalError}
     />

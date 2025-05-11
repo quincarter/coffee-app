@@ -25,12 +25,9 @@ export default function RoasterEditForm({
     website: roaster.website || "",
     notes: roaster.notes || "",
     hasSingleLocation: roaster.hasSingleLocation || false,
+    image: roaster.image || null,
   });
 
-  const [roasterImage, setRoasterImage] = useState<File | null>(null);
-  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(
-    roaster.image || null
-  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -57,37 +54,13 @@ export default function RoasterEditForm({
         throw new Error("Roaster name is required");
       }
 
-      let imageUrl = currentImageUrl;
-
-      // Upload new image if selected
-      if (roasterImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", roasterImage);
-        uploadFormData.append("context", "roaster");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
       // Update roaster
       const response = await fetch(`/api/coffee-roasters/${roaster.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          image: imageUrl,
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
@@ -162,7 +135,6 @@ export default function RoasterEditForm({
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Edit Roaster</h1>
         <button
-          type="button"
           onClick={() => setShowDeleteConfirm(true)}
           className="btn btn-outline btn-error btn-sm"
           disabled={submitting || coffeeCount > 0}
@@ -177,15 +149,12 @@ export default function RoasterEditForm({
         </button>
       </div>
 
-      {error && <div className="alert alert-error mb-6">{error}</div>}
-
       {coffeeCount > 0 && (
         <div className="alert alert-info mb-6">
-          <div className="flex flex-col w-full">
+          <div>
             <p>
-              This roaster has {coffeeCount} coffee(s) associated with it. You
-              need to delete or reassign these coffees before you can delete
-              this roaster.
+              This roaster has {coffeeCount} coffee{coffeeCount !== 1 && "s"}{" "}
+              associated with it.
             </p>
             <div className="flex justify-center sm:justify-start mt-2">
               <Link
@@ -251,8 +220,14 @@ export default function RoasterEditForm({
                 Roaster Logo
               </label>
               <ImageUpload
-                initialImage={currentImageUrl}
-                onImageChange={(file) => setRoasterImage(file)}
+                initialImage={formData.image}
+                onImageUploaded={(imageUrl) => {
+                  setFormData({
+                    ...formData,
+                    image: imageUrl,
+                  });
+                }}
+                uploadContext="roaster"
                 height="md"
               />
             </div>
@@ -349,7 +324,7 @@ export default function RoasterEditForm({
 
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white coffee:bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-medium mb-4">Delete Roaster</h3>
             <p className="mb-6">

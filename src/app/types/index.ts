@@ -118,3 +118,13 @@ export type FavoriteType =
   | "coffees"
   | "roasters"
   | "locations";
+
+export type RoasterFormData = {
+  name: string;
+  address: string;
+  mapsLink: string;
+  phoneNumber: string;
+  notes: string;
+  website: string;
+  image?: string | null;
+};

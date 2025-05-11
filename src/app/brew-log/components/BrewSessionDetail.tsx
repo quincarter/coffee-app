@@ -41,8 +41,9 @@ export default function BrewSessionDetail({
   const [dropdownStates, setDropdownStates] = useState<{
     [key: string]: boolean;
   }>({});
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    session.image || null
+  );
   const [hoursStr, setHoursStr] = useState("");
   const [minutesStr, setMinutesStr] = useState("");
   const [secondsStr, setSecondsStr] = useState("");
@@ -163,7 +164,7 @@ export default function BrewSessionDetail({
     setName(session.name);
     setNotes(session.notes);
     setBrewingDeviceId(session.brewingDeviceId);
-    setImagePreview(session.image || null);
+    setImageUrl(session.image || null);
     setBrewProfileId(session.brewProfileId || "");
 
     // Extract additional device IDs from session
@@ -204,20 +205,6 @@ export default function BrewSessionDetail({
     fetchBrewProfiles();
   }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setImageFile(file);
-
-      // Create a preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleTimeChange = (
     hours: string,
     minutes: string,
@@ -243,27 +230,6 @@ export default function BrewSessionDetail({
       .padStart(2, "0")}:${secondsNum.toString().padStart(2, "0")}`;
 
     try {
-      let imageUrl = session.image;
-
-      // Upload image if one was selected
-      if (imageFile) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", imageFile);
-        uploadFormData.append("context", "brew-session");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
       const response = await fetch(`/api/brew-sessions/${session.id}`, {
         method: "PATCH",
         headers: {
@@ -308,11 +274,9 @@ export default function BrewSessionDetail({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Session image in edit mode */}
           <ImageUpload
-            initialImage={imagePreview || session.image}
-            onImageChange={(file, preview) => {
-              setImageFile(file);
-              setImagePreview(preview);
-            }}
+            initialImage={imageUrl}
+            onImageUploaded={setImageUrl}
+            uploadContext="brew-session"
             label="Brew Image (optional)"
             height="md"
             className="mb-4"

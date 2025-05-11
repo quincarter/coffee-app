@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import ImageUpload from "@/app/components/ImageUpload";
 
@@ -17,9 +17,6 @@ export default function BackgroundSettingsTab({ userId }: { userId: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchUserSettings() {
@@ -43,51 +40,6 @@ export default function BackgroundSettingsTab({ userId }: { userId: string }) {
 
     fetchUserSettings();
   }, []);
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    setUploading(true);
-    setMessage(null);
-    setError(null);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("context", "background");
-
-      const uploadResponse = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        throw new Error(errorData.error || "Failed to upload image");
-      }
-
-      const uploadData = await uploadResponse.json();
-      setBackgroundImage(uploadData.url);
-      setMessage("Background image uploaded successfully!");
-    } catch (err) {
-      console.error("Error uploading background image:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to upload image. Please try again."
-      );
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const handleSaveSettings = async () => {
     setMessage(null);
@@ -121,11 +73,6 @@ export default function BackgroundSettingsTab({ userId }: { userId: string }) {
     }
   };
 
-  const handleRemoveBackground = () => {
-    setBackgroundImage(null);
-    setImagePreview(null);
-  };
-
   if (isLoading) {
     return <div>Loading settings...</div>;
   }
@@ -133,56 +80,36 @@ export default function BackgroundSettingsTab({ userId }: { userId: string }) {
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">Background Settings</h2>
-      
-      {message && (
-        <div className="alert alert-success mb-4">
-          {message}
-        </div>
-      )}
-      
-      {error && (
-        <div className="alert alert-error mb-4">
-          {error}
-        </div>
-      )}
+
+      {message && <div className="alert alert-success mb-4">{message}</div>}
+
+      {error && <div className="alert alert-error mb-4">{error}</div>}
 
       <div>
         <h3 className="text-lg font-medium mb-2">Background Image</h3>
         <div className="space-y-4">
-          {(backgroundImage || imagePreview) && (
+          {backgroundImage && (
             <div className="relative rounded-lg overflow-hidden h-40 mb-4">
               <img
-                src={imagePreview || backgroundImage || ""}
+                src={backgroundImage}
                 alt="Background preview"
                 className="w-full h-full object-cover"
               />
-              <button
-                onClick={handleRemoveBackground}
-                className="btn btn-circle btn-sm absolute top-2 right-2 bg-white/80"
-              >
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              </button>
             </div>
           )}
-          
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept="image/*"
-            onChange={handleImageUpload}
+
+          <ImageUpload
+            initialImage={backgroundImage}
+            onImageUploaded={(imageUrl) => {
+              setBackgroundImage(imageUrl);
+              setMessage(
+                "Background image updated. Don't forget to save your settings!"
+              );
+            }}
+            uploadContext="background"
+            label="Background Image"
+            height="lg"
           />
-          
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="btn btn-primary"
-            disabled={uploading}
-          >
-            {uploading ? "Uploading..." : "Upload Background Image"}
-          </button>
         </div>
       </div>
 
@@ -203,10 +130,7 @@ export default function BackgroundSettingsTab({ userId }: { userId: string }) {
       </div>
 
       <div className="pt-4">
-        <button
-          onClick={handleSaveSettings}
-          className="btn btn-primary"
-        >
+        <button onClick={handleSaveSettings} className="btn btn-primary">
           Save Settings
         </button>
       </div>

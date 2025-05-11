@@ -5,7 +5,6 @@ import SearchableDropdown from "../SearchableDropdown";
 import BottomSheet from "../ui/BottomSheet";
 import ImageUpload from "../ImageUpload";
 import RoasterSelector from "./RoasterSelector";
-import { uploadImage } from "@/app/utils/uploadImage";
 import { CoffeeFormData } from "@/app/types";
 
 type CoffeeCreationModalProps = {
@@ -37,8 +36,6 @@ export default function CoffeeCreationModal({
   userId = undefined,
   isRoasterPage = false,
 }: CoffeeCreationModalProps) {
-  const [coffeeImage, setCoffeeImage] = useState<File | null>(null);
-
   // Selected roaster
   const [selectedRoaster, setSelectedRoaster] = useState<string>(
     formData?.roasterId || ""
@@ -56,25 +53,16 @@ export default function CoffeeCreationModal({
     handleChange("roasterId", roasterId);
   };
 
-  const handleImageChange = (file: File | null) => {
-    setCoffeeImage(file);
-    handleChange("image", file);
+  const handleSubmit = async () => {
+    // No need to handle image upload here as it's done by the ImageUpload component
+    onSubmit(formData.image as string | null);
   };
 
-  const handleSubmit = async () => {
-    let imageUrl = null;
-
-    // Upload image if one was selected
-    if (formData.image instanceof File) {
-      try {
-        imageUrl = await uploadImage(formData.image, "coffee");
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        // You might want to handle this error more gracefully
-      }
-    }
-
-    onSubmit(imageUrl);
+  // Get initial image URL
+  const getInitialImage = () => {
+    if (!formData.image) return null;
+    if (typeof formData.image === "string") return formData.image;
+    return null;
   };
 
   return (
@@ -184,10 +172,9 @@ export default function CoffeeCreationModal({
         <div>
           <label className="block text-sm font-medium mb-1">Coffee Image</label>
           <ImageUpload
-            initialImage={null}
-            onImageChange={(file) => {
-              handleImageChange(file);
-            }}
+            initialImage={getInitialImage()}
+            onImageUploaded={(imageUrl) => handleChange("image", imageUrl)}
+            uploadContext="coffee"
             label=""
             height="sm"
             className="mt-1"

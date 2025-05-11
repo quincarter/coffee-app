@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import FilterableList from "../components/FilterableList";
 import RoasterCard from "../components/coffee/RoasterCard";
 import RoasterCreationModal from "../components/coffee/RoasterCreationModal";
+import { RoasterFormData } from "../types";
 
 export default function RoastersPage() {
   const [roasters, setRoasters] = useState<any[]>([]);
@@ -16,16 +17,16 @@ export default function RoastersPage() {
   const [showRoasterModal, setShowRoasterModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
-  const [roasterImage, setRoasterImage] = useState<File | null>(null);
 
   // Form data for new roaster
-  const [roasterFormData, setRoasterFormData] = useState({
+  const [roasterFormData, setRoasterFormData] = useState<RoasterFormData>({
     name: "",
     address: "",
     mapsLink: "",
     phoneNumber: "",
     notes: "",
     website: "",
+    image: null as string | null,
   });
 
   useEffect(() => {
@@ -79,8 +80,8 @@ export default function RoastersPage() {
       phoneNumber: "",
       notes: "",
       website: "",
+      image: null,
     });
-    setRoasterImage(null);
   };
 
   // Function to handle form submission
@@ -91,27 +92,6 @@ export default function RoastersPage() {
     try {
       if (!roasterFormData.name) throw new Error("Roaster name is required");
 
-      let imageUrl = null;
-
-      // Upload image if one was selected
-      if (roasterImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", roasterImage);
-        uploadFormData.append("context", "roaster");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
       // Create roaster
       const response = await fetch("/api/coffee-roasters", {
         method: "POST",
@@ -120,7 +100,6 @@ export default function RoastersPage() {
         },
         body: JSON.stringify({
           ...roasterFormData,
-          image: imageUrl,
           createdBy: currentUserId,
         }),
       });
@@ -187,8 +166,6 @@ export default function RoastersPage() {
         }}
         formData={roasterFormData}
         setFormData={setRoasterFormData}
-        roasterImage={roasterImage}
-        setRoasterImage={setRoasterImage}
         isLoading={isSubmitting}
         error={modalError}
       />

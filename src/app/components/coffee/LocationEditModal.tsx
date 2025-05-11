@@ -10,6 +10,7 @@ type LocationFormData = {
   mapsLink: string;
   phoneNumber: string;
   isMainLocation: boolean;
+  image: string | null;
 };
 
 type LocationEditModalProps = {
@@ -42,10 +43,9 @@ export default function LocationEditModal({
     mapsLink: location.mapsLink || "",
     phoneNumber: location.phoneNumber || "",
     isMainLocation: location.isMainLocation,
+    image: location.image || null,
   });
 
-  // State for image upload
-  const [locationImage, setLocationImage] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,28 +85,7 @@ export default function LocationEditModal({
         throw new Error("Address is required");
       }
 
-      let imageUrl = location.image;
-
-      // Upload image if one was selected
-      if (locationImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", locationImage);
-        uploadFormData.append("context", "roaster-location");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
-      // Update location
+      // Update location with all form data including image URL
       const response = await fetch(
         `/api/coffee-roasters/${roasterId}/locations/${location.id}`,
         {
@@ -114,10 +93,7 @@ export default function LocationEditModal({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            ...formData,
-            image: imageUrl,
-          }),
+          body: JSON.stringify(formData),
         }
       );
 
@@ -138,9 +114,6 @@ export default function LocationEditModal({
 
   return (
     <BottomSheet show={show} onClose={onClose} title="Edit Location">
-      <p className="text-gray-600 coffee:text-gray-300 mb-4">
-        Edit details for {location.name}
-      </p>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="bg-red-50 coffee:bg-red-900/20 text-red-600 coffee:text-red-400 p-3 rounded-md text-sm">
@@ -162,7 +135,6 @@ export default function LocationEditModal({
             value={formData.name}
             onChange={handleChange}
             className="input input-bordered w-full"
-            placeholder="Downtown, Westside, etc."
             required
           />
         </div>
@@ -181,7 +153,6 @@ export default function LocationEditModal({
             value={formData.address}
             onChange={handleChange}
             className="input input-bordered w-full"
-            placeholder="123 Main St, City, State, ZIP"
             required
           />
         </div>
@@ -200,7 +171,6 @@ export default function LocationEditModal({
             value={formData.mapsLink}
             onChange={handleChange}
             className="input input-bordered w-full"
-            placeholder="https://maps.google.com/..."
           />
         </div>
 
@@ -218,7 +188,6 @@ export default function LocationEditModal({
             value={formData.phoneNumber}
             onChange={handleChange}
             className="input input-bordered w-full"
-            placeholder="(123) 456-7890"
           />
         </div>
 
@@ -244,12 +213,19 @@ export default function LocationEditModal({
             Location Image
           </label>
           <ImageUpload
-            onImageChange={(file) => setLocationImage(file)}
-            initialImage={location.image}
+            initialImage={formData.image}
+            onImageUploaded={(imageUrl) => {
+              setFormData({
+                ...formData,
+                image: imageUrl,
+              });
+            }}
+            uploadContext="roaster-location"
+            height="sm"
           />
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className="flex justify-end space-x-2 mt-4">
           <button
             type="button"
             onClick={onClose}

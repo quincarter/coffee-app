@@ -26,8 +26,7 @@ export default function NewBrewForm({
   const [selectedDeviceIds, setSelectedDeviceIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isPublic, setIsPublic] = useState(false);
   const [showQuickDeviceModal, setShowQuickDeviceModal] = useState(false);
   const [quickDeviceName, setQuickDeviceName] = useState("");
@@ -47,6 +46,9 @@ export default function NewBrewForm({
   const [selectedBrewProfileId, setSelectedBrewProfileId] =
     useState<string>("");
   const [loadingProfiles, setLoadingProfiles] = useState(false);
+  const [quickDeviceImageUrl, setQuickDeviceImageUrl] = useState<string | null>(
+    null
+  );
 
   const validateTimeInput = (value: string, max: number): string => {
     // Allow empty string or numbers only
@@ -75,19 +77,64 @@ export default function NewBrewForm({
     setTimeout(() => setModalAnimation(true), 10);
   };
 
-  const handleQuickDeviceImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setImageFile(file);
+  const handleQuickDeviceAdd = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsAddingDevice(true);
+    setDeviceError(null);
 
-      // Create a preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+    try {
+      if (!quickDeviceName.trim()) {
+        throw new Error("Device name is required");
+      }
+
+      if (!selectedDeviceType) {
+        throw new Error("Please select a device type");
+      }
+
+      // Create the payload object
+      const payload = {
+        name: quickDeviceName,
+        description: quickDeviceDescription,
+        brewingDeviceId: selectedDeviceType,
+        userId,
+        ...(quickDeviceImageUrl && { image: quickDeviceImageUrl }),
       };
-      reader.readAsDataURL(file);
+
+      const response = await fetch("/api/user-brewing-devices", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("API error response:", errorData);
+        throw new Error(errorData.error || "Failed to add device");
+      }
+
+      const newDevice = await response.json();
+
+      // Add the new device to the list and select it
+      userDevices = [...userDevices, newDevice];
+      setSelectedDeviceIds([...selectedDeviceIds, newDevice.id]);
+
+      // Close the modal with animation
+      closeModal();
+
+      // Reset form
+      setQuickDeviceName("");
+      setQuickDeviceDescription("");
+      setSelectedDeviceType("");
+      setQuickDeviceImageUrl(null);
+    } catch (err) {
+      console.error("Error adding device:", err);
+      setDeviceError(
+        err instanceof Error ? err.message : "Failed to add device"
+      );
+    } finally {
+      setIsAddingDevice(false);
     }
   };
 
@@ -130,40 +177,18 @@ export default function NewBrewForm({
     setError(null);
 
     try {
-      let imageUrl = null;
-
-      // Upload image if one was selected
-      if (imageFile) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", imageFile);
-        uploadFormData.append("context", "brew-session");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
-      // The fix: Use primaryUserDevice.brewingDeviceId instead of primaryUserDevice.id
       const payload = {
         ...(userId && { userId }),
         name,
         notes,
-        brewingDeviceId: primaryUserDevice.brewingDeviceId, // Use the brewingDeviceId from the UserBrewingDevice
+        brewingDeviceId: primaryUserDevice.brewingDeviceId,
         additionalDeviceIds: selectedDeviceIds
           .slice(1)
           .map((id) => {
             const device = userDevices.find((d) => d.id === id);
             return device ? device.brewingDeviceId : null;
           })
-          .filter(Boolean), // Map UserBrewingDevice IDs to BrewingDevice IDs
+          .filter(Boolean),
         brewTime,
         ...(imageUrl && { image: imageUrl }),
         isPublic,
@@ -197,12 +222,14 @@ export default function NewBrewForm({
       setHoursStr("");
       setMinutesStr("");
       setSecondsStr("");
-      setImageFile(null);
-      setImagePreview(null);
+      setImageUrl(null);
       setSelectedBrewProfileId("");
+      setIsPublic(false);
     } catch (err) {
-      console.error("Submission error:", err);
-      setError("An error occurred while creating the brew session");
+      console.error("Error creating brew session:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to create brew session"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -425,11 +452,9 @@ export default function NewBrewForm({
       </div>
 
       <ImageUpload
-        initialImage={imagePreview}
-        onImageChange={(file, preview) => {
-          setImageFile(file);
-          setImagePreview(preview);
-        }}
+        initialImage={imageUrl}
+        onImageUploaded={setImageUrl}
+        uploadContext="brew-session"
         label="Brew Image (optional)"
         height={isQuickForm ? "sm" : "md"}
         isSmall={isQuickForm}
@@ -542,91 +567,6 @@ export default function NewBrewForm({
       typeof profileData.tastingNotes === "string"
     ) {
       setNotes(profileData.tastingNotes);
-    }
-  };
-
-  const handleQuickDeviceAdd = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsAddingDevice(true);
-    setDeviceError(null);
-
-    try {
-      if (!quickDeviceName.trim()) {
-        throw new Error("Device name is required");
-      }
-
-      if (!selectedDeviceType) {
-        throw new Error("Please select a device type");
-      }
-
-      let imageUrl = null;
-
-      // Upload image if one was selected
-      if (imageFile) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", imageFile);
-        uploadFormData.append("context", "brewing-device");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
-      // Create the payload object
-      const payload = {
-        name: quickDeviceName,
-        description: quickDeviceDescription,
-        brewingDeviceId: selectedDeviceType,
-        userId,
-        ...(imageUrl && { image: imageUrl }),
-      };
-
-      const response = await fetch("/api/user-brewing-devices", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      // Log the response status
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("API error response:", errorData);
-        throw new Error(errorData.error || "Failed to add device");
-      }
-
-      const newDevice = await response.json();
-
-      // Add the new device to the list and select it
-      userDevices = [...userDevices, newDevice];
-      setSelectedDeviceIds([...selectedDeviceIds, newDevice.id]);
-
-      // Close the modal with animation
-      closeModal();
-
-      // Reset form
-      setQuickDeviceName("");
-      setQuickDeviceDescription("");
-      setSelectedDeviceType("");
-      setImageFile(null);
-      setImagePreview(null);
-    } catch (err) {
-      console.error("Error adding device:", err);
-      setDeviceError(
-        err instanceof Error ? err.message : "Failed to add device"
-      );
-    } finally {
-      setIsAddingDevice(false);
     }
   };
 
@@ -834,31 +774,14 @@ export default function NewBrewForm({
               </div>
 
               <div className="mb-4">
-                <label
-                  htmlFor="quickDeviceImage"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Device Image (Optional)
-                </label>
-                <input
-                  type="file"
-                  id="quickDeviceImage"
-                  accept="image/*"
-                  onChange={handleQuickDeviceImageChange}
-                  className="file-input file-input-bordered w-full"
+                <ImageUpload
+                  initialImage={quickDeviceImageUrl}
+                  onImageUploaded={setQuickDeviceImageUrl}
+                  uploadContext="brewing-device"
+                  label="Device Image"
+                  height="sm"
+                  className="w-full"
                 />
-
-                {imagePreview && (
-                  <div className="mt-2">
-                    <div className="w-24 h-24 mx-auto">
-                      <img
-                        src={imagePreview}
-                        alt="Device preview"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div className="flex justify-end space-x-2 mt-4">

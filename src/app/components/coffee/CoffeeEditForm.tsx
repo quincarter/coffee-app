@@ -1,20 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Save, Trash } from "lucide-react";
+import { Trash, Save } from "lucide-react";
 import SearchableDropdown from "@/app/components/SearchableDropdown";
 import ImageUpload from "@/app/components/ImageUpload";
 import Toast from "@/app/components/Toast";
-import { uploadImage } from "@/app/utils/uploadImage";
 
 type CoffeeEditFormProps = {
   coffee: any;
-  roasters: any[];
-  tastingNotes: any[];
-  origins: any[];
-  processes: any[];
+  roasters: {
+    id: string;
+    name: string;
+  }[];
+  tastingNotes: {
+    id: string;
+    name: string;
+  }[];
+  origins: {
+    id: string;
+    name: string;
+  }[];
+  processes: {
+    id: string;
+    name: string;
+  }[];
 };
 
 export default function CoffeeEditForm({
@@ -33,12 +44,9 @@ export default function CoffeeEditForm({
     elevation: coffee.elevation || "",
     process: coffee.process || "",
     tastingNotes: coffee.tastingNotes?.map((note: any) => note.name) || [],
+    image: coffee.image || null,
   });
 
-  const [coffeeImage, setCoffeeImage] = useState<File | null>(null);
-  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(
-    coffee.image || null
-  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -69,23 +77,13 @@ export default function CoffeeEditForm({
         throw new Error("Roaster is required");
       }
 
-      let imageUrl = currentImageUrl;
-
-      // Upload new image if selected
-      if (coffeeImage) {
-        imageUrl = await uploadImage(coffeeImage, "coffee");
-      }
-
       // Update coffee
       const response = await fetch(`/api/coffees/${coffee.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          image: imageUrl,
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
@@ -160,7 +158,6 @@ export default function CoffeeEditForm({
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Edit Coffee</h1>
         <button
-          type="button"
           onClick={() => setShowDeleteConfirm(true)}
           className="btn btn-outline btn-error btn-sm"
           disabled={submitting}
@@ -231,8 +228,14 @@ export default function CoffeeEditForm({
                 Coffee Image
               </label>
               <ImageUpload
-                initialImage={currentImageUrl}
-                onImageChange={(file) => setCoffeeImage(file)}
+                initialImage={formData.image}
+                onImageUploaded={(imageUrl) => {
+                  setFormData({
+                    ...formData,
+                    image: imageUrl,
+                  });
+                }}
+                uploadContext="coffee"
                 height="md"
               />
             </div>
@@ -257,29 +260,7 @@ export default function CoffeeEditForm({
                     handleChange("countryOfOrigin", value);
                   }
                 }}
-                placeholder="Select or type a country..."
-                allowAddNew={true}
-                multiple={false}
-              />
-            </div>
-
-            {/* Process */}
-            <div>
-              <label className="block text-sm font-medium mb-1">Process</label>
-              <SearchableDropdown
-                options={processes.map((process) => ({
-                  value: process.name,
-                  label: process.name,
-                }))}
-                value={formData.process}
-                onChange={(value) => {
-                  if (Array.isArray(value)) {
-                    handleChange("process", value[0] || "");
-                  } else {
-                    handleChange("process", value);
-                  }
-                }}
-                placeholder="Select or type a process method..."
+                placeholder="Select country of origin..."
                 allowAddNew={true}
                 multiple={false}
               />
@@ -299,6 +280,28 @@ export default function CoffeeEditForm({
               />
             </div>
 
+            {/* Process */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Process</label>
+              <SearchableDropdown
+                options={processes.map((process) => ({
+                  value: process.name,
+                  label: process.name,
+                }))}
+                value={formData.process}
+                onChange={(value) => {
+                  if (Array.isArray(value)) {
+                    handleChange("process", value[0] || "");
+                  } else {
+                    handleChange("process", value);
+                  }
+                }}
+                placeholder="Select process..."
+                allowAddNew={true}
+                multiple={false}
+              />
+            </div>
+
             {/* Tasting Notes */}
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -311,10 +314,11 @@ export default function CoffeeEditForm({
                 }))}
                 value={formData.tastingNotes}
                 onChange={(value) => {
-                  if (Array.isArray(value)) {
-                    handleChange("tastingNotes", value);
-                  } else {
+                  // Convert 'value' to an array if it's a string
+                  if (typeof value === "string") {
                     handleChange("tastingNotes", [value]);
+                  } else {
+                    handleChange("tastingNotes", value);
                   }
                 }}
                 placeholder="Select or type tasting notes..."

@@ -1,16 +1,8 @@
 "use client";
 
+import { RoasterFormData } from "@/app/types";
 import ImageUpload from "../ImageUpload";
 import BottomSheet from "../ui/BottomSheet";
-
-type RoasterFormData = {
-  name: string;
-  address: string;
-  mapsLink: string;
-  phoneNumber: string;
-  notes: string;
-  website: string;
-};
 
 type RoasterCreationModalProps = {
   show: boolean;
@@ -18,8 +10,6 @@ type RoasterCreationModalProps = {
   onSubmit: () => void;
   formData: RoasterFormData;
   setFormData: (data: RoasterFormData) => void;
-  roasterImage: File | null;
-  setRoasterImage: (file: File | null) => void;
   isLoading: boolean;
   error: string | null;
 };
@@ -30,12 +20,10 @@ export default function RoasterCreationModal({
   onSubmit,
   formData,
   setFormData,
-  roasterImage,
-  setRoasterImage,
   isLoading,
   error,
 }: RoasterCreationModalProps) {
-  const handleChange = (field: keyof RoasterFormData, value: string) => {
+  const handleChange = (field: keyof RoasterFormData, value: string | null) => {
     setFormData({
       ...formData,
       [field]: value,
@@ -129,10 +117,9 @@ export default function RoasterCreationModal({
             Roaster Image
           </label>
           <ImageUpload
-            initialImage={null}
-            onImageChange={(file) => {
-              setRoasterImage(file);
-            }}
+            initialImage={formData.image}
+            onImageUploaded={(imageUrl) => handleChange("image", imageUrl)}
+            uploadContext="coffee-roaster"
             label=""
             height="sm"
             className="mt-1"
