@@ -166,7 +166,6 @@ export default function RoasterSelector({
       <div className="flex items-end gap-2">
         <div className="flex-grow">
           <SearchableDropdown
-            disabled={disabled}
             options={roasters.map((roaster) => ({
               value: roaster.id,
               label: roaster.name,
