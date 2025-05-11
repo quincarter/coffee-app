@@ -26,6 +26,8 @@ import CoffeeCreationModal from "@/app/components/coffee/CoffeeCreationModal";
 import LocationCard from "@/app/components/coffee/LocationCard";
 import LocationCreationModal from "@/app/components/coffee/LocationCreationModal";
 import FavoriteButton from "@/app/components/FavoriteButton";
+import StructuredData from "@/app/components/StructuredData";
+import { generateRoasterStructuredData } from "@/app/lib/structuredData";
 
 export default function RoasterDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -334,8 +336,18 @@ export default function RoasterDetail({ id }: { id: string }) {
   // Check if the user is logged in and is the owner of the roaster
   const isOwner = isLoggedIn && currentUserId === roaster.createdBy;
 
+  // Get base URL for structured data
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Add structured data */}
+      {roaster && (
+        <StructuredData
+          data={generateRoasterStructuredData(roaster, baseUrl)}
+        />
+      )}
+
       <div className="mb-6">
         <Link
           href="/roasters"

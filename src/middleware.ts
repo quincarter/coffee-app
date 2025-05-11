@@ -35,6 +35,18 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   console.log("MIDDLEWARE: path", path);
 
+  // Debug cookies
+  const cookies = request.cookies;
+  const sessionCookie = cookies.get("session");
+  console.log("MIDDLEWARE: session cookie exists:", !!sessionCookie);
+  if (sessionCookie) {
+    console.log("MIDDLEWARE: session cookie name:", sessionCookie.name);
+    console.log(
+      "MIDDLEWARE: session cookie value length:",
+      sessionCookie.value.length
+    );
+  }
+
   // Allow public paths
   if (PUBLIC_PATHS.some((publicPath) => path.startsWith(publicPath))) {
     return NextResponse.next();

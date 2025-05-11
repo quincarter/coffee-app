@@ -23,6 +23,8 @@ import Toast from "@/app/components/Toast";
 import CustomNotFound from "@/app/components/CustomNotFound";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import FavoriteButton from "@/app/components/FavoriteButton";
+import StructuredData from "@/app/components/StructuredData";
+import { generateCoffeeStructuredData } from "@/app/lib/structuredData";
 
 export default function CoffeeDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -271,8 +273,16 @@ export default function CoffeeDetail({ id }: { id: string }) {
   // Temporarily allow any logged-in user to edit
   const isOwner = isLoggedIn; // Remove the check for currentUserId === coffee.createdBy
 
+  // Get base URL for structured data
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Add structured data */}
+      {coffee && (
+        <StructuredData data={generateCoffeeStructuredData(coffee, baseUrl)} />
+      )}
+
       <div className="mb-6">
         <Link
           href="/coffees"

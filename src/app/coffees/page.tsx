@@ -1,8 +1,9 @@
 import { Suspense } from "react";
-import CoffeesPageClient from "../components/coffee/CoffeesPageClient";
 import prisma from "@/app/lib/db";
 import LoadingSpinner from "../components/LoadingSpinner";
-// Using dynamic rendering from config.ts
+import { getSession } from "../lib/session";
+import FilterableListServer from "../components/FilterableListServer";
+import CoffeeCardStatic from "../components/coffee/CoffeeCardStatic";
 
 export default async function CoffeesPage() {
   // Fetch data server-side
@@ -10,13 +11,14 @@ export default async function CoffeesPage() {
   let roasters: any[] = [];
   let origins: any[] = [];
   let processes: any[] = [];
-  let isLoggedIn = false;
-  let currentUserId: string | null = null;
+
+  // Check if user is logged in
+  const session = await getSession();
+  console.log("CoffeesPage - Session:", JSON.stringify(session, null, 2));
+  const isLoggedIn = !!session;
+  console.log("CoffeesPage - isLoggedIn:", isLoggedIn);
 
   try {
-    // We'll let the client component handle session checking
-    // This avoids the cookies issue during static generation
-
     // Fetch coffees
     coffees = await prisma.coffee.findMany({
       include: {
@@ -50,18 +52,57 @@ export default async function CoffeesPage() {
     });
   } catch (error) {
     console.error("Error fetching data:", error);
-    // We'll let the client component handle errors
+    // We'll handle errors in the UI
   }
+
+  // Prepare filters for the FilterableList component
+  const filters = [
+    {
+      name: "roasterId",
+      options: roasters.map((roaster) => ({
+        value: roaster.id,
+        label: roaster.name,
+      })),
+      placeholder: "Filter by roaster...",
+    },
+    {
+      name: "countryOfOrigin",
+      options: origins.map((origin) => ({
+        value: origin.name,
+        label: origin.name,
+      })),
+      placeholder: "Filter by origin...",
+    },
+    {
+      name: "process",
+      options: processes.map((process) => ({
+        value: process.name,
+        label: process.name,
+      })),
+      placeholder: "Filter by process...",
+    },
+  ];
+
+  // Create static coffee cards for server rendering
+  const staticCoffeeCards = coffees.map((coffee) => (
+    <CoffeeCardStatic key={coffee.id} coffee={coffee} />
+  ));
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <CoffeesPageClient
-        initialCoffees={coffees}
-        initialRoasters={roasters}
-        initialOrigins={origins}
-        initialProcesses={processes}
-        initialIsLoggedIn={isLoggedIn}
-        initialCurrentUserId={currentUserId}
+      <FilterableListServer
+        title="Coffees"
+        items={coffees}
+        staticItems={staticCoffeeCards}
+        filters={filters}
+        searchPlaceholder="Search coffees..."
+        createButtonLabel="Add New Coffee"
+        createButtonLink="/coffees/new"
+        loginButtonLabel="Log in to add coffees"
+        loginButtonLink="/login"
+        isLoggedIn={isLoggedIn}
+        emptyStateMessage="No coffees found"
+        noMatchesMessage="No coffees match your filters"
       />
     </Suspense>
   );

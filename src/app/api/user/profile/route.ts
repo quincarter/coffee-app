@@ -5,8 +5,20 @@ import { prisma } from "@/app/lib/db";
 // GET /api/user/profile - Get the current user's profile
 export async function GET() {
   try {
+    console.log("API: /api/user/profile called");
     const session = await getSession();
     console.log("Session in profile API:", JSON.stringify(session, null, 2));
+
+    // Debug cookie information
+    const cookieStore = await import("next/headers").then((mod) =>
+      mod.cookies()
+    );
+    const sessionCookie = cookieStore.get("session");
+    console.log("Session cookie exists:", !!sessionCookie);
+    if (sessionCookie) {
+      console.log("Session cookie name:", sessionCookie.name);
+      console.log("Session cookie value length:", sessionCookie.value.length);
+    }
 
     if (!session) {
       console.log("No session found");

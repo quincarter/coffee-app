@@ -219,11 +219,23 @@ export default function CoffeesPageClient({
 
           // Check if user is logged in
           const userRes = await fetch("/api/user/profile");
+          console.log("CoffeesPageClient - userRes status:", userRes.status);
           if (userRes.ok && isMounted) {
             const userData = await userRes.json();
+            console.log("CoffeesPageClient - userData:", userData);
             setIsLoggedIn(true);
             setCurrentUserId(userData.id);
           } else if (isMounted) {
+            console.log(
+              "CoffeesPageClient - Auth failed, response:",
+              userRes.status
+            );
+            try {
+              const errorData = await userRes.json();
+              console.log("CoffeesPageClient - Error data:", errorData);
+            } catch (e) {
+              console.log("CoffeesPageClient - Could not parse error response");
+            }
             setIsLoggedIn(false);
             setCurrentUserId(null);
           }

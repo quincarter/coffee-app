@@ -42,10 +42,26 @@ export async function decrypt(token: string): Promise<Session | null> {
 
 // Get the current session
 export async function getSession(): Promise<Session | null> {
+  console.log("getSession called");
   const cookieStore = cookies();
   const token = (await cookieStore).get("session")?.value;
 
-  if (!token) return null;
+  console.log("Session token exists:", !!token);
+  if (token) {
+    console.log("Session token length:", token.length);
+  }
 
-  return decrypt(token);
+  if (!token) {
+    console.log("No session token found in cookies");
+    return null;
+  }
+
+  try {
+    const decryptedSession = await decrypt(token);
+    console.log("Session decrypted successfully:", !!decryptedSession);
+    return decryptedSession;
+  } catch (error) {
+    console.error("Error decrypting session:", error);
+    return null;
+  }
 }
