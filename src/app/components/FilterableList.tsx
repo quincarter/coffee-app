@@ -437,8 +437,7 @@ export default function FilterableList({
             <div
               className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-auto"
               style={{
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(min(100%, 450px), 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
               }}
             >
               {filteredItems.map(renderItem)}
