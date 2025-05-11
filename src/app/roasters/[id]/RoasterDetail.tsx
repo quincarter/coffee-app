@@ -16,6 +16,7 @@ import {
   Coffee,
   MapPinned,
   Plus,
+  Heart,
 } from "lucide-react";
 import CoffeeCard from "@/app/components/coffee/CoffeeCard";
 import Toast from "@/app/components/Toast";
@@ -24,6 +25,7 @@ import LoadingSpinner from "@/app/components/LoadingSpinner";
 import CoffeeCreationModal from "@/app/components/coffee/CoffeeCreationModal";
 import LocationCard from "@/app/components/coffee/LocationCard";
 import LocationCreationModal from "@/app/components/coffee/LocationCreationModal";
+import FavoriteButton from "@/app/components/FavoriteButton";
 
 export default function RoasterDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -376,6 +378,12 @@ export default function RoasterDetail({ id }: { id: string }) {
               <Share size={16} className="mr-1" />
               <span className="hidden sm:inline">Share</span>
             </button>
+            <FavoriteButton
+              entityType="roaster"
+              entityId={id}
+              showText={true}
+              className="btn btn-outline btn-sm"
+            />
           </div>
 
           {/* Roaster header */}
