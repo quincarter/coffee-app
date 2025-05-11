@@ -7,6 +7,7 @@ import { Save, Trash } from "lucide-react";
 import SearchableDropdown from "@/app/components/SearchableDropdown";
 import ImageUpload from "@/app/components/ImageUpload";
 import Toast from "@/app/components/Toast";
+import { uploadImage } from "@/app/utils/uploadImage";
 
 type CoffeeEditFormProps = {
   coffee: any;
@@ -35,7 +36,9 @@ export default function CoffeeEditForm({
   });
 
   const [coffeeImage, setCoffeeImage] = useState<File | null>(null);
-  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(coffee.image || null);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(
+    coffee.image || null
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -70,21 +73,7 @@ export default function CoffeeEditForm({
 
       // Upload new image if selected
       if (coffeeImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", coffeeImage);
-        uploadFormData.append("context", "coffee");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
+        imageUrl = await uploadImage(coffeeImage, "coffee");
       }
 
       // Update coffee
@@ -202,9 +191,7 @@ export default function CoffeeEditForm({
 
             {/* Roaster */}
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Roaster*
-              </label>
+              <label className="block text-sm font-medium mb-1">Roaster*</label>
               <SearchableDropdown
                 options={roasters.map((roaster) => ({
                   value: roaster.id,
@@ -278,9 +265,7 @@ export default function CoffeeEditForm({
 
             {/* Process */}
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Process
-              </label>
+              <label className="block text-sm font-medium mb-1">Process</label>
               <SearchableDropdown
                 options={processes.map((process) => ({
                   value: process.name,

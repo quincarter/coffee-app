@@ -5,12 +5,13 @@ import SearchableDropdown from "../SearchableDropdown";
 import BottomSheet from "../ui/BottomSheet";
 import ImageUpload from "../ImageUpload";
 import RoasterSelector from "./RoasterSelector";
+import { uploadImage } from "@/app/utils/uploadImage";
 import { CoffeeFormData } from "@/app/types";
 
 type CoffeeCreationModalProps = {
   show: boolean;
   onClose: () => void;
-  onSubmit: () => void;
+  onSubmit: (imageUrl: string | null) => void;
   formData: CoffeeFormData;
   setFormData: (data: CoffeeFormData) => void;
   isLoading: boolean;
@@ -56,8 +57,24 @@ export default function CoffeeCreationModal({
   };
 
   const handleImageChange = (file: File | null) => {
-    // setCoffeeImage(file);
+    setCoffeeImage(file);
     handleChange("image", file);
+  };
+
+  const handleSubmit = async () => {
+    let imageUrl = null;
+
+    // Upload image if one was selected
+    if (formData.image instanceof File) {
+      try {
+        imageUrl = await uploadImage(formData.image, "coffee");
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        // You might want to handle this error more gracefully
+      }
+    }
+
+    onSubmit(imageUrl);
   };
 
   return (
@@ -212,7 +229,7 @@ export default function CoffeeCreationModal({
           <button
             type="button"
             className="btn btn-primary"
-            onClick={onSubmit}
+            onClick={handleSubmit}
             disabled={isLoading}
           >
             {isLoading ? (
