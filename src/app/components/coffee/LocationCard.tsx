@@ -25,6 +25,7 @@ type LocationCardProps = {
   onSetMainLocation: () => void;
   isOwner: boolean;
   showFavorite?: boolean;
+  userId?: string;
 };
 
 export default function LocationCard({
@@ -35,6 +36,7 @@ export default function LocationCard({
   onSetMainLocation,
   isOwner,
   showFavorite = true,
+  userId,
 }: LocationCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -195,7 +197,7 @@ export default function LocationCard({
                     </button>
                   </>
                 )}
-                {showFavorite && (
+                {showFavorite && !!userId && (
                   <div onClick={(e) => e.stopPropagation()}>
                     <FavoriteButton
                       entityType="location"

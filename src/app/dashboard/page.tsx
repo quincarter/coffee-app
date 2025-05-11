@@ -316,9 +316,13 @@ export default function Dashboard() {
         </div>
 
         {recentProfiles?.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recentProfiles.map((profile) => (
-              <BrewProfileCard key={profile.id} profile={profile} />
+              <BrewProfileCard
+                isLoggedIn={!!user?.id}
+                key={profile.id}
+                profile={profile}
+              />
             ))}
             <button
               onClick={() => setShowProfileModal(true)}

@@ -1,12 +1,12 @@
 import React from "react";
-import Link from "next/link";
+import { Coffee, Droplet } from "lucide-react";
 import Image from "next/image";
-import { formatDistanceToNow } from "date-fns";
-import { Coffee, Droplet, Scale } from "lucide-react";
-import CoffeeImage from "./coffee/CoffeeImage";
-import FavoriteButton from "./FavoriteButton";
+import Link from "next/link";
+import FavoriteButtonWrapper from "./client/FavoriteButtonWrapper";
+import CoffeeImageWrapper from "./client/CoffeeImageWrapper";
 
 type BrewProfileCardProps = {
+  isLoggedIn?: boolean;
   profile: {
     id: string;
     userId: string;
@@ -40,12 +40,13 @@ type BrewProfileCardProps = {
 export default function BrewProfileCard({
   profile,
   showFavorite = true,
+  isLoggedIn = false,
 }: BrewProfileCardProps) {
   return (
     <>
       <Link
         href={`/brew-profiles/${profile.id}`}
-        className="bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
+        className="max-w-100 min-w-80 bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
       >
         <div className="p-5">
           <div className="flex items-start justify-between mb-3">
@@ -78,14 +79,12 @@ export default function BrewProfileCard({
               {profile.isPublic && (
                 <span className="badge badge-primary badge-sm">Public</span>
               )}
-              {showFavorite && (
-                <div onClick={(e) => e.preventDefault()}>
-                  <FavoriteButton
-                    entityType="brew-profile"
-                    entityId={profile.id}
-                    size="sm"
-                  />
-                </div>
+              {showFavorite && isLoggedIn && (
+                <FavoriteButtonWrapper
+                  entityType="brew-profile"
+                  entityId={profile.id}
+                  size="sm"
+                />
               )}
             </div>
           </div>
@@ -93,7 +92,7 @@ export default function BrewProfileCard({
           {/* Coffee Image */}
           {profile.coffee?.image && (
             <div className="mb-4">
-              <CoffeeImage
+              <CoffeeImageWrapper
                 image={profile.coffee.image}
                 alt={profile.coffee.name}
                 height="sm"

@@ -176,7 +176,7 @@ export default function RoasterCard({
                 Edit
               </button>
             )}
-            {showFavorite && (
+            {showFavorite && !!currentUserId && (
               <div onClick={(e) => e.preventDefault()}>
                 <FavoriteButton
                   entityType="roaster"

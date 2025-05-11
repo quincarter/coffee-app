@@ -384,12 +384,14 @@ export default function RoasterDetail({
               <Share size={16} className="mr-1" />
               <span className="hidden sm:inline">Share</span>
             </button>
-            <FavoriteButton
-              entityType="roaster"
-              entityId={id}
-              showText={true}
-              className="btn btn-outline btn-sm"
-            />
+            {isLoggedIn && (
+              <FavoriteButton
+                entityType="roaster"
+                entityId={id}
+                showText={true}
+                className="btn btn-outline btn-sm"
+              />
+            )}
           </div>
 
           {/* Roaster header */}
@@ -712,6 +714,7 @@ export default function RoasterDetail({
                       };
                       fetchRoaster();
                     }}
+                    userId={userId}
                     isOwner={isOwner}
                   />
                 ))}
