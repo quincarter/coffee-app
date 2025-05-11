@@ -264,10 +264,6 @@ export default function CoffeeDetail({ id }: { id: string }) {
     );
   }
 
-  // Debug log to check values
-  console.log("CoffeeDetail - currentUserId:", currentUserId);
-  console.log("CoffeeDetail - coffee.createdBy:", coffee.createdBy);
-
   // Temporarily allow any logged-in user to edit
   const isOwner = isLoggedIn; // Remove the check for currentUserId === coffee.createdBy
 

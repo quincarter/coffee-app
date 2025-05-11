@@ -42,10 +42,6 @@ export default function RoasterCard({
   showEditButton = true,
   showFavorite = true,
 }: RoasterCardProps) {
-  // Debug log to check values
-  console.log("RoasterCard - currentUserId:", currentUserId);
-  console.log("RoasterCard - roaster.createdBy:", roaster.createdBy);
-
   // Temporarily allow any logged-in user to edit
   const isOwner = currentUserId; // Remove the check for currentUserId === roaster.createdBy
 

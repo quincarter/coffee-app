@@ -49,10 +49,6 @@ export default function CoffeeCard({
   showEditButton = true,
   showFavorite = true,
 }: CoffeeCardProps) {
-  // Debug log to check values
-  console.log("CoffeeCard - currentUserId:", currentUserId);
-  console.log("CoffeeCard - coffee.createdBy:", coffee.createdBy);
-
   const isOwner = currentUserId && coffee.createdBy === currentUserId;
 
   // State for edit modal
@@ -160,9 +156,6 @@ export default function CoffeeCard({
         const uploadData = await uploadResponse.json();
         imageUrl = uploadData.url;
       }
-
-      // Log tasting notes for debugging
-      console.log("Submitting tasting notes:", formData.tastingNotes);
 
       // Update coffee - send tasting notes as strings directly
       const response = await fetch(`/api/coffees/${coffee.id}`, {

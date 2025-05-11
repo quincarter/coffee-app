@@ -5,16 +5,7 @@ import SearchableDropdown from "../SearchableDropdown";
 import BottomSheet from "../ui/BottomSheet";
 import ImageUpload from "../ImageUpload";
 import RoasterSelector from "./RoasterSelector";
-
-type CoffeeFormData = {
-  name: string;
-  roasterId: string;
-  description: string;
-  countryOfOrigin: string;
-  elevation: string;
-  process: string;
-  tastingNotes: string[];
-};
+import { CoffeeFormData } from "@/app/types";
 
 type CoffeeCreationModalProps = {
   show: boolean;
@@ -28,6 +19,7 @@ type CoffeeCreationModalProps = {
   availableOrigins: { id: string; name: string }[];
   availableProcesses: { id: string; name: string }[];
   userId?: string | undefined;
+  isRoasterPage?: boolean;
 };
 
 export default function CoffeeCreationModal({
@@ -42,6 +34,7 @@ export default function CoffeeCreationModal({
   availableOrigins,
   availableProcesses,
   userId = undefined,
+  isRoasterPage = false,
 }: CoffeeCreationModalProps) {
   const [coffeeImage, setCoffeeImage] = useState<File | null>(null);
 
@@ -57,6 +50,16 @@ export default function CoffeeCreationModal({
     });
   };
 
+  const handleRoasterSelect = (roasterId: string) => {
+    setSelectedRoaster(roasterId);
+    handleChange("roasterId", roasterId);
+  };
+
+  const handleImageChange = (file: File | null) => {
+    // setCoffeeImage(file);
+    handleChange("image", file);
+  };
+
   return (
     <BottomSheet show={show} onClose={onClose} title="Add New Coffee">
       {error && <div className="alert alert-error mb-4 text-sm">{error}</div>}
@@ -65,9 +68,9 @@ export default function CoffeeCreationModal({
         <div>
           <RoasterSelector
             selectedRoasterId={selectedRoaster}
-            onRoasterSelect={setSelectedRoaster}
+            onRoasterSelect={handleRoasterSelect}
             userId={userId}
-            disabled={formData.roasterId ? true : false}
+            disabled={formData.roasterId && isRoasterPage ? true : false}
           />
         </div>
         {/* Coffee Name */}
@@ -166,7 +169,7 @@ export default function CoffeeCreationModal({
           <ImageUpload
             initialImage={null}
             onImageChange={(file) => {
-              setCoffeeImage(file);
+              handleImageChange(file);
             }}
             label=""
             height="sm"

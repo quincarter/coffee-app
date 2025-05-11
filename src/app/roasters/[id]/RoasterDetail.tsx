@@ -24,6 +24,7 @@ import CoffeeCreationModal from "@/app/components/coffee/CoffeeCreationModal";
 import LocationCard from "@/app/components/coffee/LocationCard";
 import LocationCreationModal from "@/app/components/coffee/LocationCreationModal";
 import FavoriteButton from "@/app/components/FavoriteButton";
+import { CoffeeFormData } from "@/app/types";
 
 export default function RoasterDetail({
   id,
@@ -60,13 +61,14 @@ export default function RoasterDetail({
   >([]);
 
   // Form data for new coffee
-  const [coffeeFormData, setCoffeeFormData] = useState({
+  const [coffeeFormData, setCoffeeFormData] = useState<CoffeeFormData>({
     name: "",
     roasterId: id,
     description: "",
     countryOfOrigin: "",
     elevation: "",
     process: "",
+    image: null,
     tastingNotes: [] as string[],
   });
 
@@ -231,6 +233,7 @@ export default function RoasterDetail({
       countryOfOrigin: "",
       elevation: "",
       process: "",
+      image: null,
       tastingNotes: [],
     });
     setCoffeeImage(null);
@@ -353,30 +356,31 @@ export default function RoasterDetail({
         <div className="p-6">
           {/* Action buttons - shown in a row above the title on all devices */}
           <div className="flex flex-wrap justify-end gap-2 mb-4">
-            {isOwner && (
-              <>
-                <Link
-                  href={`/roasters/${roaster.id}/edit`}
-                  className="btn btn-outline btn-sm"
-                >
-                  <Edit size={16} className="mr-1" />
-                  <span className="hidden sm:inline">Edit</span>
-                </Link>
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="btn btn-outline btn-error btn-sm"
-                  disabled={roaster._count?.coffees > 0}
-                  title={
-                    roaster._count?.coffees > 0
-                      ? "Cannot delete roaster with associated coffees"
-                      : "Delete roaster"
-                  }
-                >
-                  <Trash size={16} className="mr-1" />
-                  <span className="hidden sm:inline">Delete</span>
-                </button>
-              </>
-            )}
+            {/* {isOwner || isAdmin && (
+              
+            )} */}
+            <>
+              <Link
+                href={`/roasters/${roaster.id}/edit`}
+                className="btn btn-outline btn-sm"
+              >
+                <Edit size={16} className="mr-1" />
+                <span className="hidden sm:inline">Edit</span>
+              </Link>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="btn btn-outline btn-error btn-sm"
+                disabled={roaster._count?.coffees > 0}
+                title={
+                  roaster._count?.coffees > 0
+                    ? "Cannot delete roaster with associated coffees"
+                    : "Delete roaster"
+                }
+              >
+                <Trash size={16} className="mr-1" />
+                <span className="hidden sm:inline">Delete</span>
+              </button>
+            </>
             <button onClick={handleShare} className="btn btn-outline btn-sm">
               <Share size={16} className="mr-1" />
               <span className="hidden sm:inline">Share</span>
@@ -837,6 +841,7 @@ export default function RoasterDetail({
         availableTastingNotes={availableTastingNotes}
         availableOrigins={availableOrigins}
         availableProcesses={availableProcesses}
+        isRoasterPage={true}
       />
 
       {/* Location Creation Modal */}
