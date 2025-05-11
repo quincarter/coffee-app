@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import CoffeeCreationModal from "@/app/components/coffee/CoffeeCreationModal";
+import { CoffeeFormData } from "@/app/types";
 
 type CoffeeModalWrapperProps = {
   show: boolean;
@@ -14,16 +15,6 @@ export default function CoffeeModalWrapper({
   onClose,
   onCoffeeCreated,
 }: CoffeeModalWrapperProps) {
-  type CoffeeFormData = {
-    name: string;
-    roasterId: string;
-    description: string;
-    countryOfOrigin: string;
-    elevation: string;
-    process: string;
-    tastingNotes: string[];
-  };
-
   const [coffeeFormData, setCoffeeFormData] = useState<CoffeeFormData>({
     name: "",
     roasterId: "",
@@ -31,6 +22,7 @@ export default function CoffeeModalWrapper({
     countryOfOrigin: "",
     elevation: "",
     process: "",
+    image: null,
     tastingNotes: [],
   });
 
@@ -135,6 +127,7 @@ export default function CoffeeModalWrapper({
         description: "",
         countryOfOrigin: "",
         elevation: "",
+        image: null,
         process: "",
         tastingNotes: [],
       });

@@ -100,3 +100,14 @@ export type Session = {
   };
   exp?: number;
 };
+
+export type CoffeeFormData = {
+  name: string;
+  roasterId: string;
+  description: string;
+  countryOfOrigin: string;
+  elevation: string;
+  process: string;
+  tastingNotes: string[];
+  image: File | null;
+};

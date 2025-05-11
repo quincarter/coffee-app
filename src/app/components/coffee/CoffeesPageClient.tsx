@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import FilterableList, { FilterOption } from "../FilterableList";
 import CoffeeCard from "./CoffeeCard";
 import CoffeeCreationModal from "./CoffeeCreationModal";
+import { CoffeeFormData } from "../../types";
 
 type CoffeesPageClientProps = {
   initialCoffees?: any[];
@@ -64,7 +65,7 @@ export default function CoffeesPageClient({
   >([]);
 
   // Form data for new coffee
-  const [coffeeFormData, setCoffeeFormData] = useState({
+  const [coffeeFormData, setCoffeeFormData] = useState<CoffeeFormData>({
     name: "",
     roasterId: "",
     description: "",
@@ -72,6 +73,7 @@ export default function CoffeesPageClient({
     elevation: "",
     process: "",
     tastingNotes: [] as string[],
+    image: null,
   });
 
   // Use refs to track component state
@@ -123,6 +125,7 @@ export default function CoffeesPageClient({
       countryOfOrigin: "",
       elevation: "",
       process: "",
+      image: null,
       tastingNotes: [],
     });
     setCoffeeImage(null);

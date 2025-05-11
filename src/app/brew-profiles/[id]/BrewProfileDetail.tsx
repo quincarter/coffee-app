@@ -212,10 +212,6 @@ export default function BrewProfileDetail({ id }: { id: string }) {
     );
   }
 
-  // Debug log to check values
-  console.log("BrewProfileDetail - currentUserId:", currentUserId);
-  console.log("BrewProfileDetail - profile.userId:", profile.userId);
-
   // Temporarily allow any logged-in user to edit
   const isOwner = isLoggedIn; // Remove the check for currentUserId === profile.userId
 
