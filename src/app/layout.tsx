@@ -23,34 +23,54 @@ const geistMono = Geist_Mono({
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "BrewMe",
-  description: "A Coffee App For Coffee Nerds",
-  metadataBase: new URL(baseUrl),
-  icons: {
-    icon: "/brew-me-logo.png",
-    apple: "/brew-me-logo.png",
+  title: {
+    default: "BrewMe - Your Personal Coffee Brewing Assistant",
+    template: "%s | BrewMe",
   },
+  description:
+    "BrewMe helps you perfect your coffee brewing with detailed brew logs, coffee roaster profiles, and expert brewing guides.",
+  metadataBase: new URL(baseUrl),
+  keywords: [
+    "coffee",
+    "brewing",
+    "coffee roasters",
+    "brew guides",
+    "coffee tracking",
+    "pour over",
+    "chemex",
+    "v60",
+    "coffee profiles",
+  ],
+  authors: [{ name: "BrewMe" }],
+  creator: "BrewMe",
+  publisher: "BrewMe",
   openGraph: {
-    title: "BrewMe",
-    description: "A Coffee App For Coffee Nerds",
+    type: "website",
+    locale: "en_US",
     url: baseUrl,
+    title: "BrewMe - Your Personal Coffee Brewing Assistant",
+    description:
+      "Perfect your coffee brewing with detailed brew logs, coffee roaster profiles, and expert brewing guides.",
     siteName: "BrewMe",
     images: [
       {
         url: `${baseUrl}/chemex-brewing-landing.png`,
         width: 1200,
         height: 630,
-        alt: "BrewMe Coffee App",
+        alt: "BrewMe Logo",
       },
     ],
-    locale: "en_US",
-    type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BrewMe",
-    description: "A Coffee App For Coffee Nerds",
+    title: "BrewMe - Your Personal Coffee Brewing Assistant",
+    description:
+      "Perfect your coffee brewing with detailed brew logs, coffee roaster profiles, and expert brewing guides.",
     images: [`${baseUrl}/chemex-brewing-landing.png`],
+  },
+  icons: {
+    icon: "/brew-me-logo.png",
+    apple: "/brew-me-logo.png",
   },
 };
 
