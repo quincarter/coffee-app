@@ -240,34 +240,13 @@ export default function RoasterDetail({
   };
 
   // Function to handle form submission
-  const handleSubmitCoffee = async () => {
+  const handleSubmitCoffee = async (imageUrl: string | null) => {
     setIsSubmitting(true);
     setModalError(null);
 
     try {
       if (!coffeeFormData.name) throw new Error("Coffee name is required");
       if (!coffeeFormData.roasterId) throw new Error("Roaster is required");
-
-      let imageUrl = null;
-
-      // Upload image if one was selected
-      if (coffeeImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", coffeeImage);
-        uploadFormData.append("context", "coffee");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
 
       // Prepare tasting notes data
       const tastingNotesData = [...coffeeFormData.tastingNotes];
@@ -351,7 +330,6 @@ export default function RoasterDetail({
           Back to Roasters
         </Link>
       </div>
-
       <div className="bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden">
         <div className="p-6">
           {/* Action buttons - shown in a row above the title on all devices */}
@@ -511,48 +489,51 @@ export default function RoasterDetail({
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-medium">Locations</h2>
               <div className="flex items-center gap-2">
-                {isOwner && (
-                  <div className="flex items-center">
-                    <label className="cursor-pointer flex items-center">
-                      <input
-                        type="checkbox"
-                        className="checkbox checkbox-primary checkbox-sm mr-2"
-                        checked={roaster.hasSingleLocation}
-                        onChange={async () => {
-                          try {
-                            const response = await fetch(
-                              `/api/coffee-roasters/${id}`,
-                              {
-                                method: "PUT",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                  ...roaster,
-                                  hasSingleLocation: !roaster.hasSingleLocation,
-                                }),
-                              }
-                            );
-
-                            if (response.ok) {
-                              const data = await response.json();
-                              setRoaster(data);
-                              setToastMessage(
-                                data.hasSingleLocation
-                                  ? "Using main roaster info as single location"
-                                  : "Multiple locations enabled"
+                {isOwner &&
+                  roaster.locations &&
+                  roaster.locations.length < 2 && (
+                    <div className="flex items-center">
+                      <label className="cursor-pointer flex items-center">
+                        <input
+                          type="checkbox"
+                          className="checkbox checkbox-primary checkbox-sm mr-2"
+                          checked={roaster.hasSingleLocation}
+                          onChange={async () => {
+                            try {
+                              const response = await fetch(
+                                `/api/coffee-roasters/${id}`,
+                                {
+                                  method: "PUT",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({
+                                    ...roaster,
+                                    hasSingleLocation:
+                                      !roaster.hasSingleLocation,
+                                  }),
+                                }
                               );
-                              setShowToast(true);
+
+                              if (response.ok) {
+                                const data = await response.json();
+                                setRoaster(data);
+                                setToastMessage(
+                                  data.hasSingleLocation
+                                    ? "Using main roaster info as single location"
+                                    : "Multiple locations enabled"
+                                );
+                                setShowToast(true);
+                              }
+                            } catch (err) {
+                              console.error("Error updating roaster:", err);
                             }
-                          } catch (err) {
-                            console.error("Error updating roaster:", err);
-                          }
-                        }}
-                      />
-                      <span className="text-sm">Single location only</span>
-                    </label>
-                  </div>
-                )}
+                          }}
+                        />
+                        <span className="text-sm">Single location only</span>
+                      </label>
+                    </div>
+                  )}
                 {isLoggedIn && !roaster.hasSingleLocation && (
                   <button
                     onClick={() => setShowLocationModal(true)}
@@ -792,7 +773,6 @@ export default function RoasterDetail({
           </div>
         </div>
       </div>
-
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -816,7 +796,6 @@ export default function RoasterDetail({
           </div>
         </div>
       )}
-
       {/* Toast notification */}
       <div className="toast-container">
         {showToast && (
@@ -828,14 +807,14 @@ export default function RoasterDetail({
           />
         )}
       </div>
-
-      {/* Coffee Creation Modal */}
+      {/* Coffee Creation Modal */}{" "}
       <CoffeeCreationModal
         show={showCoffeeModal}
         onClose={handleCloseModal}
-        onSubmit={() => {
-          handleSubmitCoffee();
+        onSubmit={(imageUrl) => {
+          handleSubmitCoffee(imageUrl);
         }}
+        isRoasterPage={true}
         formData={coffeeFormData}
         setFormData={setCoffeeFormData}
         isLoading={isSubmitting}
@@ -844,7 +823,6 @@ export default function RoasterDetail({
         availableOrigins={availableOrigins}
         availableProcesses={availableProcesses}
       />
-
       {/* Location Creation Modal */}
       <LocationCreationModal
         show={showLocationModal}
