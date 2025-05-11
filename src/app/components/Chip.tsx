@@ -6,6 +6,7 @@ type ChipProps = {
   onRemove?: () => void;
   className?: string;
   isPrimary?: boolean;
+  disabled?: boolean;
 };
 
 export default function Chip({
@@ -13,6 +14,7 @@ export default function Chip({
   onRemove,
   className = "",
   isPrimary = false,
+  disabled,
 }: ChipProps) {
   return (
     <div
@@ -22,8 +24,9 @@ export default function Chip({
       <span className="mr-1">{label}</span>
       {onRemove && (
         <button
-          onClick={onRemove}
-          className="text-primary hover:text-primary-focus cursor-pointer"
+          disabled={disabled}
+          onClick={disabled ? () => {} : onRemove}
+          className={`text-primary hover:text-primary-focus ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
           aria-label={`Remove ${label}`}
         >
           <X className="h-3 w-3" />

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import CoffeesPageClient from "../components/coffee/CoffeesPageClient";
 import prisma from "@/app/lib/db";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { getSession } from "../lib/session";
 // Using dynamic rendering from config.ts
 
 export default async function CoffeesPage() {
@@ -12,10 +13,14 @@ export default async function CoffeesPage() {
   let processes: any[] = [];
   let isLoggedIn = false;
   let currentUserId: string | null = null;
+  const session = await getSession();
 
   try {
-    // We'll let the client component handle session checking
-    // This avoids the cookies issue during static generation
+    // Check if user is logged in
+    if (session) {
+      isLoggedIn = true;
+      currentUserId = session.userId;
+    }
 
     // Fetch coffees
     coffees = await prisma.coffee.findMany({

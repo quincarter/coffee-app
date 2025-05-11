@@ -4,6 +4,7 @@ import { useState } from "react";
 import SearchableDropdown from "../SearchableDropdown";
 import BottomSheet from "../ui/BottomSheet";
 import ImageUpload from "../ImageUpload";
+import RoasterSelector from "./RoasterSelector";
 
 type CoffeeFormData = {
   name: string;
@@ -26,6 +27,7 @@ type CoffeeCreationModalProps = {
   availableTastingNotes: { id: string; name: string }[];
   availableOrigins: { id: string; name: string }[];
   availableProcesses: { id: string; name: string }[];
+  userId?: string | undefined;
 };
 
 export default function CoffeeCreationModal({
@@ -39,8 +41,14 @@ export default function CoffeeCreationModal({
   availableTastingNotes,
   availableOrigins,
   availableProcesses,
+  userId = undefined,
 }: CoffeeCreationModalProps) {
   const [coffeeImage, setCoffeeImage] = useState<File | null>(null);
+
+  // Selected roaster
+  const [selectedRoaster, setSelectedRoaster] = useState<string>(
+    formData?.roasterId || ""
+  );
 
   const handleChange = (field: keyof CoffeeFormData, value: any) => {
     setFormData({
@@ -54,6 +62,14 @@ export default function CoffeeCreationModal({
       {error && <div className="alert alert-error mb-4 text-sm">{error}</div>}
 
       <div className="space-y-3">
+        <div>
+          <RoasterSelector
+            selectedRoasterId={selectedRoaster}
+            onRoasterSelect={setSelectedRoaster}
+            userId={userId}
+            disabled={formData.roasterId ? true : false}
+          />
+        </div>
         {/* Coffee Name */}
         <div>
           <label className="block text-sm font-medium mb-1">Coffee Name*</label>

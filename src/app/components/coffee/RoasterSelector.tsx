@@ -163,7 +163,7 @@ export default function RoasterSelector({
   return (
     <div>
       <label className="block text-sm font-medium mb-1">Coffee Roaster</label>
-      <div className="flex items-center gap-2">
+      <div className="flex items-end gap-2">
         <div className="flex-grow">
           <SearchableDropdown
             options={roasters.map((roaster) => ({
@@ -189,6 +189,7 @@ export default function RoasterSelector({
           type="button"
           className="btn btn-sm btn-outline"
           onClick={openRoasterModal}
+          disabled={disabled}
         >
           Add New
         </button>
