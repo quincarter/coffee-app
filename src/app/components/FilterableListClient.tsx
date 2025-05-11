@@ -48,7 +48,8 @@ export default function FilterableListClient({
 
   // Initialize filters from URL on mount
   useEffect(() => {
-    const urlFilters = getFiltersFromUrl(searchParams);
+    // Pass undefined for filters since we're using the simplified version
+    const urlFilters = getFiltersFromUrl(searchParams, undefined, {});
     setActiveFilters(urlFilters);
 
     // Get search term from URL
