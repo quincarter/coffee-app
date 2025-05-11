@@ -70,6 +70,13 @@ export default function FilterableListServer({
         filters={filters}
         searchPlaceholder={searchPlaceholder}
         noMatchesMessage={noMatchesMessage}
+        renderItem={(item) => {
+          // Find the corresponding static item by ID
+          const index = items.findIndex((i) => i.id === item.id);
+          return index >= 0 && index < staticItems.length
+            ? staticItems[index]
+            : null;
+        }}
       >
         {/* Initial server-rendered items */}
         <div
