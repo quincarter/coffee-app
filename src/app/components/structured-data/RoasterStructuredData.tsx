@@ -63,14 +63,15 @@ export default function RoasterStructuredData({
       addressCountry: "US",
     };
 
-    structuredData.telephone = locations[0].phoneNumber || roaster.phoneNumber || undefined;
+    structuredData.telephone =
+      locations[0].phoneNumber || roaster.phoneNumber || undefined;
     if (locations[0].mapsLink) {
       structuredData.hasMap = locations[0].mapsLink;
     }
 
     // Add all locations
     if (locations.length > 1) {
-      structuredData.location = locations.map(loc => ({
+      structuredData.location = locations.map((loc) => ({
         "@type": "Place",
         name: loc.name,
         address: {

@@ -1,7 +1,14 @@
 import { MetadataRoute } from "next";
 import prisma from "@/app/lib/db";
 
-type ChangeFrequency = "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
+type ChangeFrequency =
+  | "always"
+  | "hourly"
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "never";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Get all roasters (they are public by default)
@@ -34,15 +41,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const brewProfileUrls: MetadataRoute.Sitemap = brewProfiles.map((profile) => ({
-    url: `${process.env.NEXT_PUBLIC_APP_URL}/brew-profiles/${profile.id}`,
-    lastModified: profile.updatedAt,
-    changeFrequency: "monthly",
-    priority: 0.7,
-  }));
+  const brewProfileUrls: MetadataRoute.Sitemap = brewProfiles.map(
+    (profile) => ({
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/brew-profiles/${profile.id}`,
+      lastModified: profile.updatedAt,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    })
+  );
 
   // Static routes with priority and change frequency
-  const staticRoutes: Array<{path: string; priority: number; changeFrequency: ChangeFrequency}> = [
+  const staticRoutes: Array<{
+    path: string;
+    priority: number;
+    changeFrequency: ChangeFrequency;
+  }> = [
     { path: "", priority: 1.0, changeFrequency: "daily" },
     { path: "/roasters", priority: 0.9, changeFrequency: "daily" },
     { path: "/coffees", priority: 0.9, changeFrequency: "daily" },
