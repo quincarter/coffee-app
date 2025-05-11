@@ -13,6 +13,7 @@ import {
   MapPin,
   Tag,
   Coffee,
+  Heart,
 } from "lucide-react";
 import CoffeeImage from "@/app/components/coffee/CoffeeImage";
 import BrewProfileCard from "@/app/components/BrewProfileCard";
@@ -21,6 +22,7 @@ import RelatedItems from "@/app/components/RelatedItems";
 import Toast from "@/app/components/Toast";
 import CustomNotFound from "@/app/components/CustomNotFound";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
+import FavoriteButton from "@/app/components/FavoriteButton";
 
 export default function CoffeeDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -307,6 +309,12 @@ export default function CoffeeDetail({ id }: { id: string }) {
               <Share size={16} className="mr-1" />
               <span className="hidden sm:inline">Share</span>
             </button>
+            <FavoriteButton
+              entityType="coffee"
+              entityId={id}
+              showText={true}
+              className="btn btn-outline btn-sm"
+            />
           </div>
 
           {/* Coffee header */}
