@@ -6,8 +6,8 @@ export async function GET(request: Request) {
   try {
     const session = await getSession();
 
-    if (!session?.user?.id) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (!session?.userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -16,12 +16,12 @@ export async function GET(request: Request) {
     const recentOnly = searchParams.get("recentOnly") === "true";
 
     const where = {
-      userId: session.user.id,
+      userId: session.userId,
       isFavorite: true,
     };
 
     // If recentOnly is true, we'll get the most recent favorites
-    // Otherwise, we'll get all favorites for the count
+    // Otherwise, we'll get all favorites with pagination
     const [brews, total] = await Promise.all([
       prisma.userBrewSession.findMany({
         where,
@@ -36,6 +36,15 @@ export async function GET(request: Request) {
           additionalDevices: {
             include: {
               brewingDevice: true,
+            },
+          },
+          brewProfile: {
+            include: {
+              coffee: {
+                include: {
+                  roaster: true,
+                },
+              },
             },
           },
         },
@@ -55,6 +64,9 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error fetching favorite brews:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch favorite brews" },
+      { status: 500 }
+    );
   }
 }

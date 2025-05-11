@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import BrewingDeviceForm from "./BrewingDeviceForm";
+import BannerManager from "./BannerManager";
 import Image from "next/image";
-import { Pencil, Trash } from "lucide-react";
+import { BellRing, Coffee, Pencil, Trash } from "lucide-react";
 
 type BrewingDevice = {
   id: string;
@@ -15,11 +16,14 @@ type BrewingDevice = {
 };
 
 export default function AdminPanel() {
+  const [activeTab, setActiveTab] = useState<"devices" | "banners">("devices");
   const [brewingDevices, setBrewingDevices] = useState<BrewingDevice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingDevice, setEditingDevice] = useState<BrewingDevice | null>(null);
+  const [editingDevice, setEditingDevice] = useState<BrewingDevice | null>(
+    null
+  );
 
   // Fetch brewing devices on component mount
   useEffect(() => {
@@ -49,7 +53,7 @@ export default function AdminPanel() {
 
   const handleDeviceUpdated = (updatedDevice: BrewingDevice) => {
     setBrewingDevices(
-      brewingDevices.map((device) => 
+      brewingDevices.map((device) =>
         device.id === updatedDevice.id ? updatedDevice : device
       )
     );
@@ -97,83 +101,108 @@ export default function AdminPanel() {
         </p>
       </div>
 
-      <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-lg font-medium">Brewing Devices</h3>
+      {/* Tab Navigation */}
+      <div className="tabs tabs-boxed mb-6">
         <button
-          onClick={() => {
-            setShowAddForm(!showAddForm);
-            setEditingDevice(null);
-          }}
-          className="btn btn-primary btn-sm"
+          className={`tab ${activeTab === "devices" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("devices")}
         >
-          {showAddForm ? "Cancel" : "Add Device"}
+          <Coffee className="w-4 h-4 mr-2" />
+          Brewing Devices
+        </button>
+        <button
+          className={`tab ${activeTab === "banners" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("banners")}
+        >
+          <BellRing className="w-4 h-4 mr-2" />
+          Banners
         </button>
       </div>
 
-      {showAddForm && (
-        <div className="mb-8 rounded-lg border p-4">
-          <BrewingDeviceForm onDeviceAdded={handleDeviceAdded} />
-        </div>
-      )}
-
-      {editingDevice && (
-        <div className="mb-8 rounded-lg border p-4">
-          <h3 className="mb-4 text-lg font-medium">Edit Brewing Device</h3>
-          <BrewingDeviceForm 
-            onDeviceAdded={handleDeviceUpdated} 
-            initialDevice={editingDevice}
-            isEditing={true}
-          />
-        </div>
-      )}
-
-      {brewingDevices.length === 0 ? (
-        <div className="py-8 text-center text-gray-500">
-          <p>No brewing devices have been added yet.</p>
-          <p className="mt-2">
-            Click the &quot;Add Device&quot; button to create the first device.
-          </p>
-        </div>
+      {activeTab === "banners" ? (
+        <BannerManager />
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {brewingDevices.map((device) => (
-            <div
-              key={device.id}
-              className="rounded-lg border p-4 shadow-sm transition-shadow hover:shadow-md"
+        <div>
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-lg font-medium">Brewing Devices</h3>
+            <button
+              onClick={() => {
+                setShowAddForm(!showAddForm);
+                setEditingDevice(null);
+              }}
+              className="btn btn-primary btn-sm"
             >
-              <div className="mb-2 flex items-start justify-between">
-                <h3 className="font-medium">{device.name}</h3>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEditClick(device)}
-                    className="btn btn-ghost btn-sm"
-                    aria-label="Edit device"
-                  >
-                    <Pencil className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteDevice(device.id)}
-                    className="btn btn-ghost btn-sm text-red-500"
-                    aria-label="Delete device"
-                  >
-                    <Trash className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-              {device.image && (
-                <div className="mb-2 h-40 w-full overflow-hidden rounded">
-                  <Image
-                    src={device.image}
-                    alt={device.name}
-                    width={400}
-                    height={200}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              )}
-              <p className="text-sm text-gray-600">{device.description}</p>
+              {showAddForm ? "Cancel" : "Add Device"}
+            </button>
+          </div>
+
+          {showAddForm && (
+            <div className="mb-8 rounded-lg border p-4">
+              <BrewingDeviceForm onDeviceAdded={handleDeviceAdded} />
             </div>
-          ))}
+          )}
+
+          {editingDevice && (
+            <div className="mb-8 rounded-lg border p-4">
+              <h3 className="mb-4 text-lg font-medium">Edit Brewing Device</h3>
+              <BrewingDeviceForm
+                onDeviceAdded={handleDeviceUpdated}
+                initialDevice={editingDevice}
+                isEditing={true}
+              />
+            </div>
+          )}
+
+          {brewingDevices.length === 0 ? (
+            <div className="py-8 text-center text-gray-500">
+              <p>No brewing devices have been added yet.</p>
+              <p className="mt-2">
+                Click the &quot;Add Device&quot; button to create the first
+                device.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {brewingDevices.map((device) => (
+                <div
+                  key={device.id}
+                  className="rounded-lg border p-4 shadow-sm transition-shadow hover:shadow-md"
+                >
+                  <div className="mb-2 flex items-start justify-between">
+                    <h3 className="font-medium">{device.name}</h3>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditClick(device)}
+                        className="btn btn-ghost btn-sm"
+                        aria-label="Edit device"
+                      >
+                        <Pencil className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteDevice(device.id)}
+                        className="btn btn-ghost btn-sm text-red-500"
+                        aria-label="Delete device"
+                      >
+                        <Trash className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                  {device.image && (
+                    <div className="mb-2 h-40 w-full overflow-hidden rounded">
+                      <Image
+                        src={device.image}
+                        alt={device.name}
+                        width={400}
+                        height={200}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-600">{device.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "./lib/session";
 import { redirect } from "next/navigation";
 import PublicBrews from "./components/PublicBrews";
+import AdminBanner from "./components/AdminBanner";
 
 export default async function Home() {
   const session = await getSession();
@@ -14,6 +15,8 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-base-100">
+      <AdminBanner />
+
       {/* Hero Section */}
       <section className="py-20 px-4 text-center relative">
         <div className="absolute inset-0 z-0 opacity-40">

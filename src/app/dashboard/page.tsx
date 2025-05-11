@@ -10,6 +10,7 @@ import { BrewSession, UserBrewingDevice, User, BrewProfile } from "@/app/types";
 import { toast } from "react-hot-toast";
 import BrewProfileCard from "../components/BrewProfileCard";
 import BrewProfileCreationModal from "../components/brew/BrewProfileCreationModal";
+import AdminBanner from "../components/AdminBanner";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -169,6 +170,8 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <AdminBanner />
+
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-2">
           Welcome back, {user?.name || "Coffee Lover"}

@@ -34,6 +34,39 @@ model User {
   brewingDevices    UserBrewingDevice[]
   brewProfiles      BrewProfile[]
   favorites         UserFavorite[]
+  dismissedBanners UserDismissedBanner[]
+}
+
+// Banner system models
+model AdminBanner {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  color       BannerColor @default(neutral)
+  isActive    Boolean  @default(true)
+  isDismissable Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  dismissals  UserDismissedBanner[]
+}
+
+model UserDismissedBanner {
+  id        String   @id @default(cuid())
+  userId    String
+  bannerId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  banner    AdminBanner @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, bannerId])
+}
+
+enum BannerColor {
+  success
+  info
+  danger
+  warning
+  neutral
 }
 
 model BrewingDevice {
