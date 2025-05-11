@@ -291,6 +291,7 @@ export default function SearchableDropdown({
         <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
           {selectedOptions.map((option, index) => (
             <Chip
+              disabled={disabled}
               key={option.value}
               label={option.label}
               onRemove={() => handleRemoveOption(option.value)}
@@ -304,6 +305,7 @@ export default function SearchableDropdown({
       {!multiple && value && !searchTerm && (
         <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
           <Chip
+            disabled={disabled}
             label={
               selectedOption?.label ||
               options.find((opt) => opt.value === value)?.label ||

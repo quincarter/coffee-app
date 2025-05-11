@@ -74,11 +74,15 @@ export default function CoffeesPageClient({
     tastingNotes: [] as string[],
   });
 
+  // Use refs to track component state
+  const dataFetchedRef = useRef(false);
+  const isMountedRef = useRef(true);
+
   // Function to fetch dropdown data for the modal
   const fetchDropdownData = async () => {
     try {
       // Fetch tasting notes
-      const tastingNotesResponse = await fetch("/api/tasting-notes");
+      const tastingNotesResponse = await fetch("/api/coffee-tasting-notes");
       if (tastingNotesResponse.ok) {
         const tastingNotesData = await tastingNotesResponse.json();
         setAvailableTastingNotes(tastingNotesData);
@@ -155,9 +159,7 @@ export default function CoffeesPageClient({
       }
 
       // Prepare tasting notes data
-      const tastingNotesData = coffeeFormData.tastingNotes.map((name) => ({
-        name,
-      }));
+      const tastingNotesData = [...coffeeFormData.tastingNotes];
 
       // Create coffee
       const response = await fetch("/api/coffees", {
@@ -202,35 +204,32 @@ export default function CoffeesPageClient({
   };
 
   useEffect(() => {
-    // Only fetch data if we don't have initial data
-    if (initialCoffees.length === 0) {
-      // Track if the component is mounted
-      let isMounted = true;
+    // Set isMountedRef to true when the component mounts
+    isMountedRef.current = true;
 
-      // Use a ref to track if we've already fetched data
-      const dataFetchedRef = useRef(false);
+    const fetchData = async () => {
+      // Skip if we've already fetched data or the component is unmounted
+      if (dataFetchedRef.current || !isMountedRef.current) return;
 
-      const fetchData = async () => {
-        // Skip if we've already fetched data or the component is unmounted
-        if (dataFetchedRef.current || !isMounted) return;
+      try {
+        setLoading(true);
 
-        try {
-          setLoading(true);
+        // Always check if user is logged in, even if we have initial data
+        const userRes = await fetch("/api/user/profile");
+        if (userRes.ok && isMountedRef.current) {
+          const userData = await userRes.json();
+          setIsLoggedIn(true);
+          setCurrentUserId(userData.id);
+        } else if (isMountedRef.current) {
+          setIsLoggedIn(false);
+          setCurrentUserId(null);
+        }
 
-          // Check if user is logged in
-          const userRes = await fetch("/api/user/profile");
-          if (userRes.ok && isMounted) {
-            const userData = await userRes.json();
-            setIsLoggedIn(true);
-            setCurrentUserId(userData.id);
-          } else if (isMounted) {
-            setIsLoggedIn(false);
-            setCurrentUserId(null);
-          }
-
+        // Only fetch other data if we don't have initial data
+        if (initialCoffees.length === 0) {
           // Fetch coffees
           const coffeesRes = await fetch("/api/coffees");
-          if (coffeesRes.ok && isMounted) {
+          if (coffeesRes.ok && isMountedRef.current) {
             const coffeesData = await coffeesRes.json();
 
             // Set the coffees data directly
@@ -239,7 +238,7 @@ export default function CoffeesPageClient({
 
           // Fetch roasters for filtering
           const roastersRes = await fetch("/api/coffee-roasters");
-          if (roastersRes.ok && isMounted) {
+          if (roastersRes.ok && isMountedRef.current) {
             const roastersData = await roastersRes.json();
             setRoasters(
               roastersData.map((roaster: any) => ({
@@ -251,7 +250,7 @@ export default function CoffeesPageClient({
 
           // Fetch origins for filtering
           const originsRes = await fetch("/api/coffee-origins");
-          if (originsRes.ok && isMounted) {
+          if (originsRes.ok && isMountedRef.current) {
             const originsData = await originsRes.json();
             setOrigins(
               originsData.map((origin: any) => ({
@@ -263,7 +262,7 @@ export default function CoffeesPageClient({
 
           // Fetch processes for filtering
           const processesRes = await fetch("/api/coffee-processes");
-          if (processesRes.ok && isMounted) {
+          if (processesRes.ok && isMountedRef.current) {
             const processesData = await processesRes.json();
             setProcesses(
               processesData.map((process: any) => ({
@@ -272,31 +271,28 @@ export default function CoffeesPageClient({
               }))
             );
           }
-
-          // Mark data as fetched
-          dataFetchedRef.current = true;
-        } catch (err) {
-          console.error("Error fetching data:", err);
-          if (isMounted) {
-            setError("Failed to load data. Please try again.");
-          }
-        } finally {
-          if (isMounted) {
-            setLoading(false);
-          }
         }
-      };
 
-      fetchData();
+        // Mark data as fetched
+        dataFetchedRef.current = true;
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        if (isMountedRef.current) {
+          setError("Failed to load data. Please try again.");
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
+      }
+    };
 
-      // Cleanup function to prevent state updates after unmount
-      return () => {
-        isMounted = false;
-      };
-    } else {
-      // If we have initial data, just set loading to false
-      setLoading(false);
-    }
+    fetchData();
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []); // Empty dependency array to run only once
 
   // Prepare filters for the FilterableList component

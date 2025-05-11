@@ -15,8 +15,6 @@ import {
   Globe,
   Coffee,
   MapPinned,
-  Plus,
-  Heart,
 } from "lucide-react";
 import CoffeeCard from "@/app/components/coffee/CoffeeCard";
 import Toast from "@/app/components/Toast";
@@ -27,7 +25,13 @@ import LocationCard from "@/app/components/coffee/LocationCard";
 import LocationCreationModal from "@/app/components/coffee/LocationCreationModal";
 import FavoriteButton from "@/app/components/FavoriteButton";
 
-export default function RoasterDetail({ id }: { id: string }) {
+export default function RoasterDetail({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string | undefined;
+}) {
   const router = useRouter();
   const [roaster, setRoaster] = useState<any>(null);
   const [coffees, setCoffees] = useState<any[]>([]);
@@ -186,7 +190,7 @@ export default function RoasterDetail({ id }: { id: string }) {
   const fetchDropdownData = async () => {
     try {
       // Fetch tasting notes
-      const tastingNotesResponse = await fetch("/api/tasting-notes");
+      const tastingNotesResponse = await fetch("/api/coffee-tasting-notes");
       if (tastingNotesResponse.ok) {
         const tastingNotesData = await tastingNotesResponse.json();
         setAvailableTastingNotes(tastingNotesData);
@@ -263,9 +267,7 @@ export default function RoasterDetail({ id }: { id: string }) {
       }
 
       // Prepare tasting notes data
-      const tastingNotesData = coffeeFormData.tastingNotes.map((name) => ({
-        name,
-      }));
+      const tastingNotesData = [...coffeeFormData.tastingNotes];
 
       // Create coffee
       const response = await fetch("/api/coffees", {
@@ -286,6 +288,7 @@ export default function RoasterDetail({ id }: { id: string }) {
         throw new Error(errorData.error || "Failed to create coffee");
       }
 
+      // Get the response data
       const newCoffee = await response.json();
 
       // Add the new coffee to the list

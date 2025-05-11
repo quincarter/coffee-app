@@ -1,3 +1,4 @@
+import { getSession } from "@/app/lib/session";
 import RoasterDetail from "./RoasterDetail";
 import { generateMetadata } from "./metadata";
 
@@ -8,6 +9,8 @@ export default async function RoasterDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await getSession();
+
   const resolvedParams = await params;
-  return <RoasterDetail id={resolvedParams.id} />;
+  return <RoasterDetail id={resolvedParams.id} userId={session?.userId} />;
 }
