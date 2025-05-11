@@ -20,26 +20,31 @@ type Props = {
   isEditing?: boolean;
 };
 
-export default function AddBrewingDeviceForm({ 
-  userId, 
-  onDeviceAdded, 
-  initialDevice, 
-  isEditing = false 
+type FormData = {
+  name: string;
+  description: string;
+  brewingDeviceId: string;
+  image: string | null;
+};
+
+export default function AddBrewingDeviceForm({
+  userId,
+  onDeviceAdded,
+  initialDevice,
+  isEditing = false,
 }: Props) {
   const [availableDevices, setAvailableDevices] = useState<BrewingDevice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadMethod, setUploadMethod] = useState<"none" | "file">("none");
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: initialDevice?.name || "",
     description: initialDevice?.description || "",
     brewingDeviceId: initialDevice?.brewingDeviceId || "",
-    image: initialDevice?.image || "",
+    image: initialDevice?.image || null,
   });
 
   useEffect(() => {
@@ -68,11 +73,10 @@ export default function AddBrewingDeviceForm({
         name: initialDevice.name,
         description: initialDevice.description || "",
         brewingDeviceId: initialDevice.brewingDeviceId,
-        image: initialDevice.image || "",
+        image: initialDevice.image || null,
       });
-      
+
       if (initialDevice.image) {
-        setImagePreview(initialDevice.image);
         setUploadMethod("file");
       }
     }
@@ -87,52 +91,21 @@ export default function AddBrewingDeviceForm({
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setImageFile(file);
-      
-      // Create a preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setFormError(null);
     setIsSubmitting(true);
 
     try {
-      let imageUrl = formData.image;
-
-      // If using file upload, upload the file first
-      if (uploadMethod === "file" && imageFile) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", imageFile);
-        uploadFormData.append("context", "brewing-device"); // Add context for brewing device uploads
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
-      const url = isEditing 
-        ? `/api/user-brewing-devices/${initialDevice?.id}` 
+      const url = isEditing
+        ? `/api/user-brewing-devices/${initialDevice?.id}`
         : "/api/user-brewing-devices";
-      
+
       const method = isEditing ? "PATCH" : "POST";
+
+      // If using the default image from the brewing device and uploadMethod is "none",
+      // set image to null to use the device's default image
+      const image = uploadMethod === "none" ? null : formData.image;
 
       const response = await fetch(url, {
         method,
@@ -141,22 +114,30 @@ export default function AddBrewingDeviceForm({
         },
         body: JSON.stringify({
           ...formData,
-          image: imageUrl,
+          image,
           userId,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to ${isEditing ? 'update' : 'add'} brewing device`);
+        throw new Error(
+          errorData.error ||
+            `Failed to ${isEditing ? "update" : "add"} brewing device`
+        );
       }
 
       const deviceData = await response.json();
       onDeviceAdded(deviceData);
     } catch (err) {
-      console.error(`Error ${isEditing ? 'updating' : 'adding'} brewing device:`, err);
+      console.error(
+        `Error ${isEditing ? "updating" : "adding"} brewing device:`,
+        err
+      );
       setFormError(
-        err instanceof Error ? err.message : `Failed to ${isEditing ? 'update' : 'add'} brewing device`
+        err instanceof Error
+          ? err.message
+          : `Failed to ${isEditing ? "update" : "add"} brewing device`
       );
     } finally {
       setIsSubmitting(false);
@@ -173,13 +154,11 @@ export default function AddBrewingDeviceForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      {!isEditing && <h3 className="mb-4 text-lg font-medium">Add New Brewing Device</h3>}
-
-      {formError && (
-        <div className="alert alert-error mb-4">
-          {formError}
-        </div>
+      {!isEditing && (
+        <h3 className="mb-4 text-lg font-medium">Add New Brewing Device</h3>
       )}
+
+      {formError && <div className="alert alert-error mb-4">{formError}</div>}
 
       <div className="mb-4">
         <label htmlFor="name" className="mb-1 block text-sm font-medium">
@@ -214,9 +193,9 @@ export default function AddBrewingDeviceForm({
 
       <div className="mb-4">
         <SearchableDropdown
-          options={availableDevices.map(device => ({
+          options={availableDevices.map((device) => ({
             value: device.id,
-            label: device.name
+            label: device.name,
           }))}
           value={formData.brewingDeviceId}
           onChange={(value) => {
@@ -232,7 +211,11 @@ export default function AddBrewingDeviceForm({
           label="Device Type"
           placeholder="Search device types..."
           required
-          error={formError && !formData.brewingDeviceId ? "Device type is required" : undefined}
+          error={
+            formError && !formData.brewingDeviceId
+              ? "Device type is required"
+              : undefined
+          }
           disabled={isLoading}
           noOptionsMessage="No device types available"
           multiple={false}
@@ -241,15 +224,15 @@ export default function AddBrewingDeviceForm({
 
       <div className="mb-4">
         <div className="mb-2">
-          <span className="block text-sm font-medium">Device Image (Optional)</span>
+          <span className="block text-sm font-medium">
+            Device Image (Optional)
+          </span>
           <div className="mt-1 flex items-center space-x-4">
             <button
               type="button"
               onClick={() => setUploadMethod("none")}
               className={`btn btn-sm ${
-                uploadMethod === "none"
-                  ? "btn-primary"
-                  : "btn-outline"
+                uploadMethod === "none" ? "btn-primary" : "btn-outline"
               }`}
             >
               Use Default
@@ -258,9 +241,7 @@ export default function AddBrewingDeviceForm({
               type="button"
               onClick={() => setUploadMethod("file")}
               className={`btn btn-sm ${
-                uploadMethod === "file"
-                  ? "btn-primary"
-                  : "btn-outline"
+                uploadMethod === "file" ? "btn-primary" : "btn-outline"
               }`}
             >
               Upload Custom
@@ -270,24 +251,31 @@ export default function AddBrewingDeviceForm({
 
         {uploadMethod === "file" && (
           <ImageUpload
-            initialImage={imagePreview}
-            onImageChange={(file, preview) => {
-              setImageFile(file);
-              setImagePreview(preview);
+            initialImage={formData.image}
+            onImageUploaded={(imageUrl) => {
+              setFormData({
+                ...formData,
+                image: imageUrl,
+              });
             }}
-            label="Upload Image"
+            uploadContext="brewing-device"
             height="sm"
             className="mb-4"
           />
         )}
-        
+
         {formData.brewingDeviceId && uploadMethod === "none" && (
           <div className="mt-2">
             <p className="text-sm text-gray-500 mb-2">Using default image:</p>
             <div className="w-32 h-32 mx-auto relative">
-              {availableDevices.find(d => d.id === formData.brewingDeviceId)?.image && (
+              {availableDevices.find((d) => d.id === formData.brewingDeviceId)
+                ?.image && (
                 <img
-                  src={availableDevices.find(d => d.id === formData.brewingDeviceId)?.image}
+                  src={
+                    availableDevices.find(
+                      (d) => d.id === formData.brewingDeviceId
+                    )?.image
+                  }
                   alt="Default device image"
                   className="w-full h-full object-contain"
                 />
@@ -303,9 +291,13 @@ export default function AddBrewingDeviceForm({
           disabled={isSubmitting}
           className="btn btn-primary"
         >
-          {isSubmitting 
-            ? (isEditing ? "Updating..." : "Adding...") 
-            : (isEditing ? "Update Device" : "Add Device")}
+          {isSubmitting
+            ? isEditing
+              ? "Updating..."
+              : "Adding..."
+            : isEditing
+              ? "Update Device"
+              : "Add Device"}
         </button>
       </div>
     </form>

@@ -41,7 +41,7 @@ export default function CoffeeSelector({
     process: "",
     tastingNotes: [] as string[],
   });
-  const [coffeeImage, setCoffeeImage] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   // Data for coffee form dropdowns
   const [availableTastingNotes, setAvailableTastingNotes] = useState<
@@ -124,27 +124,6 @@ export default function CoffeeSelector({
       if (!coffeeFormData.name) throw new Error("Coffee name is required");
       if (!selectedRoaster) throw new Error("Please select a roaster");
 
-      let imageUrl = null;
-
-      // Upload image if one was selected
-      if (coffeeImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", coffeeImage);
-        uploadFormData.append("context", "coffee");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
       const response = await fetch("/api/coffees", {
         method: "POST",
         headers: {
@@ -181,7 +160,7 @@ export default function CoffeeSelector({
         process: "",
         tastingNotes: [],
       });
-      setCoffeeImage(null);
+      setImageUrl(null);
 
       // Close modal with animation
       closeCoffeeModal();
@@ -215,7 +194,7 @@ export default function CoffeeSelector({
       process: "",
       tastingNotes: [],
     });
-    setCoffeeImage(null);
+    setImageUrl(null);
   };
 
   return (
@@ -426,13 +405,12 @@ export default function CoffeeSelector({
                 Coffee Image
               </label>
               <ImageUpload
-                initialImage={null}
-                onImageChange={(file) => {
-                  setCoffeeImage(file);
-                }}
-                label=""
+                initialImage={imageUrl}
+                onImageUploaded={setImageUrl}
+                uploadContext="coffee"
+                label="Image"
                 height="sm"
-                className="mt-1"
+                className="w-full"
               />
             </div>
 

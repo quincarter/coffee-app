@@ -49,7 +49,9 @@ export default function RoasterCard({
   const [showEditModal, setShowEditModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [roasterImage, setRoasterImage] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    roaster.image || null
+  );
 
   // Form data for editing
   const [formData, setFormData] = useState({
@@ -83,27 +85,6 @@ export default function RoasterCard({
 
     try {
       if (!formData.name) throw new Error("Roaster name is required");
-
-      let imageUrl = roaster.image;
-
-      // Upload image if one was selected
-      if (roasterImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", roasterImage);
-        uploadFormData.append("context", "coffee-roaster");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
 
       // Update roaster
       const response = await fetch(`/api/coffee-roasters/${roaster.id}`, {
@@ -407,13 +388,12 @@ export default function RoasterCard({
                 Roaster Image
               </label>
               <ImageUpload
-                initialImage={roaster.image || null}
-                onImageChange={(file) => {
-                  setRoasterImage(file);
-                }}
-                label=""
+                initialImage={imageUrl}
+                onImageUploaded={setImageUrl}
+                uploadContext="coffee-roaster"
+                label="Image"
                 height="sm"
-                className="mt-1"
+                className="w-full"
               />
             </div>
 

@@ -10,6 +10,7 @@ type LocationFormData = {
   mapsLink: string;
   phoneNumber: string;
   isMainLocation: boolean;
+  image: string | null;
 };
 
 type LocationCreationModalProps = {
@@ -35,11 +36,10 @@ export default function LocationCreationModal({
     address: "",
     mapsLink: "",
     phoneNumber: "",
-    isMainLocation: isFirstLocation, // Set to true if it's the first location
+    isMainLocation: isFirstLocation,
+    image: null,
   });
 
-  // State for image upload
-  const [locationImage, setLocationImage] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,28 +79,7 @@ export default function LocationCreationModal({
         throw new Error("Address is required");
       }
 
-      let imageUrl = null;
-
-      // Upload image if one was selected
-      if (locationImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", locationImage);
-        uploadFormData.append("context", "roaster-location");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
-      // Create location
+      // Create location with the already uploaded image URL
       const response = await fetch(
         `/api/coffee-roasters/${roasterId}/locations`,
         {
@@ -108,10 +87,7 @@ export default function LocationCreationModal({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            ...formData,
-            image: imageUrl,
-          }),
+          body: JSON.stringify(formData),
         }
       );
 
@@ -119,16 +95,6 @@ export default function LocationCreationModal({
         const data = await response.json();
         throw new Error(data.error || "Failed to create location");
       }
-
-      // Reset form
-      setFormData({
-        name: "",
-        address: "",
-        mapsLink: "",
-        phoneNumber: "",
-        isMainLocation: false,
-      });
-      setLocationImage(null);
 
       // Call success callback
       onSuccess();
@@ -247,7 +213,17 @@ export default function LocationCreationModal({
           <label className="block text-sm font-medium text-gray-700 coffee:text-gray-300 mb-1">
             Location Image
           </label>
-          <ImageUpload onImageChange={(file) => setLocationImage(file)} />
+          <ImageUpload
+            initialImage={formData.image}
+            onImageUploaded={(imageUrl) => {
+              setFormData({
+                ...formData,
+                image: imageUrl,
+              });
+            }}
+            uploadContext="roaster-location"
+            height="sm"
+          />
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">

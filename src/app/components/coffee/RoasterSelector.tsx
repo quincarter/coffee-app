@@ -13,6 +13,26 @@ type RoasterSelectorProps = {
   disabled?: boolean;
 };
 
+type RoasterFormData = {
+  name: string;
+  address: string;
+  mapsLink: string;
+  phoneNumber: string;
+  notes: string;
+  website: string;
+  image: string | null;
+};
+
+const initialRoasterFormState: RoasterFormData = {
+  name: "",
+  address: "",
+  mapsLink: "",
+  phoneNumber: "",
+  notes: "",
+  website: "",
+  image: null,
+};
+
 export default function RoasterSelector({
   selectedRoasterId,
   onRoasterSelect,
@@ -29,15 +49,9 @@ export default function RoasterSelector({
   const [showRoasterModal, setShowRoasterModal] = useState(false);
 
   // Roaster form data
-  const [roasterFormData, setRoasterFormData] = useState({
-    name: "",
-    address: "",
-    mapsLink: "",
-    phoneNumber: "",
-    notes: "",
-    website: "",
-  });
-  const [roasterImage, setRoasterImage] = useState<File | null>(null);
+  const [roasterFormData, setRoasterFormData] = useState<RoasterFormData>(
+    initialRoasterFormState
+  );
 
   // Fetch roasters on component mount
   useEffect(() => {
@@ -69,27 +83,7 @@ export default function RoasterSelector({
     try {
       if (!roasterFormData.name) throw new Error("Roaster name is required");
 
-      let imageUrl = null;
-
-      // Upload image if one was selected
-      if (roasterImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", roasterImage);
-        uploadFormData.append("context", "coffee-roaster");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
+      // Create roaster with the image URL directly (since ImageUpload handles the upload)
       const response = await fetch("/api/coffee-roasters", {
         method: "POST",
         headers: {
@@ -97,7 +91,6 @@ export default function RoasterSelector({
         },
         body: JSON.stringify({
           ...roasterFormData,
-          image: imageUrl,
           createdBy: userId,
         }),
       });
@@ -116,15 +109,7 @@ export default function RoasterSelector({
       onRoasterSelect(newRoaster.id);
 
       // Reset form
-      setRoasterFormData({
-        name: "",
-        address: "",
-        mapsLink: "",
-        phoneNumber: "",
-        notes: "",
-        website: "",
-      });
-      setRoasterImage(null);
+      setRoasterFormData(initialRoasterFormState);
 
       // Close modal with animation
       closeRoasterModal();
@@ -149,15 +134,7 @@ export default function RoasterSelector({
   const closeRoasterModal = () => {
     setShowRoasterModal(false);
     // Reset form when closing
-    setRoasterFormData({
-      name: "",
-      address: "",
-      mapsLink: "",
-      phoneNumber: "",
-      notes: "",
-      website: "",
-    });
-    setRoasterImage(null);
+    setRoasterFormData(initialRoasterFormState);
   };
 
   return (
@@ -324,10 +301,14 @@ export default function RoasterSelector({
                 Roaster Image
               </label>
               <ImageUpload
-                initialImage={null}
-                onImageChange={(file) => {
-                  setRoasterImage(file);
+                initialImage={roasterFormData.image}
+                onImageUploaded={(imageUrl) => {
+                  setRoasterFormData({
+                    ...roasterFormData,
+                    image: imageUrl,
+                  });
                 }}
+                uploadContext="coffee-roaster"
                 label=""
                 height="sm"
                 className="mt-1"

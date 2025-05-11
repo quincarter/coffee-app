@@ -104,6 +104,7 @@ export async function PATCH(
       brewingDeviceId,
       additionalDeviceIds,
       brewProfileId,
+      image, // Add image to destructured parameters
     } = await request.json();
 
     const brewSession = await prisma.userBrewSession.findUnique({
@@ -130,6 +131,7 @@ export async function PATCH(
     if (brewingDeviceId !== undefined)
       updateData.brewingDeviceId = brewingDeviceId;
     if (brewProfileId !== undefined) updateData.brewProfileId = brewProfileId;
+    if (image !== undefined) updateData.image = image; // Add image to updateData
 
     // Update the brew session
     const updatedSession = await prisma.userBrewSession.update({

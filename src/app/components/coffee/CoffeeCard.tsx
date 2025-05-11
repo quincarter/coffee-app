@@ -55,7 +55,7 @@ export default function CoffeeCard({
   const [showEditModal, setShowEditModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [coffeeImage, setCoffeeImage] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(coffee.image || null);
   const [availableTastingNotes, setAvailableTastingNotes] = useState<
     { id: string; name: string }[]
   >([]);
@@ -135,27 +135,6 @@ export default function CoffeeCard({
     try {
       if (!formData.name) throw new Error("Coffee name is required");
       if (!formData.roasterId) throw new Error("Roaster is required");
-
-      let imageUrl = coffee.image;
-
-      // Upload image if one was selected
-      if (coffeeImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", coffeeImage);
-        uploadFormData.append("context", "coffee");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
 
       // Update coffee - send tasting notes as strings directly
       const response = await fetch(`/api/coffees/${coffee.id}`, {
@@ -483,13 +462,12 @@ export default function CoffeeCard({
                 Coffee Image
               </label>
               <ImageUpload
-                initialImage={coffee.image || null}
-                onImageChange={(file) => {
-                  setCoffeeImage(file);
-                }}
-                label=""
+                initialImage={imageUrl}
+                onImageUploaded={setImageUrl}
+                uploadContext="coffee"
+                label="Image"
                 height="sm"
-                className="mt-1"
+                className="w-full"
               />
             </div>
 

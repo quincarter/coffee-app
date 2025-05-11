@@ -18,30 +18,28 @@ type Props = {
   isEditing?: boolean;
 };
 
-export default function BrewingDeviceForm({ 
-  onDeviceAdded, 
-  initialDevice, 
-  isEditing = false 
+export default function BrewingDeviceForm({
+  onDeviceAdded,
+  initialDevice,
+  isEditing = false,
 }: Props) {
   const [formData, setFormData] = useState({
     name: initialDevice?.name || "",
     description: initialDevice?.description || "",
-    image: initialDevice?.image || "",
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    initialDevice?.image || null
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploadMethod, setUploadMethod] = useState<"url" | "file">(
-    initialDevice?.image ? "url" : "url"
-  );
 
   useEffect(() => {
     if (initialDevice) {
       setFormData({
         name: initialDevice.name,
         description: initialDevice.description,
-        image: initialDevice.image,
       });
+      setImageUrl(initialDevice.image || null);
     }
   }, [initialDevice]);
 
@@ -52,44 +50,17 @@ export default function BrewingDeviceForm({
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setImageFile(e.target.files[0]);
-    }
-  };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
     try {
-      let imageUrl = formData.image;
-
-      // If using file upload, upload the file first
-      if (uploadMethod === "file" && imageFile) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", imageFile);
-        uploadFormData.append("context", "brewing-device"); // Add context for brewing device uploads
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
-      }
-
       // Create or update the brewing device
-      const url = isEditing 
-        ? `/api/brewing-devices/${initialDevice?.id}` 
+      const url = isEditing
+        ? `/api/brewing-devices/${initialDevice?.id}`
         : "/api/brewing-devices";
-      
+
       const method = isEditing ? "PATCH" : "POST";
 
       const response = await fetch(url, {
@@ -106,7 +77,10 @@ export default function BrewingDeviceForm({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to ${isEditing ? 'update' : 'create'} brewing device`);
+        throw new Error(
+          errorData.error ||
+            `Failed to ${isEditing ? "update" : "create"} brewing device`
+        );
       }
 
       const deviceData = await response.json();
@@ -117,14 +91,18 @@ export default function BrewingDeviceForm({
         setFormData({
           name: "",
           description: "",
-          image: "",
         });
-        setImageFile(null);
+        setImageUrl(null);
       }
     } catch (err) {
-      console.error(`Error ${isEditing ? 'updating' : 'creating'} brewing device:`, err);
+      console.error(
+        `Error ${isEditing ? "updating" : "creating"} brewing device:`,
+        err
+      );
       setError(
-        err instanceof Error ? err.message : `Failed to ${isEditing ? 'update' : 'create'} brewing device`
+        err instanceof Error
+          ? err.message
+          : `Failed to ${isEditing ? "update" : "create"} brewing device`
       );
     } finally {
       setIsSubmitting(false);
@@ -133,13 +111,11 @@ export default function BrewingDeviceForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      {!isEditing && <h3 className="mb-4 text-lg font-medium">Add New Brewing Device</h3>}
-
-      {error && (
-        <div className="alert alert-error mb-4">
-          {error}
-        </div>
+      {!isEditing && (
+        <h3 className="mb-4 text-lg font-medium">Add New Brewing Device</h3>
       )}
+
+      {error && <div className="alert alert-error mb-4">{error}</div>}
 
       <div className="mb-4">
         <label htmlFor="name" className="mb-1 block text-sm font-medium">
@@ -171,61 +147,14 @@ export default function BrewingDeviceForm({
       </div>
 
       <div className="mb-4">
-        <div className="mb-2">
-          <span className="block text-sm font-medium">Image</span>
-          <div className="mt-1 flex items-center space-x-4">
-            <button
-              type="button"
-              onClick={() => setUploadMethod("url")}
-              className={`btn btn-sm ${
-                uploadMethod === "url"
-                  ? "btn-primary"
-                  : "btn-outline"
-              }`}
-            >
-              URL
-            </button>
-            <button
-              type="button"
-              onClick={() => setUploadMethod("file")}
-              className={`btn btn-sm ${
-                uploadMethod === "file"
-                  ? "btn-primary"
-                  : "btn-outline"
-              }`}
-            >
-              Upload File
-            </button>
-          </div>
-        </div>
-
-        {uploadMethod === "url" ? (
-          <div>
-            <label htmlFor="image" className="mb-1 block text-sm font-medium">
-              Image URL
-            </label>
-            <input
-              type="url"
-              id="image"
-              name="image"
-              value={formData.image}
-              onChange={handleChange}
-              required
-              className="input input-bordered w-full"
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
-        ) : (
-          <ImageUpload
-            initialImage={imageFile ? URL.createObjectURL(imageFile) : formData.image}
-            onImageChange={(file, preview) => {
-              setImageFile(file);
-            }}
-            label="Upload Image"
-            height="sm"
-            className="mb-4"
-          />
-        )}
+        <ImageUpload
+          initialImage={imageUrl}
+          onImageUploaded={setImageUrl}
+          uploadContext="brewing-device"
+          label="Device Image"
+          height="sm"
+          className="w-full"
+        />
       </div>
 
       <div className="flex justify-end">
@@ -234,9 +163,13 @@ export default function BrewingDeviceForm({
           disabled={isSubmitting}
           className="btn btn-primary"
         >
-          {isSubmitting 
-            ? (isEditing ? "Updating..." : "Creating...") 
-            : (isEditing ? "Update Device" : "Create Device")}
+          {isSubmitting
+            ? isEditing
+              ? "Updating..."
+              : "Creating..."
+            : isEditing
+              ? "Update Device"
+              : "Create Device"}
         </button>
       </div>
     </form>

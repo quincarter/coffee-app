@@ -5,6 +5,7 @@ import RoasterSelector from "../coffee/RoasterSelector";
 import CoffeeSelector from "../coffee/CoffeeSelector";
 import BrewSettingsForm from "./BrewSettingsForm";
 import AdditionalInfoForm from "./AdditionalInfoForm";
+import ImageUpload from "../ImageUpload";
 
 type BrewProfileFormProps = {
   userId?: string;
@@ -25,10 +26,10 @@ export default function BrewProfileForm({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
+
   // Selected roaster
   const [selectedRoaster, setSelectedRoaster] = useState<string>(
-    initialProfile?.coffee?.roasterId || ""
+    initialProfile?.coffee?.roaster?.id || ""
   );
 
   // Form data
@@ -47,6 +48,7 @@ export default function BrewProfileForm({
     process: initialProfile?.process || "",
     roastLevel: initialProfile?.roastLevel || "",
     isPublic: initialProfile?.isPublic || false,
+    image: initialProfile?.image || null,
   });
 
   // Handle form submission
@@ -96,16 +98,19 @@ export default function BrewProfileForm({
         throw new Error(errorData.error || "Failed to save brew profile");
       }
 
-      const data = await response.json();
-      setSuccess("Brew profile saved successfully!");
+      const savedProfile = await response.json();
 
-      if (onProfileCreated) {
-        onProfileCreated(data);
-      }
+      setSuccess(
+        isEditing
+          ? "Brew profile updated successfully!"
+          : "Brew profile created successfully!"
+      );
+
+      if (onProfileCreated) onProfileCreated(savedProfile);
     } catch (err) {
       console.error("Error saving brew profile:", err);
       setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
+        err instanceof Error ? err.message : "Failed to save brew profile"
       );
     } finally {
       setIsLoading(false);
@@ -173,6 +178,14 @@ export default function BrewProfileForm({
           }}
           onChange={handleBrewSettingsChange}
           disabled={isLoading}
+        />
+
+        {/* Image Upload */}
+        <ImageUpload
+          initialImage={formData.image}
+          onImageUploaded={(imageUrl) => handleFormChange("image", imageUrl)}
+          uploadContext="brew-profile"
+          label="Profile Image (optional)"
         />
 
         {/* Additional Information */}
