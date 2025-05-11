@@ -356,10 +356,39 @@ export default function RoasterDetail({
         <div className="p-6">
           {/* Action buttons - shown in a row above the title on all devices */}
           <div className="flex flex-wrap justify-end gap-2 mb-4">
+<<<<<<< Updated upstream
             {/* {isOwner || isAdmin && (
               
             )} */}
             <>
+=======
+            {isOwner && (
+<<<<<<< Updated upstream
+              <>
+                <Link
+                  href={`/roasters/${roaster.id}/edit`}
+                  className="btn btn-outline btn-sm"
+                >
+                  <Edit size={16} className="mr-1" />
+                  <span className="hidden sm:inline">Edit</span>
+                </Link>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="btn btn-outline btn-error btn-sm"
+                  disabled={roaster._count?.coffees > 0}
+                  title={
+                    roaster._count?.coffees > 0
+                      ? "Cannot delete roaster with associated coffees"
+                      : "Delete roaster"
+                  }
+                >
+                  <Trash size={16} className="mr-1" />
+                  <span className="hidden sm:inline">Delete</span>
+                </button>
+              </>
+            )}
+=======
+>>>>>>> Stashed changes
               <Link
                 href={`/roasters/${roaster.id}/edit`}
                 className="btn btn-outline btn-sm"
@@ -367,6 +396,11 @@ export default function RoasterDetail({
                 <Edit size={16} className="mr-1" />
                 <span className="hidden sm:inline">Edit</span>
               </Link>
+<<<<<<< Updated upstream
+=======
+            )}
+            <>
+>>>>>>> Stashed changes
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="btn btn-outline btn-error btn-sm"
@@ -381,6 +415,10 @@ export default function RoasterDetail({
                 <span className="hidden sm:inline">Delete</span>
               </button>
             </>
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
             <button onClick={handleShare} className="btn btn-outline btn-sm">
               <Share size={16} className="mr-1" />
               <span className="hidden sm:inline">Share</span>
