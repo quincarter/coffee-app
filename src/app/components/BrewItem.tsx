@@ -298,7 +298,7 @@ export default function BrewItem({
       }`}
       onClick={onClick}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4 mb-2">
         <div className="flex items-center">
           {session.image && (
             <div className="h-12 w-12 relative mr-3 rounded overflow-hidden">
@@ -310,7 +310,9 @@ export default function BrewItem({
               />
             </div>
           )}
-          <p className="text-sm font-medium truncate">{session.name}</p>
+          <p className="text-sm font-medium truncate flex text-wrap max-w-50">
+            {session.name}
+          </p>
         </div>
         <div className="ml-2 flex-shrink-0 flex items-center">
           {showFavorite && (
@@ -325,11 +327,11 @@ export default function BrewItem({
               />
             </button>
           )}
-          <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-            {session.brewingDevice.name}
-          </p>
         </div>
       </div>
+      <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+        {session.brewingDevice.name}
+      </p>
       {/* Brew Profile Information */}
       {session.brewProfile && (
         <div className="mt-2 bg-gray-50 coffee:bg-gray-700 rounded p-2">
