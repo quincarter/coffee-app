@@ -30,6 +30,7 @@ export default function CoffeeDetail({ id }: { id: string }) {
   const router = useRouter();
   const [coffee, setCoffee] = useState<any>(null);
   const [brewProfiles, setBrewProfiles] = useState<any[]>([]);
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -250,6 +251,81 @@ export default function CoffeeDetail({ id }: { id: string }) {
     }
   };
 
+  // Structured data component for Coffee
+  const renderStructuredData = () => {
+    if (!coffee) return null;
+
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: coffee.name,
+      description:
+        coffee.description || `${coffee.name} by ${coffee.roaster?.name}`,
+      image: coffee.image
+        ? [`${baseUrl}${coffee.image}`]
+        : [`${baseUrl}/chemex-brewing-landing.png`],
+      brand: {
+        "@type": "Brand",
+        name: coffee.roaster?.name,
+      },
+      offers: coffee.price
+        ? {
+            "@type": "Offer",
+            price: coffee.price.toString(),
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+          }
+        : undefined,
+      aggregateRating:
+        brewProfiles.length > 0
+          ? {
+              "@type": "AggregateRating",
+              ratingValue: (
+                brewProfiles.reduce(
+                  (acc, profile) => acc + (profile.rating || 0),
+                  0
+                ) / brewProfiles.length
+              ).toFixed(1),
+              reviewCount: brewProfiles.length.toString(),
+            }
+          : undefined,
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        returnPolicyCategory:
+          "https://schema.org/MerchantReturnFiniteReturnWindow",
+      },
+      additionalProperty: [
+        {
+          "@type": "PropertyValue",
+          name: "Origin",
+          value: coffee.countryOfOrigin,
+        },
+        {
+          "@type": "PropertyValue",
+          name: "Process",
+          value: coffee.process,
+        },
+        {
+          "@type": "PropertyValue",
+          name: "Elevation",
+          value: coffee.elevation,
+        },
+        {
+          "@type": "PropertyValue",
+          name: "Tasting Notes",
+          value: coffee.tastingNotes?.map((note: any) => note.name).join(", "),
+        },
+      ].filter((prop) => prop.value), // Remove properties with undefined values
+    };
+
+    return (
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+    );
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -291,6 +367,7 @@ export default function CoffeeDetail({ id }: { id: string }) {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {renderStructuredData()}
       <div className="mb-6">
         <Link
           href="/coffees"
