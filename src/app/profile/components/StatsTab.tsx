@@ -233,7 +233,11 @@ export default function StatsTab({ userId }: Props) {
               }}
             >
               {favorites.brewProfiles.map((profile) => (
-                <BrewProfileCard key={profile.id} profile={profile} />
+                <BrewProfileCard
+                  isLoggedIn={!!userId}
+                  key={profile.id}
+                  profile={profile}
+                />
               ))}
             </div>
           </div>

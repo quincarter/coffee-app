@@ -79,12 +79,15 @@ export default function BrewProfilesTab({ userId }: Props) {
         <div
           className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-auto"
           style={{
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(min(100%, 450px), 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
           }}
         >
           {profiles.map((profile: any) => (
-            <BrewProfileCard key={profile.id} profile={profile} />
+            <BrewProfileCard
+              isLoggedIn={!!userId}
+              key={profile.id}
+              profile={profile}
+            />
           ))}
         </div>
       )}

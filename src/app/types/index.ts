@@ -111,3 +111,10 @@ export type CoffeeFormData = {
   tastingNotes: string[];
   image: File | null;
 };
+
+export type FavoriteType =
+  | "brews"
+  | "profiles"
+  | "coffees"
+  | "roasters"
+  | "locations";

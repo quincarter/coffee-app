@@ -227,7 +227,7 @@ export default function BrewProfileDetail({ id }: { id: string }) {
         </Link>
       </div>
 
-      <div className="bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden">
+      <div className="max-w-200 bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden">
         <div className="p-6">
           {/* Action buttons - shown in a row above the title on all devices */}
           <div className="flex flex-wrap justify-end gap-2 mb-4">
@@ -253,12 +253,14 @@ export default function BrewProfileDetail({ id }: { id: string }) {
               <Share size={16} className="mr-1" />
               <span className="hidden sm:inline">Share</span>
             </button>
-            <FavoriteButton
-              entityType="brew-profile"
-              entityId={id}
-              showText={true}
-              className="btn btn-outline btn-sm"
-            />
+            {isLoggedIn && (
+              <FavoriteButton
+                entityType="brew-profile"
+                entityId={id}
+                showText={true}
+                className="btn btn-outline btn-sm"
+              />
+            )}
           </div>
 
           {/* Title and roaster info */}
@@ -480,7 +482,11 @@ export default function BrewProfileDetail({ id }: { id: string }) {
         <RelatedItems
           title="Similar Brew Profiles"
           items={similarProfiles.map((relatedProfile) => (
-            <BrewProfileCard key={relatedProfile.id} profile={relatedProfile} />
+            <BrewProfileCard
+              isLoggedIn={isLoggedIn}
+              key={relatedProfile.id}
+              profile={relatedProfile}
+            />
           ))}
           emptyMessage="No similar brew profiles found"
           maxItems={3}

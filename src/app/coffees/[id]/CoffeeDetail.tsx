@@ -327,12 +327,14 @@ export default function CoffeeDetail({ id }: { id: string }) {
               <Share size={16} className="mr-1" />
               <span className="hidden sm:inline">Share</span>
             </button>
-            <FavoriteButton
-              entityType="coffee"
-              entityId={id}
-              showText={true}
-              className="btn btn-outline btn-sm"
-            />
+            {isLoggedIn && (
+              <FavoriteButton
+                entityType="coffee"
+                entityId={id}
+                showText={true}
+                className="btn btn-outline btn-sm"
+              />
+            )}
           </div>
 
           {/* Coffee header */}
@@ -456,7 +458,11 @@ export default function CoffeeDetail({ id }: { id: string }) {
               {brewProfiles.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {brewProfiles.map((profile) => (
-                    <BrewProfileCard key={profile.id} profile={profile} />
+                    <BrewProfileCard
+                      isLoggedIn={isLoggedIn}
+                      key={profile.id}
+                      profile={profile}
+                    />
                   ))}
                 </div>
               ) : (

@@ -324,12 +324,17 @@ export default function BrewProfilesPage() {
         <div
           className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-auto"
           style={{
+            justifyContent: "center",
             gridTemplateColumns:
-              "repeat(auto-fit, minmax(min(100%, 450px), 1fr))",
+              "repeat(auto-fill, minmax(min(100%, 300px), 1fr))",
           }}
         >
           {filteredProfiles.map((profile: any) => (
-            <BrewProfileCard key={profile.id} profile={profile} />
+            <BrewProfileCard
+              isLoggedIn={isLoggedIn}
+              key={profile.id}
+              profile={profile}
+            />
           ))}
         </div>
       )}
