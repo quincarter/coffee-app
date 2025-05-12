@@ -64,7 +64,7 @@ export default function Dashboard() {
           fetch("/api/user-brewing-devices"),
           fetch("/api/brew-sessions/favorites?recentOnly=true"),
           fetch("/api/brew-sessions/count"),
-          fetch("/api/brew-profiles?limit=3"),
+          fetch("/api/brew-profiles?limit=3&includePublic=false"),
           fetch("/api/brew-profiles/count"),
         ]);
 

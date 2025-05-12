@@ -11,14 +11,24 @@ export async function GET(request: NextRequest) {
 
     const userId = session.userId;
     const { searchParams } = new URL(request.url);
+    const includePublic = searchParams.get("includePublic") === "true";
     const limit = searchParams.get("limit")
       ? parseInt(searchParams.get("limit")!)
       : undefined;
 
-    const profiles = await prisma.brewProfile.findMany({
-      where: {
+    let where;
+
+    if (includePublic) {
+      where = {
         OR: [{ userId }, { isPublic: true }],
-      },
+      };
+    } else {
+      where = {
+        userId,
+      };
+    }
+    const profiles = await prisma.brewProfile.findMany({
+      where,
       include: {
         user: {
           select: {
