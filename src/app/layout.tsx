@@ -103,7 +103,7 @@ export default async function RootLayout({
                 backgroundImage={
                   session.user?.backgroundImage || "/chemex-brewing-landing.png"
                 }
-                opacity={session.user?.backgroundOpacity || 0.4}
+                opacity={session.user?.backgroundOpacity || 0.3}
               />
             )}
             <HeaderNav session={session} />
