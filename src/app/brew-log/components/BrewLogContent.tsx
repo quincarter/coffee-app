@@ -21,14 +21,14 @@ export default function BrewLogContent({
   initialSelectedSessionId,
   selectedSession,
 }: Props) {
-  const [brewSessions, setBrewSessions] =
-    useState<any[]>(initialBrewSessions); // Use any[] here
-  const [userDevices, setUserDevices] = useState<UserBrewingDevice[]>(initialUserDevices);
+  const [brewSessions, setBrewSessions] = useState<any[]>(initialBrewSessions); // Use any[] here
+  const [userDevices, setUserDevices] =
+    useState<UserBrewingDevice[]>(initialUserDevices);
   const [selectedSessionState, setSelectedSession] = useState<any | null>(
-    selectedSession || 
-    (initialSelectedSessionId 
-      ? brewSessions.find(s => s.id === initialSelectedSessionId) || null
-      : null)
+    selectedSession ||
+      (initialSelectedSessionId
+        ? brewSessions.find((s) => s.id === initialSelectedSessionId) || null
+        : null)
   );
   const [showNewForm, setShowNewForm] = useState(false);
 
@@ -67,7 +67,7 @@ export default function BrewLogContent({
   };
 
   const handleDeviceAdded = (newDevice: UserBrewingDevice) => {
-    setUserDevices(prevDevices => [...prevDevices, newDevice]);
+    setUserDevices((prevDevices) => [...prevDevices, newDevice]);
   };
 
   return (

@@ -49,7 +49,7 @@ export default function BrewProfileCard({
         className="max-w-100 min-w-80 bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
       >
         <div className="p-5">
-          <div className="flex items-start justify-between mb-3">
+          <div className="flex items-start justify-between mb-3 gap-3">
             <div>
               <h3 className="font-medium text-lg mb-1">
                 {profile.coffee?.name || "Unknown Coffee"}

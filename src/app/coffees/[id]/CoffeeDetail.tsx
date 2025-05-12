@@ -363,7 +363,8 @@ export default function CoffeeDetail({ id }: { id: string }) {
   };
 
   // Temporarily allow any logged-in user to edit
-  const isOwner = isLoggedIn; // Remove the check for currentUserId === coffee.createdBy
+  // const isOwner = isLoggedIn; // Remove the check for currentUserId === coffee.createdBy
+  const isOwner = isLoggedIn && currentUserId === coffee.createdBy;
 
   return (
     <div className="container mx-auto px-4 py-8">

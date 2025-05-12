@@ -213,7 +213,8 @@ export default function BrewProfileDetail({ id }: { id: string }) {
   }
 
   // Temporarily allow any logged-in user to edit
-  const isOwner = isLoggedIn; // Remove the check for currentUserId === profile.userId
+  // const isOwner = isLoggedIn; // Remove the check for currentUserId === profile.userId
+  const isOwner = isLoggedIn && currentUserId === profile.userId;
 
   return (
     <div className="container mx-auto px-4 py-8">

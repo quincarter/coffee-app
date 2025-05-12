@@ -204,7 +204,7 @@ export default function CoffeeCard({
           </Link>
 
           <div className="flex items-center gap-1">
-            {currentUserId && showEditButton && (
+            {isOwner && currentUserId && showEditButton && (
               <button
                 className="btn btn-outline btn-xs"
                 onClick={handleEditClick}

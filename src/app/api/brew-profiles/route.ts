@@ -16,7 +16,9 @@ export async function GET(request: NextRequest) {
       : undefined;
 
     const profiles = await prisma.brewProfile.findMany({
-      where: { userId },
+      where: {
+        OR: [{ userId }, { isPublic: true }],
+      },
       include: {
         user: {
           select: {
