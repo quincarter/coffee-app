@@ -43,7 +43,8 @@ export default function RoasterCard({
   showFavorite = true,
 }: RoasterCardProps) {
   // Temporarily allow any logged-in user to edit
-  const isOwner = currentUserId; // Remove the check for currentUserId === roaster.createdBy
+  // const isOwner = currentUserId; // Remove the check for currentUserId === roaster.createdBy
+  const isOwner = currentUserId === roaster.createdBy;
 
   // State for edit modal
   const [showEditModal, setShowEditModal] = useState(false);
