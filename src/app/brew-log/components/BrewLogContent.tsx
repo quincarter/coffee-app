@@ -16,13 +16,14 @@ type Props = {
 
 export default function BrewLogContent({
   userId,
-  userDevices,
+  userDevices: initialUserDevices,
   initialBrewSessions,
   initialSelectedSessionId,
   selectedSession,
 }: Props) {
   const [brewSessions, setBrewSessions] =
     useState<any[]>(initialBrewSessions); // Use any[] here
+  const [userDevices, setUserDevices] = useState<UserBrewingDevice[]>(initialUserDevices);
   const [selectedSessionState, setSelectedSession] = useState<any | null>(
     selectedSession || 
     (initialSelectedSessionId 
@@ -65,6 +66,10 @@ export default function BrewLogContent({
     }
   };
 
+  const handleDeviceAdded = (newDevice: UserBrewingDevice) => {
+    setUserDevices(prevDevices => [...prevDevices, newDevice]);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div className="md:col-span-1">
@@ -83,6 +88,7 @@ export default function BrewLogContent({
             userId={userId}
             userDevices={userDevices}
             onBrewCreated={handleNewBrewSession}
+            onDeviceAdded={handleDeviceAdded}
           />
         ) : (
           <BrewSessionList

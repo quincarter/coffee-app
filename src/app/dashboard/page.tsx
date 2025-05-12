@@ -24,9 +24,28 @@ export default function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [recentProfiles, setRecentProfiles] = useState<Array<BrewProfile>>([]);
   const [totalProfiles, setTotalProfiles] = useState(0);
-
-  // State for brew profile creation modal
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
+
+  // Handle a new device being added
+  const handleDeviceAdded = (newDevice: UserBrewingDevice) => {
+    setUserDevices((prevDevices) => [...prevDevices, newDevice]);
+  };
+
+  // Handle a new brew being created
+  const handleBrewCreated = (newBrew: BrewSession) => {
+    setRecentBrews((prev) => [newBrew, ...prev]);
+    setTotalBrews((prev) => prev + 1);
+    setShowQuickBrew(false);
+    toast.success("Brew session created!");
+  };
+
+  // Handle a new profile being created
+  const handleProfileCreated = (newProfile: BrewProfile) => {
+    setRecentProfiles((prev) => [newProfile, ...prev]);
+    setTotalProfiles((prev) => prev + 1);
+    setShowProfileModal(false);
+    toast.success("Brew profile created!");
+  };
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -124,40 +143,8 @@ export default function Dashboard() {
     fetchDashboardData();
   }, [router]);
 
-  const handleBrewCreated = (newBrew: any) => {
-    // Add the new brew to the recent brews list
-    setRecentBrews([newBrew, ...recentBrews]);
-    // Update total brews count
-    setTotalBrews((prev) => prev + 1);
-    // Close the quick brew form
-    setShowQuickBrew(false);
-    // Show a success toast notification
-    toast.success(`Brew "${newBrew.name}" created successfully!`);
-  };
-
   const handleSelectBrew = (brew: { id: string }) => {
     router.push(`/brew-log?session=${brew.id}`);
-  };
-
-  // Handle profile creation
-  const handleProfileCreated = (profile: any) => {
-    // Add the new profile to the list
-    setRecentProfiles((prevProfiles) => [
-      profile,
-      ...prevProfiles.slice(0, 2), // Keep only the first 3 profiles including the new one
-    ]);
-
-    // Update total profiles count
-    setTotalProfiles((prev) => prev + 1);
-
-    // Close the modal
-    setShowProfileModal(false);
-
-    // Show a success toast notification
-    toast.success(`Brew profile created successfully!`);
-
-    // Navigate to the new profile
-    router.push(`/brew-profiles/${profile.id}`);
   };
 
   if (loading) {
@@ -194,8 +181,9 @@ export default function Dashboard() {
           {showQuickBrew ? (
             <QuickBrewForm
               userId={user?.id}
-              userDevices={userDevices as any}
+              userDevices={userDevices}
               onBrewCreated={handleBrewCreated}
+              onDeviceAdded={handleDeviceAdded}
               onCancel={() => setShowQuickBrew(false)}
             />
           ) : (

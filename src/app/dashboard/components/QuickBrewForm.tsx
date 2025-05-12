@@ -7,6 +7,7 @@ type Props = {
   userId?: string;
   userDevices: UserBrewingDevice[];
   onBrewCreated: (brew: any) => void;
+  onDeviceAdded: (device: UserBrewingDevice) => void;
   onCancel: () => void;
 };
 
@@ -14,6 +15,7 @@ export default function QuickBrewForm({
   userId,
   userDevices,
   onBrewCreated,
+  onDeviceAdded,
   onCancel,
 }: Props) {
   return (
@@ -21,6 +23,7 @@ export default function QuickBrewForm({
       userId={userId}
       userDevices={userDevices}
       onBrewCreated={onBrewCreated}
+      onDeviceAdded={onDeviceAdded}
       onCancel={onCancel}
       isQuickForm={true}
     />

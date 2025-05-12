@@ -177,54 +177,13 @@ export default function SearchableDropdown({
       e.stopPropagation();
     }
 
-    if (!searchTerm.trim()) return;
+    if (!searchTerm.trim() || !onAddNew) return;
 
-    // Create a new option with the search term
-    const newOption = {
-      value: searchTerm.trim(),
-      label: searchTerm.trim(),
-    };
-
-    // Check if this option already exists to avoid duplicates
-    const optionExists = options.some(
-      (option) => option.value.toLowerCase() === newOption.value.toLowerCase()
-    );
-
-    // Add the new option to the selected values
-    if (multiple) {
-      // Only add if it's not already selected
-      if (!selectedValues.includes(newOption.value)) {
-        const newValues = [...selectedValues, newOption.value];
-        onChange(newValues);
-      }
-
-      // For multiple selection, keep the dropdown open
-      // and clear any blur timeout that might be pending
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-        blurTimeoutRef.current = null;
-      }
-
-      // Focus the input again to keep the dropdown open
-      if (inputRef.current) {
-        setTimeout(() => {
-          if (inputRef.current) {
-            inputRef.current.focus();
-          }
-        }, 10);
-      }
-    } else {
-      onChange(newOption.value);
-      setIsOpen(false);
-    }
+    // Call the onAddNew handler without modifying the current selection
+    onAddNew(searchTerm.trim());
 
     // Clear the search term
     setSearchTerm("");
-
-    // Notify parent component about the new item (optional)
-    if (onAddNew && !optionExists) {
-      onAddNew(newOption.value);
-    }
   };
 
   const handleInputBlur = () => {
@@ -287,7 +246,7 @@ export default function SearchableDropdown({
       )}
 
       {/* Selected chips for multiple selection */}
-      {multiple && selectedOptions.length > 0 && (
+      {multiple && selectedValues.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
           {selectedOptions.map((option, index) => (
             <Chip
@@ -295,22 +254,18 @@ export default function SearchableDropdown({
               key={option.value}
               label={option.label}
               onRemove={() => handleRemoveOption(option.value)}
-              isPrimary={index === 0} // Mark the first item as primary
+              isPrimary={index === 0}
             />
           ))}
         </div>
       )}
 
       {/* Selected chip for single selection */}
-      {!multiple && value && !searchTerm && (
+      {!multiple && selectedOption && !searchTerm && (
         <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
           <Chip
             disabled={disabled}
-            label={
-              selectedOption?.label ||
-              options.find((opt) => opt.value === value)?.label ||
-              (typeof value === "string" ? value : "")
-            }
+            label={selectedOption.label}
             onRemove={() => {
               onChange(multiple ? [] : "");
             }}
