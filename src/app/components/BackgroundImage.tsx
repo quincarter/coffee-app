@@ -7,7 +7,7 @@ type BackgroundImageProps = {
 
 export default function BackgroundImage({
   backgroundImage = "/chemex-brewing-landing.png",
-  opacity = 0.8,
+  opacity = 0.3,
 }: BackgroundImageProps) {
   return (
     <div className="fixed inset-0 -z-10">
