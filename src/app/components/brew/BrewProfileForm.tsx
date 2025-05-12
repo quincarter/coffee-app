@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import RoasterSelector from "../coffee/RoasterSelector";
 import CoffeeSelector from "../coffee/CoffeeSelector";
-import BrewSettingsForm from "./BrewSettingsForm";
-import AdditionalInfoForm from "./AdditionalInfoForm";
+import RoasterSelector from "../coffee/RoasterSelector";
 import ImageUpload from "../ImageUpload";
+import AdditionalInfoForm from "./AdditionalInfoForm";
+import BrewSettingsForm from "./BrewSettingsForm";
 
 type BrewProfileFormProps = {
   userId?: string;
@@ -151,6 +151,17 @@ export default function BrewProfileForm({
       {success && <div className="alert alert-success mb-4">{success}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className={`alert alert-neutral text-sm mb-4 max-w-lg`}>
+          <p>
+            <strong>Help us improve our coffee selection!</strong>
+            <br />
+            Help us source more coffee from your favorite roasters! By selecting
+            a roaster, you can help us understand which roasters are popular
+            among our users. This information will be used to improve our coffee
+            recommendations and to help us build better partnerships with
+            roasters. Thank you for your support!
+          </p>
+        </div>
         {/* Roaster Selection */}
         <RoasterSelector
           selectedRoasterId={selectedRoaster}
@@ -167,6 +178,8 @@ export default function BrewProfileForm({
           userId={userId}
           disabled={isLoading}
         />
+
+        <hr />
 
         {/* Brew Settings */}
         <BrewSettingsForm

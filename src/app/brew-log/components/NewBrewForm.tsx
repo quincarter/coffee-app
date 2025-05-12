@@ -1,15 +1,18 @@
 "use client";
 
+import BrewProfileCreationModal from "@/app/components/brew/BrewProfileCreationModal";
 import ImageUpload from "@/app/components/ImageUpload";
 import SearchableDropdown from "@/app/components/SearchableDropdown";
 import { BrewProfile, BrewSession, UserBrewingDevice } from "@/app/types";
 import { X } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
+import BrewDeviceCreationModal from "../../components/brew/BrewDeviceCreationModal";
 
 type Props = {
   userId?: string;
   userDevices: UserBrewingDevice[];
   onBrewCreated: (session: BrewSession) => void;
+  onDeviceAdded?: (device: UserBrewingDevice) => void; // Add this prop
   onCancel?: () => void;
   isQuickForm?: boolean;
 };
@@ -18,6 +21,7 @@ export default function NewBrewForm({
   userId,
   userDevices,
   onBrewCreated,
+  onDeviceAdded,
   onCancel,
   isQuickForm = false,
 }: Props) {
@@ -64,12 +68,15 @@ export default function NewBrewForm({
   };
 
   const handleAddNewDevice = () => {
-    // Try to get the search term from the input element
+    // Get the search term from the input element
     const searchInput = document.querySelector(
       'input[placeholder="Search your devices..."]'
     ) as HTMLInputElement;
+
     if (searchInput && searchInput.value) {
       setQuickDeviceName(searchInput.value);
+      // Clear the search input to prevent the string from being added as a chip
+      searchInput.value = "";
     }
 
     setShowQuickDeviceModal(true);
@@ -116,14 +123,16 @@ export default function NewBrewForm({
 
       const newDevice = await response.json();
 
-      // Add the new device to the list and select it
-      userDevices = [...userDevices, newDevice];
+      // Let parent component handle device list update
+      if (onDeviceAdded) {
+        onDeviceAdded(newDevice);
+      }
+
+      // Update the selection to use the newly created device
       setSelectedDeviceIds([...selectedDeviceIds, newDevice.id]);
 
-      // Close the modal with animation
+      // Close modal and reset form
       closeModal();
-
-      // Reset form
       setQuickDeviceName("");
       setQuickDeviceDescription("");
       setSelectedDeviceType("");
@@ -245,6 +254,42 @@ export default function NewBrewForm({
         </div>
       )}
 
+      {!error && (
+        <>
+          <div
+            className={`${isQuickForm ? "alert alert-info text-sm mb-4" : "alert alert-info mb-4"}`}
+          >
+            <p>
+              <strong>Tip:</strong> You can add a new brewing device by clicking
+              the "Add Device" button in the device selection dropdown.
+            </p>
+            <button
+              type="button"
+              onClick={handleAddNewDevice}
+              className="btn btn-sm p-6 btn-info "
+            >
+              Add Device
+            </button>
+          </div>
+          <div
+            className={`${isQuickForm ? "alert alert-neutral text-sm mb-4" : "alert alert-neutral mb-4"}`}
+          >
+            <p>
+              You can add more details later (Like a brew profile). Or all at
+              once. Treat this as your personal Brew Journal if you wish. <br />
+              <br /> If you want to create a brew profile, you can do so{" "}
+              <a
+                href="/brew-profiles"
+                className="text-blue-500 hover:underline"
+              >
+                here
+              </a>
+              .
+            </p>
+          </div>
+        </>
+      )}
+
       <div className={isQuickForm ? "mb-4" : "mb-4"}>
         <label htmlFor="name" className="block text-sm font-medium mb-1">
           Brew Name
@@ -303,21 +348,22 @@ export default function NewBrewForm({
         <SearchableDropdown
           options={userDevices.map((device) => ({
             value: device.id,
-            label: device.name,
+            label: device.name || device.brewingDevice.name,
           }))}
           value={selectedDeviceIds}
           onChange={(value) => {
             if (Array.isArray(value)) {
               // Check for duplicate device types
-              const selectedDevices = value.map((id) =>
-                userDevices.find((d) => d.id === id)
-              );
+              const selectedDevices = value
+                .map((id) => userDevices.find((d) => d.id === id))
+                .filter(
+                  (device): device is UserBrewingDevice => device !== undefined
+                );
+
               const deviceTypeCounts = selectedDevices.reduce(
                 (acc, device) => {
-                  if (device) {
-                    acc[device.brewingDeviceId] =
-                      (acc[device.brewingDeviceId] || 0) + 1;
-                  }
+                  acc[device.brewingDeviceId] =
+                    (acc[device.brewingDeviceId] || 0) + 1;
                   return acc;
                 },
                 {} as Record<string, number>
@@ -335,11 +381,9 @@ export default function NewBrewForm({
               }
 
               setDeviceError(null);
-              // Simply use the value array as is - first item is primary
               setSelectedDeviceIds(value);
             } else {
-              // Single selection case - just use the value
-              setSelectedDeviceIds([value].filter(Boolean));
+              setSelectedDeviceIds(value ? [value] : []);
               setDeviceError(null);
             }
           }}
@@ -380,11 +424,13 @@ export default function NewBrewForm({
                 <div className="w-20 h-20 relative">
                   <img
                     src={device.brewingDevice.image || "/default-device.webp"}
-                    alt={device.name}
+                    alt={device.name || device.brewingDevice.name}
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <span className="text-xs text-center mt-1">{device.name}</span>
+                <span className="text-xs text-center mt-1">
+                  {device.name || device.brewingDevice.name}
+                </span>
               </div>
             );
           })}
@@ -633,7 +679,20 @@ export default function NewBrewForm({
     return () => window.removeEventListener("resize", handleResize);
   }, [showQuickDeviceModal]);
 
-  // Click outside handler removed as it's now handled by SearchableDropdown
+  // Update the devices list and selection when a new device is added
+  const handleAddDevice = (newDevice: UserBrewingDevice) => {
+    console.log("New device added:", newDevice, userDevices);
+    // Only call parent handler to update device list
+    if (onDeviceAdded) {
+      onDeviceAdded(newDevice);
+    }
+
+    // Update device selection after a short delay to ensure parent has updated its list
+    setTimeout(() => {
+      setSelectedDeviceIds([...selectedDeviceIds, newDevice.id]);
+      setShowQuickDeviceModal(false);
+    }, 50);
+  };
 
   return (
     <>
@@ -659,158 +718,12 @@ export default function NewBrewForm({
         </div>
       )}
 
-      {/* Bottom sheet style modal for mobile, centered dialog for desktop */}
-      {showQuickDeviceModal && (
-        <div
-          className="fixed inset-0 bg-opacity-25 backdrop-blur-sm flex items-end md:items-center justify-center z-[100]"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white coffee:bg-gray-800 w-full md:w-auto rounded-t-lg md:rounded-lg shadow-lg p-6 transition-transform duration-300 ease-in-out"
-            style={{
-              transform: modalAnimation ? "translateY(0)" : "translateY(100%)",
-              maxHeight: "80vh",
-              overflowY: "auto",
-              width: window.innerWidth < 768 ? "100%" : "auto",
-              minWidth: window.innerWidth < 768 ? "100%" : "32rem",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium">Add New Brewing Device</h3>
-              <button
-                onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Add a subtle drag indicator for mobile */}
-            <div className="md:hidden w-12 h-1 bg-gray-300 rounded-full mx-auto -mt-2 mb-4"></div>
-
-            {deviceError && (
-              <div className="alert alert-error mb-4 text-sm">
-                {deviceError}
-              </div>
-            )}
-
-            <form onSubmit={handleQuickDeviceAdd}>
-              <div className="mb-4">
-                <label
-                  htmlFor="quickDeviceName"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Device Name
-                </label>
-                <input
-                  type="text"
-                  id="quickDeviceName"
-                  value={quickDeviceName}
-                  onChange={(e) => setQuickDeviceName(e.target.value)}
-                  className="input input-bordered w-full"
-                  placeholder="My French Press"
-                  required
-                />
-              </div>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="quickDeviceDescription"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Description (Optional)
-                </label>
-                <textarea
-                  id="quickDeviceDescription"
-                  value={quickDeviceDescription}
-                  onChange={(e) => setQuickDeviceDescription(e.target.value)}
-                  className="textarea textarea-bordered w-full"
-                  rows={2}
-                  placeholder="Add any notes about your device..."
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  Device Type
-                  {!selectedDeviceType && (
-                    <span className="text-red-500 ml-1">*</span>
-                  )}
-                </label>
-
-                <SearchableDropdown
-                  options={availableDeviceTypes.map((type) => ({
-                    value: type.id,
-                    label: type.name,
-                  }))}
-                  value={selectedDeviceType}
-                  onChange={(value) => {
-                    // Handle both string and string[] types
-                    if (Array.isArray(value)) {
-                      // If multiple selection is enabled but we only want one value
-                      setSelectedDeviceType(value[0] || "");
-                    } else {
-                      // Single selection
-                      setSelectedDeviceType(value);
-                    }
-                  }}
-                  onSearch={setSearchTerm}
-                  label=""
-                  placeholder="Search device types..."
-                  required
-                  error={
-                    deviceError && !selectedDeviceType
-                      ? "Device type is required"
-                      : undefined
-                  }
-                  noOptionsMessage={
-                    availableDeviceTypes.length === 0
-                      ? "Loading device types..."
-                      : "No device types found"
-                  }
-                  multiple={false}
-                />
-              </div>
-
-              <div className="mb-4">
-                <ImageUpload
-                  initialImage={quickDeviceImageUrl}
-                  onImageUploaded={setQuickDeviceImageUrl}
-                  uploadContext="brewing-device"
-                  label="Device Image"
-                  height="sm"
-                  className="w-full"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 mt-4">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="btn btn-ghost"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={isAddingDevice}
-                >
-                  {isAddingDevice ? (
-                    <>
-                      <span className="loading loading-spinner loading-xs"></span>
-                      Adding...
-                    </>
-                  ) : (
-                    "Add Device"
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <BrewDeviceCreationModal
+        show={showQuickDeviceModal}
+        onClose={() => setShowQuickDeviceModal(false)}
+        onDeviceCreated={handleAddDevice}
+        userId={userId}
+      />
     </>
   );
 }
