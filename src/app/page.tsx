@@ -15,7 +15,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-base-100">
-      <AdminBanner />
+      <AdminBanner user={session} />
 
       {/* Hero Section */}
       <section className="py-20 px-4 text-center relative">

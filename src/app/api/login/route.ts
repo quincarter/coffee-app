@@ -21,6 +21,12 @@ export async function POST(request: NextRequest) {
       where: { email },
     });
 
+    const dismissedBanners = await prisma.userDismissedBanner.findMany({
+      where: { userId: user?.id },
+    });
+
+    console.log("dismissedBanners", dismissedBanners);
+
     if (!user) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -48,6 +54,7 @@ export async function POST(request: NextRequest) {
         image: user.image ?? "",
         backgroundImage: user.backgroundImage ?? "",
         backgroundOpacity: user.backgroundOpacity ?? 1,
+        dismissedBanners: [...dismissedBanners],
       },
     };
 

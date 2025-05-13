@@ -8,6 +8,10 @@ export type User = {
   userRole: string;
   createdAt: string;
   updatedAt: string;
+  backgroundImage?: string | null;
+  backgroundOpacity?: number;
+  dismissedBanners?: string[];
+  emailVerified?: boolean;
 };
 
 export type BrewSession = {

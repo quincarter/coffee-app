@@ -46,6 +46,9 @@ export async function GET() {
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
+        backgroundImage: true,
+        backgroundOpacity: true,
+        dismissedBanners: true,
       },
     });
 
@@ -67,6 +70,9 @@ export async function GET() {
             emailVerified: true,
             createdAt: true,
             updatedAt: true,
+            backgroundImage: true,
+            backgroundOpacity: true,
+            dismissedBanners: true,
           },
         });
 
@@ -85,6 +91,9 @@ export async function GET() {
                 emailVerified: true,
                 createdAt: true,
                 updatedAt: true,
+                backgroundImage: true,
+                backgroundOpacity: true,
+                dismissedBanners: true,
               },
             });
             console.log("Successfully updated user ID");
@@ -182,6 +191,10 @@ export async function PUT(request: NextRequest) {
         image: true,
         createdAt: true,
         updatedAt: true,
+        backgroundImage: true,
+        backgroundOpacity: true,
+        dismissedBanners: true,
+        emailVerified: true, // Include emailVerified in the response
       },
     });
 

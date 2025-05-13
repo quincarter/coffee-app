@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
+import { UserDismissedBanner } from "@prisma/client";
 
 // Define the session type
 export type Session = {
@@ -12,6 +13,7 @@ export type Session = {
     name: string;
     role: string;
     image?: string; // Added optional image property
+    dismissedBanners?: UserDismissedBanner[]; // Added optional dismissedBanners property
   };
   exp?: number;
 };

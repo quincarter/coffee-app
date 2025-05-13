@@ -1,5 +1,6 @@
 "use client";
 
+import { UserDismissedBanner } from "@prisma/client";
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -30,10 +31,24 @@ const colorMap = {
   neutral: "bg-base-content/30 text-base-content/100 border-base-content/30",
 };
 
-export default function AdminBanner() {
+export default function AdminBanner({ user = null }: any) {
   const [banner, setBanner] = useState<BannerData | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
 
+  const checkDismissedBanners = (banner: BannerData) => {
+    const dismissedBanners = JSON.parse(
+      localStorage.getItem("dismissedBanners") || "{}"
+    );
+
+    if (user && user.dismissedBanners) {
+      return user.dismissedBanners.find(
+        (dismissedBannerNested: UserDismissedBanner) =>
+          dismissedBannerNested.bannerId === banner?.id
+      );
+    }
+
+    return dismissedBanners;
+  };
   useEffect(() => {
     const fetchBanner = async () => {
       try {
@@ -41,11 +56,12 @@ export default function AdminBanner() {
         if (!response.ok) return;
         const data = await response.json();
         if (data && data.isActive) {
-          // Check local storage for dismissal state
-          const dismissedBanners = JSON.parse(
-            localStorage.getItem("dismissedBanners") || "{}"
-          );
-          const isDismissedLocally = dismissedBanners[data.id];
+          let dismissedBanners;
+          if (data) {
+            dismissedBanners = checkDismissedBanners(data);
+          }
+
+          const isDismissedLocally = dismissedBanners.bannerId === data.id;
           setIsDismissed(isDismissedLocally);
           setBanner(data);
         }
