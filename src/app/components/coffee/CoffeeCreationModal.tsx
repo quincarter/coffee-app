@@ -5,7 +5,11 @@ import SearchableDropdown from "../SearchableDropdown";
 import BottomSheet from "../ui/BottomSheet";
 import ImageUpload from "../ImageUpload";
 import RoasterSelector from "./RoasterSelector";
+import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
 import { CoffeeFormData } from "@/app/types";
+import TastingNotesDropdown from "./TastingNotesDropdown";
+import CoffeeNameField from "./CoffeeNameField";
+import ProductUrlField from "./ProductUrlField";
 
 type CoffeeCreationModalProps = {
   show: boolean;
@@ -79,16 +83,10 @@ export default function CoffeeCreationModal({
           />
         </div>
         {/* Coffee Name */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Coffee Name*</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => handleChange("name", e.target.value)}
-            className="input input-bordered w-full"
-            required
-          />
-        </div>
+        <CoffeeNameField
+          value={formData.name}
+          onChange={(value) => handleChange("name", value)}
+        />
 
         {/* Description */}
         <div>
@@ -168,6 +166,13 @@ export default function CoffeeCreationModal({
           />
         </div>
 
+        {/* Variety */}
+        <VarietyDropdown
+          value={formData.variety as CoffeeVariety}
+          onChange={(value) => handleChange("variety", value)}
+          label="Variety"
+        />
+
         {/* Coffee Image */}
         <div>
           <label className="block text-sm font-medium mb-1">Coffee Image</label>
@@ -182,32 +187,17 @@ export default function CoffeeCreationModal({
         </div>
 
         {/* Tasting Notes */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Tasting Notes
-          </label>
-          <SearchableDropdown
-            options={availableTastingNotes.map((note) => ({
-              value: note.name,
-              label: note.name,
-            }))}
-            value={formData.tastingNotes}
-            onChange={(value) => {
-              if (Array.isArray(value)) {
-                handleChange("tastingNotes", value);
-              } else {
-                handleChange("tastingNotes", [value]);
-              }
-            }}
-            label=""
-            placeholder="Select or type tasting notes..."
-            allowAddNew={true}
-            onAddNew={(_newValue) => {
-              // New value will be added to the form data automatically
-            }}
-            multiple={true}
-          />
-        </div>
+        <TastingNotesDropdown
+          value={formData.tastingNotes}
+          onChange={(value) => handleChange("tastingNotes", value)}
+          options={availableTastingNotes}
+        />
+
+        {/* Product URL */}
+        <ProductUrlField
+          value={formData.productUrl}
+          onChange={(value) => handleChange("productUrl", value)}
+        />
 
         <div className="flex justify-end space-x-2 mt-4">
           <button type="button" onClick={onClose} className="btn btn-ghost">

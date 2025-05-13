@@ -25,6 +25,8 @@ import CustomNotFound from "@/app/components/CustomNotFound";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 import FavoriteButton from "@/app/components/FavoriteButton";
 import BrewProfileCreationModal from "@/app/components/brew/BrewProfileCreationModal";
+import RetireButton from "@/app/components/coffee/RetireButton";
+import ProductUrlField from "@/app/components/coffee/ProductUrlField";
 
 export default function CoffeeDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -362,6 +364,23 @@ export default function CoffeeDetail({ id }: { id: string }) {
     router.push(`/brew-profiles/${profile.id}`);
   };
 
+  // Retire button callbacks
+  const handleRetireError = (error: Error) => {
+    setError(error.message);
+    setShowToast(true);
+  };
+
+  const handleRetireSuccess = (isRetired: boolean) => {
+    setToastMessage(
+      isRetired ? "Coffee marked as retired" : "Coffee marked as available"
+    );
+    setCoffee((prev: any) => ({
+      ...prev,
+      isRetired,
+    }));
+    setShowToast(true);
+  };
+
   // Temporarily allow any logged-in user to edit
   // const isOwner = isLoggedIn; // Remove the check for currentUserId === coffee.createdBy
   const isOwner = isLoggedIn && currentUserId === coffee.createdBy;
@@ -383,6 +402,9 @@ export default function CoffeeDetail({ id }: { id: string }) {
         <div className="p-6">
           {/* Action buttons - shown in a row above the title on all devices */}
           <div className="flex flex-wrap justify-end gap-2 mb-4">
+            {coffee?.productUrl && (
+              <ProductUrlField value={coffee.productUrl} readOnly />
+            )}
             {isOwner && (
               <>
                 <Link
@@ -405,6 +427,14 @@ export default function CoffeeDetail({ id }: { id: string }) {
               <Share size={16} className="mr-1" />
               <span className="hidden sm:inline">Share</span>
             </button>
+            {isLoggedIn && (
+              <RetireButton
+                coffeeId={coffee.id}
+                isRetired={coffee.isRetired}
+                onError={handleRetireError}
+                onSuccess={handleRetireSuccess}
+              />
+            )}
             {isLoggedIn && (
               <FavoriteButton
                 entityType="coffee"

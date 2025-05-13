@@ -7,6 +7,10 @@ import { Trash, Save } from "lucide-react";
 import SearchableDropdown from "@/app/components/SearchableDropdown";
 import ImageUpload from "@/app/components/ImageUpload";
 import Toast from "@/app/components/Toast";
+import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
+import TastingNotesDropdown from "./TastingNotesDropdown";
+import CoffeeNameField from "./CoffeeNameField";
+import ProductUrlField from "./ProductUrlField";
 
 type CoffeeEditFormProps = {
   coffee: any;
@@ -26,6 +30,7 @@ type CoffeeEditFormProps = {
     id: string;
     name: string;
   }[];
+  onUpdate?: (updatedCoffee: any) => void;
 };
 
 export default function CoffeeEditForm({
@@ -34,6 +39,7 @@ export default function CoffeeEditForm({
   tastingNotes,
   origins,
   processes,
+  onUpdate,
 }: CoffeeEditFormProps) {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -43,8 +49,10 @@ export default function CoffeeEditForm({
     countryOfOrigin: coffee.countryOfOrigin || "",
     elevation: coffee.elevation || "",
     process: coffee.process || "",
+    variety: coffee.variety || "",
     tastingNotes: coffee.tastingNotes?.map((note: any) => note.name) || [],
     image: coffee.image || null,
+    productUrl: coffee.productUrl || "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -91,6 +99,9 @@ export default function CoffeeEditForm({
         throw new Error(errorData.error || "Failed to update coffee");
       }
 
+      // Get the updated coffee data from response
+      const updatedCoffee = await response.json();
+
       // Show success toast
       setToastMessage("Coffee updated successfully");
       setToastType("success");
@@ -98,7 +109,7 @@ export default function CoffeeEditForm({
 
       // Redirect after a short delay
       setTimeout(() => {
-        router.push("/coffees");
+        router.push("/coffees/" + updatedCoffee.id);
       }, 2000);
     } catch (err) {
       console.error("Error updating coffee:", err);
@@ -173,18 +184,10 @@ export default function CoffeeEditForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             {/* Coffee Name */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Coffee Name*
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange("name", e.target.value)}
-                className="input input-bordered w-full"
-                required
-              />
-            </div>
+            <CoffeeNameField
+              value={formData.name}
+              onChange={(value) => handleChange("name", value)}
+            />
 
             {/* Roaster */}
             <div>
@@ -302,30 +305,24 @@ export default function CoffeeEditForm({
               />
             </div>
 
+            {/* Variety */}
+            <VarietyDropdown
+              value={formData.variety as CoffeeVariety}
+              onChange={(value) => handleChange("variety", value)}
+            />
+
             {/* Tasting Notes */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Tasting Notes
-              </label>
-              <SearchableDropdown
-                options={tastingNotes.map((note) => ({
-                  value: note.name,
-                  label: note.name,
-                }))}
-                value={formData.tastingNotes}
-                onChange={(value) => {
-                  // Convert 'value' to an array if it's a string
-                  if (typeof value === "string") {
-                    handleChange("tastingNotes", [value]);
-                  } else {
-                    handleChange("tastingNotes", value);
-                  }
-                }}
-                placeholder="Select or type tasting notes..."
-                allowAddNew={true}
-                multiple={true}
-              />
-            </div>
+            <TastingNotesDropdown
+              value={formData.tastingNotes}
+              onChange={(value) => handleChange("tastingNotes", value)}
+              options={tastingNotes}
+            />
+
+            {/* Product URL */}
+            <ProductUrlField
+              value={formData.productUrl}
+              onChange={(value) => handleChange("productUrl", value)}
+            />
           </div>
         </div>
 

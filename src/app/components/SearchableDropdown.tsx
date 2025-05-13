@@ -274,10 +274,10 @@ export default function SearchableDropdown({
       )}
 
       {/* Empty space placeholder when no chips are selected to maintain consistent height */}
-      {((multiple && selectedOptions.length === 0) ||
+      {/* {((multiple && selectedOptions.length === 0) ||
         (!multiple && (!value || searchTerm))) && (
         <div className="min-h-[32px] mb-2"></div>
-      )}
+      )} */}
 
       <div className="relative">
         {/* Hidden input to store the actual value for form submission */}

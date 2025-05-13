@@ -194,8 +194,6 @@ export default function FilterableList({
 
   // Update URL when filters change, but use a debounce effect to prevent too many updates
   useEffect(() => {
-    console.log("Current selected filters:", selectedFilters);
-
     // Don't update URL on initial load or if we're still loading
     if (initialLoadDone.current && !loading) {
       // Use a timeout to debounce URL updates

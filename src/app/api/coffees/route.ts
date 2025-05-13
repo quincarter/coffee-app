@@ -20,6 +20,13 @@ export async function GET(request: NextRequest) {
       include: {
         roaster: true,
         tastingNotes: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
       },
       orderBy: {
         name: "asc",
@@ -54,6 +61,7 @@ export async function POST(request: NextRequest) {
       process,
       tastingNotes,
       image,
+      productUrl,
     } = body;
 
     // Validate required fields
@@ -108,6 +116,7 @@ export async function POST(request: NextRequest) {
         countryOfOrigin: countryOfOrigin || null,
         elevation: elevation || null,
         process: process || null,
+        productUrl: productUrl || null,
         createdBy: createdBy || session.userId,
         // Handle tasting notes if provided
         ...(tastingNotes &&

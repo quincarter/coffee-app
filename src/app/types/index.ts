@@ -108,8 +108,10 @@ export type CoffeeFormData = {
   countryOfOrigin: string;
   elevation: string;
   process: string;
+  variety: string;
   tastingNotes: string[];
   image: File | null;
+  productUrl?: string;
 };
 
 export type FavoriteType =
@@ -128,3 +130,10 @@ export type RoasterFormData = {
   website: string;
   image?: string | null;
 };
+
+export type CoffeeVariety =
+  | "single_origin"
+  | "blend"
+  | "microlot"
+  | "seasonal"
+  | "signature_blend";

@@ -24,20 +24,21 @@ export default async function EditCoffeePage({
   }
 
   // Fetch dropdown data
-  const [roasters, tastingNotes, origins, processes] = await Promise.all([
-    prisma.coffeeRoaster.findMany({
-      orderBy: { name: "asc" },
-    }),
-    prisma.coffeeTastingNote.findMany({
-      orderBy: { name: "asc" },
-    }),
-    prisma.coffeeOrigin.findMany({
-      orderBy: { name: "asc" },
-    }),
-    prisma.coffeeProcess.findMany({
-      orderBy: { name: "asc" },
-    }),
-  ]);
+  const [roasters, tastingNotes, origins, processes] =
+    await Promise.all([
+      prisma.coffeeRoaster.findMany({
+        orderBy: { name: "asc" },
+      }),
+      prisma.coffeeTastingNote.findMany({
+        orderBy: { name: "asc" },
+      }),
+      prisma.coffeeOrigin.findMany({
+        orderBy: { name: "asc" },
+      }),
+      prisma.coffeeProcess.findMany({
+        orderBy: { name: "asc" },
+      }),
+    ]);
 
   return (
     <div className="container mx-auto px-4 py-8">

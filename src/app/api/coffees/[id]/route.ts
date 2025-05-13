@@ -14,6 +14,13 @@ export async function GET(
       include: {
         roaster: true,
         tastingNotes: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
       },
     });
 
@@ -52,6 +59,8 @@ export async function PUT(
       process,
       tastingNotes,
       image,
+      variety,
+      productUrl,
     } = body;
 
     // Validate required fields
@@ -133,6 +142,8 @@ export async function PUT(
         countryOfOrigin: countryOfOrigin || null,
         elevation: elevation || null,
         process: process || null,
+        variety: variety || null,
+        productUrl: productUrl || null,
         // Handle tasting notes if provided
         ...(tastingNotes && {
           tastingNotes: {
@@ -154,6 +165,13 @@ export async function PUT(
       include: {
         roaster: true,
         tastingNotes: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
       },
     });
 

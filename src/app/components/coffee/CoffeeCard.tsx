@@ -1,15 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
-import { Coffee, Tag, MapPin, Edit } from "lucide-react";
-import CoffeeImage from "./CoffeeImage";
-import BottomSheet from "../ui/BottomSheet";
-import SearchableDropdown from "../SearchableDropdown";
-import ImageUpload from "../ImageUpload";
+import { Edit, MapPin, Tag } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
 import FavoriteButton from "../FavoriteButton";
+import ImageUpload from "../ImageUpload";
+import SearchableDropdown from "../SearchableDropdown";
+import BottomSheet from "../ui/BottomSheet";
+import CoffeeImage from "./CoffeeImage";
+import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
+import TastingNotesDropdown from "./TastingNotesDropdown";
+import CoffeeNameField from "./CoffeeNameField";
+import ProductUrlField from "./ProductUrlField";
 
 type CoffeeCardProps = {
   coffee: {
@@ -20,6 +24,14 @@ type CoffeeCardProps = {
     countryOfOrigin?: string;
     process?: string;
     elevation?: string;
+    variety?:
+      | "single_origin"
+      | "blend"
+      | "microlot"
+      | "seasonal"
+      | "signature_blend";
+    isRetired?: boolean;
+    productUrl?: string;
     createdAt: string;
     createdBy: string;
     roasterId?: string;
@@ -41,6 +53,7 @@ type CoffeeCardProps = {
   currentUserId?: string;
   showEditButton?: boolean;
   showFavorite?: boolean;
+  onUpdate?: (updatedCoffee: any) => void;
 };
 
 export default function CoffeeCard({
@@ -48,6 +61,7 @@ export default function CoffeeCard({
   currentUserId,
   showEditButton = true,
   showFavorite = true,
+  onUpdate,
 }: CoffeeCardProps) {
   const isOwner = currentUserId && coffee.createdBy === currentUserId;
 
@@ -74,7 +88,9 @@ export default function CoffeeCard({
     countryOfOrigin: coffee.countryOfOrigin || "",
     elevation: coffee.elevation || "",
     process: coffee.process || "",
+    variety: coffee.variety || "",
     tastingNotes: coffee.tastingNotes?.map((note) => note.name) || [],
+    productUrl: coffee.productUrl || "",
   });
 
   // Fetch dropdown data when modal is opened
@@ -127,6 +143,40 @@ export default function CoffeeCard({
     setShowEditModal(true);
   };
 
+  // Function to handle coffee update
+  const handleUpdate = async (updatedData: any) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await fetch(`/api/coffees/${coffee.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update coffee");
+      }
+
+      const updatedCoffee = await response.json();
+
+      console.log("Updated coffee:", updatedCoffee);
+      // Call onUpdate callback if provided
+      if (onUpdate) {
+        onUpdate(updatedCoffee);
+      }
+
+      setShowEditModal(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -156,7 +206,11 @@ export default function CoffeeCard({
 
       // Close modal and reload page to show updated data
       setShowEditModal(false);
-      window.location.reload();
+      const updatedCoffee = await response.json();
+      if (onUpdate) {
+        handleUpdate(updatedCoffee);
+      }
+      // window.location.reload();
     } catch (err) {
       console.error("Error updating coffee:", err);
       setError(
@@ -174,53 +228,30 @@ export default function CoffeeCard({
   };
 
   return (
-    <div className="max-w-100 min-w-80 bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
+    <div className="min-w-80 bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
       <div className="p-5">
         <div className="flex items-start justify-between mb-3">
           <Link href={`/coffees/${coffee.id}`} className="flex-grow">
-            <div>
-              <h3 className="font-medium text-lg mb-1">{coffee.name}</h3>
-              <div className="flex items-center">
-                <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-200 coffee:bg-gray-700 mr-2">
-                  {coffee.roaster?.image ? (
-                    <Image
-                      src={coffee.roaster.image}
-                      alt={coffee.roaster.name}
-                      width={20}
-                      height={20}
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                      ☕
-                    </div>
-                  )}
-                </div>
-                <span className="text-sm text-gray-600 coffee:text-gray-300">
-                  {coffee.roaster?.name}
-                </span>
-              </div>
-            </div>
+            <h3 className="text-lg font-semibold text-gray-900 coffee:text-gray-100">
+              {coffee.name}
+            </h3>
+            <p className="text-sm text-gray-600 coffee:text-gray-400">
+              by {coffee.roaster.name}
+            </p>
           </Link>
 
-          <div className="flex items-center gap-1">
-            {isOwner && currentUserId && showEditButton && (
-              <button
-                className="btn btn-outline btn-xs"
-                onClick={handleEditClick}
-              >
-                <Edit size={14} className="mr-1" />
-                Edit
-              </button>
+          <div className="flex items-center gap-2">
+            {coffee.isRetired && (
+              <span className="px-2 py-1 text-xs font-medium bg-gray-100 coffee:bg-gray-700 text-gray-600 coffee:text-gray-300 rounded">
+                Retired
+              </span>
             )}
-            {showFavorite && !!currentUserId && (
-              <div onClick={(e) => e.preventDefault()}>
-                <FavoriteButton
-                  entityType="coffee"
-                  entityId={coffee.id}
-                  size="sm"
-                />
-              </div>
+            {coffee.variety && (
+              <span className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded">
+                {coffee.variety
+                  .replace("_", " ")
+                  .replace(/\b\w/g, (c) => c.toUpperCase())}
+              </span>
             )}
           </div>
         </div>
@@ -291,32 +322,56 @@ export default function CoffeeCard({
         </Link>
 
         <div className="flex items-center justify-between text-xs text-gray-500 coffee:text-gray-400 pt-3 border-t border-gray-100 coffee:border-gray-700">
-          <div>
+          <div className="flex items-center gap-2">
+            {coffee.user && (
+              <div className="flex items-center">
+                <div className="w-4 h-4 rounded-full overflow-hidden bg-gray-200 coffee:bg-gray-700 mr-1">
+                  {coffee.user.image ? (
+                    <Image
+                      src={coffee.user.image}
+                      alt={coffee.user.name}
+                      width={16}
+                      height={16}
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                      👤
+                    </div>
+                  )}
+                </div>
+                <span>{coffee.user.name}</span>
+              </div>
+            )}
             Added{" "}
             {formatDistanceToNow(new Date(coffee.createdAt), {
               addSuffix: true,
             })}
           </div>
-          {coffee.user && (
-            <div className="flex items-center">
-              <div className="w-4 h-4 rounded-full overflow-hidden bg-gray-200 coffee:bg-gray-700 mr-1">
-                {coffee.user.image ? (
-                  <Image
-                    src={coffee.user.image}
-                    alt={coffee.user.name}
-                    width={16}
-                    height={16}
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                    👤
-                  </div>
-                )}
-              </div>
-              <span>{coffee.user.name}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {coffee.productUrl && (
+              <ProductUrlField
+                value={coffee.productUrl}
+                readOnly={true}
+                hideText={true}
+              />
+            )}
+            {showFavorite && (
+              <FavoriteButton
+                entityId={coffee.id}
+                entityType="coffee"
+                size="sm"
+              />
+            )}{" "}
+            {isOwner && showEditButton && (
+              <button
+                onClick={handleEditClick}
+                className="btn btn-sm btn-outline gap-2"
+              >
+                <Edit size={14} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -333,18 +388,10 @@ export default function CoffeeCard({
 
           <div className="space-y-3">
             {/* Coffee Name */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Coffee Name*
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange("name", e.target.value)}
-                className="input input-bordered w-full"
-                required
-              />
-            </div>
+            <CoffeeNameField
+              value={formData.name}
+              onChange={(value) => handleChange("name", value)}
+            />
 
             {/* Description */}
             <div>
@@ -428,33 +475,19 @@ export default function CoffeeCard({
               />
             </div>
 
+            {/* Variety */}
+            <VarietyDropdown
+              value={formData.variety as CoffeeVariety}
+              onChange={(value) => handleChange("variety", value)}
+              label="Variety"
+            />
+
             {/* Tasting Notes */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Tasting Notes
-              </label>
-              <SearchableDropdown
-                options={availableTastingNotes.map((note) => ({
-                  value: note.name,
-                  label: note.name,
-                }))}
-                value={formData.tastingNotes}
-                onChange={(value) => {
-                  if (Array.isArray(value)) {
-                    handleChange("tastingNotes", value);
-                  } else {
-                    handleChange("tastingNotes", [value]);
-                  }
-                }}
-                label=""
-                placeholder="Select or type tasting notes..."
-                allowAddNew={true}
-                onAddNew={(_newValue) => {
-                  // New value will be added to the form data automatically
-                }}
-                multiple={true}
-              />
-            </div>
+            <TastingNotesDropdown
+              value={formData.tastingNotes}
+              onChange={(value) => handleChange("tastingNotes", value)}
+              options={availableTastingNotes}
+            />
 
             {/* Coffee Image */}
             <div>
@@ -470,6 +503,12 @@ export default function CoffeeCard({
                 className="w-full"
               />
             </div>
+
+            {/* Add ProductUrlField */}
+            <ProductUrlField
+              value={formData.productUrl}
+              onChange={(value) => handleChange("productUrl", value)}
+            />
 
             <div className="flex justify-end space-x-2 mt-4">
               <button

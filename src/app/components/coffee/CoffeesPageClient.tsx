@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import FilterableList, { FilterOption } from "../FilterableList";
 import CoffeeCard from "./CoffeeCard";
 import CoffeeCreationModal from "./CoffeeCreationModal";
 import { CoffeeFormData } from "../../types";
+import CoffeeInfoBanner from "@/app/profile/components/CoffeeInfoBanner";
 
 type CoffeesPageClientProps = {
   initialCoffees?: any[];
@@ -74,6 +75,7 @@ export default function CoffeesPageClient({
     process: "",
     tastingNotes: [] as string[],
     image: null,
+    variety: "",
   });
 
   // Use refs to track component state
@@ -127,6 +129,7 @@ export default function CoffeesPageClient({
       process: "",
       image: null,
       tastingNotes: [],
+      variety: "",
     });
     setCoffeeImage(null);
   };
@@ -137,32 +140,12 @@ export default function CoffeesPageClient({
     setModalError(null);
 
     try {
-      if (!coffeeFormData.name) throw new Error("Coffee name is required");
-      if (!coffeeFormData.roasterId) throw new Error("Roaster is required");
-
-      let imageUrl = null;
-
-      // Upload image if one was selected
-      if (coffeeImage) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", coffeeImage);
-        uploadFormData.append("context", "coffee");
-
-        const uploadResponse = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
-        }
-
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.url;
+      if (!coffeeFormData.name) {
+        throw new Error("Coffee name is required");
       }
-
-      // Prepare tasting notes data
-      const tastingNotesData = [...coffeeFormData.tastingNotes];
+      if (!coffeeFormData.roasterId) {
+        throw new Error("Roaster is required");
+      }
 
       // Create coffee
       const response = await fetch("/api/coffees", {
@@ -170,12 +153,7 @@ export default function CoffeesPageClient({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...coffeeFormData,
-          image: imageUrl,
-          tastingNotes: tastingNotesData,
-          createdBy: currentUserId,
-        }),
+        body: JSON.stringify(coffeeFormData),
       });
 
       if (!response.ok) {
@@ -185,25 +163,26 @@ export default function CoffeesPageClient({
 
       const newCoffee = await response.json();
 
-      // Add the new coffee to the list
-      setCoffees((prevCoffees) => [
-        {
-          ...newCoffee,
-          currentUserId: currentUserId,
-        },
-        ...prevCoffees,
-      ]);
+      // Update local state with new coffee
+      setCoffees((prevCoffees) => [...prevCoffees, newCoffee]);
 
-      // Close modal
+      // Close modal and reset form
       handleCloseModal();
     } catch (err) {
       console.error("Error creating coffee:", err);
-      setModalError(
-        err instanceof Error ? err.message : "An unknown error occurred"
-      );
+      setModalError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Function to handle coffee updates
+  const handleCoffeeUpdate = (updatedCoffee: any) => {
+    setCoffees((prevCoffees) =>
+      prevCoffees.map((coffee) =>
+        coffee.id === updatedCoffee.id ? updatedCoffee : coffee
+      )
+    );
   };
 
   useEffect(() => {
@@ -315,7 +294,38 @@ export default function CoffeesPageClient({
       options: processes,
       placeholder: "Filter by process...",
     },
+    {
+      name: "variety",
+      options: [
+        { value: "single_origin", label: "Single Origin" },
+        { value: "blend", label: "Blend" },
+        { value: "microlot", label: "Microlot" },
+        { value: "seasonal", label: "Seasonal" },
+        { value: "signature_blend", label: "Signature Blend" },
+      ],
+      placeholder: "Filter by variety...",
+    },
+    {
+      name: "isRetired",
+      options: [
+        { value: "true", label: "Retired" },
+        { value: "false", label: "Available" },
+      ],
+      placeholder: "Show retired coffees...",
+    },
   ];
+
+  // Render coffee cards with update handler
+  const renderCoffees = () => {
+    return coffees.map((coffee) => (
+      <CoffeeCard
+        key={coffee.id}
+        coffee={coffee}
+        currentUserId={currentUserId || undefined}
+        onUpdate={handleCoffeeUpdate}
+      />
+    ));
+  };
 
   return (
     <>
@@ -330,6 +340,7 @@ export default function CoffeesPageClient({
               key={coffee.id}
               coffee={coffee}
               currentUserId={currentUserId || undefined}
+              onUpdate={handleCoffeeUpdate}
             />
           )}
           filters={filters}
@@ -346,14 +357,11 @@ export default function CoffeesPageClient({
           loading={loading}
         />
       )}
-
       {/* Coffee Creation Modal */}
       <CoffeeCreationModal
         show={showCoffeeModal}
         onClose={handleCloseModal}
-        onSubmit={() => {
-          handleSubmitCoffee();
-        }}
+        onSubmit={handleSubmitCoffee}
         formData={coffeeFormData}
         setFormData={setCoffeeFormData}
         isLoading={isSubmitting}
