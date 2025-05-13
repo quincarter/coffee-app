@@ -26,9 +26,22 @@ export default function HeaderNav({ session }: { session: any }) {
   return (
     <header className="sticky top-0 z-10 bg-base-100/80 backdrop-blur-sm border-b">
       <nav className="container mx-auto flex items-center justify-between py-4 px-4 md:px-0">
-        <Link href="/" className="text-xl font-bold">
-          BrewMe
-        </Link>
+        <div className="flex items-center gap-2">
+          <Image
+            src="/brew-me-logo.png"
+            alt="Logo"
+            width={40}
+            height={40}
+            // className="hidden md:block w-10 h-10 rounded-full"
+            priority
+            onError={(e) => {
+              e.currentTarget.src = "/logo.png";
+            }}
+          />
+          <Link href="/" className="text-xl font-bold">
+            BrewMe
+          </Link>
+        </div>
         <div className="flex items-center gap-4">
           {/* Navigation links - visible only on desktop */}
           {session ? (

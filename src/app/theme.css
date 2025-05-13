@@ -1,0 +1,82 @@
+/* Color Theme Swatches in Hex */
+.Coffee-Shop-1-hex {
+  color: #f0e9f0;
+}
+.Coffee-Shop-2-hex {
+  color: #011e25;
+}
+.Coffee-Shop-3-hex {
+  color: #365358;
+}
+.Coffee-Shop-4-hex {
+  color: #bd8656;
+}
+.Coffee-Shop-5-hex {
+  color: #8b5b3d;
+}
+
+/* Color Theme Swatches in RGBA */
+.Coffee-Shop-1-rgba {
+  color: rgba(239, 232, 239, 1);
+}
+.Coffee-Shop-2-rgba {
+  color: rgba(1, 29, 36, 1);
+}
+.Coffee-Shop-3-rgba {
+  color: rgba(54, 82, 87, 1);
+}
+.Coffee-Shop-4-rgba {
+  color: rgba(188, 133, 86, 1);
+}
+.Coffee-Shop-5-rgba {
+  color: rgba(138, 91, 61, 1);
+}
+
+/* Color Theme Swatches in HSLA */
+.Coffee-Shop-1-hsla {
+  color: hsla(300, 18, 92, 1);
+}
+.Coffee-Shop-2-hsla {
+  color: hsla(191, 94, 7, 1);
+}
+.Coffee-Shop-3-hsla {
+  color: hsla(188, 23, 27, 1);
+}
+.Coffee-Shop-4-hsla {
+  color: hsla(27, 43, 53, 1);
+}
+.Coffee-Shop-5-hsla {
+  color: hsla(23, 38, 39, 1);
+}
+/* Color Theme Swatches in OKLCH */
+.Coffee-Shop-1-oklch {
+  color: oklch(98% 0.02 80);
+}
+.Coffee-Shop-2-oklch {
+  color: oklch(25% 0.05 60);
+}
+.Coffee-Shop-3-oklch {
+  color: oklch(35% 0.08 60);
+}
+.Coffee-Shop-4-oklch {
+  color: oklch(45% 0.12 60);
+}
+.Coffee-Shop-5-oklch {
+  color: oklch(60% 0.1 70);
+}
+/* Color Theme Swatches in OKLAB */
+.Coffee-Shop-1-oklab {
+  color: oklab(0.98 0.02 0.08);
+}
+.Coffee-Shop-2-oklab {
+  color: oklab(0.25 0.05 0.06);
+}
+.Coffee-Shop-3-oklab {
+  color: oklab(0.35 0.08 0.06);
+}
+.Coffee-Shop-4-oklab {
+  color: oklab(0.45 0.12 0.06);
+}
+.Coffee-Shop-5-oklab {
+  color: oklab(0.6 0.1 0.07);
+}
