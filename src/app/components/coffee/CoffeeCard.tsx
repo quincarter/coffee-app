@@ -229,15 +229,7 @@ export default function CoffeeCard({
 
   return (
     <div className="min-w-80 bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
-      <div
-        className="p-5"
-        style={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-        }}
-      >
+      <div className="p-5 shared-card-styles">
         <div className="flex items-start justify-between mb-3">
           <Link href={`/coffees/${coffee.id}`} className="flex-grow">
             <h3 className="text-lg font-semibold text-gray-900 coffee:text-gray-100">
