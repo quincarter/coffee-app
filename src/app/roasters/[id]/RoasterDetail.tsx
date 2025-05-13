@@ -70,6 +70,7 @@ export default function RoasterDetail({
     process: "",
     image: null,
     tastingNotes: [] as string[],
+    variety: "",
   });
 
   // Fetch user info to determine if they're logged in and the owner
@@ -235,6 +236,7 @@ export default function RoasterDetail({
       process: "",
       image: null,
       tastingNotes: [],
+      variety: "",
     });
     setCoffeeImage(null);
   };

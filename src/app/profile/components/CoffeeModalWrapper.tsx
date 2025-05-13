@@ -24,6 +24,8 @@ export default function CoffeeModalWrapper({
     process: "",
     image: null,
     tastingNotes: [],
+    variety: "",
+    productUrl: "",
   });
 
   const [coffeeImage, setCoffeeImage] = useState<File | null>(null);
@@ -130,6 +132,8 @@ export default function CoffeeModalWrapper({
         image: null,
         process: "",
         tastingNotes: [],
+        variety: "",
+        productUrl: "", // Added this line
       });
       setCoffeeImage(null);
 

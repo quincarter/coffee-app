@@ -6,6 +6,9 @@ import SearchableDropdown from "../SearchableDropdown";
 import BottomSheet from "../ui/BottomSheet";
 import ImageUpload from "../ImageUpload";
 import CoffeeImage from "./CoffeeImage";
+import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
+import TastingNotesDropdown from "./TastingNotesDropdown";
+import CoffeeNameField from "./CoffeeNameField";
 
 type CoffeeSelectorProps = {
   selectedRoaster: string;
@@ -39,6 +42,7 @@ export default function CoffeeSelector({
     countryOfOrigin: "",
     elevation: "",
     process: "",
+    variety: "",
     tastingNotes: [] as string[],
   });
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -158,6 +162,7 @@ export default function CoffeeSelector({
         countryOfOrigin: "",
         elevation: "",
         process: "",
+        variety: "",
         tastingNotes: [],
       });
       setImageUrl(null);
@@ -192,6 +197,7 @@ export default function CoffeeSelector({
       countryOfOrigin: "",
       elevation: "",
       process: "",
+      variety: "",
       tastingNotes: [],
     });
     setImageUrl(null);
@@ -277,23 +283,15 @@ export default function CoffeeSelector({
 
           <div className="space-y-3">
             {/* Coffee Name */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Coffee Name*
-              </label>
-              <input
-                type="text"
-                value={coffeeFormData.name}
-                onChange={(e) =>
-                  setCoffeeFormData({
-                    ...coffeeFormData,
-                    name: e.target.value,
-                  })
-                }
-                className="input input-bordered w-full"
-                required
-              />
-            </div>
+            <CoffeeNameField
+              value={coffeeFormData.name}
+              onChange={(value) =>
+                setCoffeeFormData({
+                  ...coffeeFormData,
+                  name: value,
+                })
+              }
+            />
 
             {/* Description */}
             <div>
@@ -399,6 +397,17 @@ export default function CoffeeSelector({
               />
             </div>
 
+            {/* Variety */}
+            <VarietyDropdown
+              value={coffeeFormData.variety as CoffeeVariety}
+              onChange={(value) => {
+                setCoffeeFormData({
+                  ...coffeeFormData,
+                  variety: value,
+                });
+              }}
+            />
+
             {/* Coffee Image */}
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -415,39 +424,16 @@ export default function CoffeeSelector({
             </div>
 
             {/* Tasting Notes */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Tasting Notes
-              </label>
-              <SearchableDropdown
-                options={availableTastingNotes.map((note) => ({
-                  value: note.name,
-                  label: note.name,
-                }))}
-                value={coffeeFormData.tastingNotes}
-                onChange={(value) => {
-                  if (Array.isArray(value)) {
-                    setCoffeeFormData({
-                      ...coffeeFormData,
-                      tastingNotes: value,
-                    });
-                  } else {
-                    setCoffeeFormData({
-                      ...coffeeFormData,
-                      tastingNotes: [value],
-                    });
-                  }
-                }}
-                label=""
-                placeholder="Select or type tasting notes..."
-                allowAddNew={true}
-                onAddNew={(_newNote) => {
-                  // No need to do anything special here, the note will be added to the form data
-                  // and then saved to the database when the form is submitted
-                }}
-                multiple={true}
-              />
-            </div>
+            <TastingNotesDropdown
+              value={coffeeFormData.tastingNotes}
+              onChange={(value) => {
+                setCoffeeFormData({
+                  ...coffeeFormData,
+                  tastingNotes: value,
+                });
+              }}
+              options={availableTastingNotes}
+            />
 
             <div className="flex justify-end space-x-2 mt-4">
               <button

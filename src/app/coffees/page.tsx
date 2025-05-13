@@ -3,6 +3,7 @@ import CoffeesPageClient from "../components/coffee/CoffeesPageClient";
 import prisma from "@/app/lib/db";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { getSession } from "../lib/session";
+import CoffeeInfoBanner from "../profile/components/CoffeeInfoBanner";
 // Using dynamic rendering from config.ts
 
 export default async function CoffeesPage() {
@@ -27,6 +28,13 @@ export default async function CoffeesPage() {
       include: {
         roaster: true,
         tastingNotes: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
       },
       orderBy: {
         name: "asc",
@@ -60,6 +68,8 @@ export default async function CoffeesPage() {
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
+      <CoffeeInfoBanner />
+
       <CoffeesPageClient
         initialCoffees={coffees}
         initialRoasters={roasters}

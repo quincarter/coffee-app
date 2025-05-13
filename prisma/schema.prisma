@@ -34,7 +34,9 @@ model User {
   brewingDevices    UserBrewingDevice[]
   brewProfiles      BrewProfile[]
   favorites         UserFavorite[]
-  dismissedBanners UserDismissedBanner[]
+  dismissedBanners  UserDismissedBanner[]
+  coffees          Coffee[] @relation()
+  updatedCoffees   Coffee[] @relation("UpdateUser")
 }
 
 // Banner system models
@@ -91,7 +93,7 @@ model UserBrewingDevice {
   userId          String
   brewingDeviceId String
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  updatedAt       DateTime @default(now())
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   brewingDevice BrewingDevice @relation(fields: [brewingDeviceId], references: [id])
@@ -200,6 +202,10 @@ model Coffee {
   countryOfOrigin String?
   elevation       String?
   process         String?
+  productUrl      String?  // Link to coffee product page
+  variety         CoffeeVariety? @default(single_origin) // Type of coffee
+  isRetired      Boolean  @default(false) // Whether the coffee is retired/unavailable
+  retiredAt      DateTime? // When the coffee was marked as retired
   createdBy       String   // userId
   updatedBy       String?  // userId
   createdAt       DateTime @default(now())
@@ -207,6 +213,8 @@ model Coffee {
   brewProfiles    BrewProfile[]
   tastingNotes    CoffeeTastingNote[] @relation("CoffeeToTastingNote")
   favorites       UserFavorite[] @relation("CoffeeFavorites")
+  user            User     @relation(fields: [createdBy], references: [id])
+  updateUser      User?    @relation("UpdateUser", fields: [updatedBy], references: [id])
 }
 
 model CoffeeTastingNote {
@@ -280,5 +288,13 @@ model UserFavorite {
   location        RoasterLocation? @relation("LocationFavorites", fields: [locationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, entityType, entityId])
+}
+
+enum CoffeeVariety {
+  single_origin
+  blend
+  microlot
+  seasonal
+  signature_blend
 }
 
