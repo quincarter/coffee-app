@@ -50,7 +50,7 @@ export default function EmailVerificationBanner() {
 
   return (
     <div
-      className="w-full bg-red-600 text-white px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-2 z-50 text-sm"
+      className="w-full bg-red-600 text-white px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-2 text-sm"
       role="alert"
       style={{ position: "relative" }}
     >
