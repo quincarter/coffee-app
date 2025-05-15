@@ -25,6 +25,7 @@ import LocationCard from "@/app/components/coffee/LocationCard";
 import LocationCreationModal from "@/app/components/coffee/LocationCreationModal";
 import FavoriteButton from "@/app/components/FavoriteButton";
 import { CoffeeFormData } from "../../types";
+import CommentSection from "@/app/components/comments/CommentSection";
 
 export default function RoasterDetail({
   id,
@@ -773,6 +774,11 @@ export default function RoasterDetail({
               })}
             </div>
           </div>
+          <CommentSection
+            entityId={roaster.id}
+            entityType={"roaster"}
+            comments={roaster.comments}
+          />
         </div>
       </div>
       {/* Delete confirmation modal */}

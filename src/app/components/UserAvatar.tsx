@@ -3,10 +3,12 @@
 import Image from "next/image";
 
 type UserAvatarProps = {
-  user: {
-    name: string;
-    image?: string;
-  } | undefined;
+  user:
+    | {
+        name: string;
+        image?: string;
+      }
+    | undefined;
   size?: "sm" | "md" | "lg";
   showName?: boolean;
   className?: string;
@@ -19,7 +21,7 @@ export default function UserAvatar({
   className = "",
 }: UserAvatarProps) {
   if (!user) return null;
-  
+
   // Size mappings
   const sizeMap = {
     sm: {
@@ -35,7 +37,7 @@ export default function UserAvatar({
       text: "text-base",
     },
   };
-  
+
   return (
     <div className={`flex items-center ${className}`}>
       <div className={`${sizeMap[size].container} relative mr-1`}>
@@ -52,9 +54,11 @@ export default function UserAvatar({
         />
       </div>
       {showName && (
-        <span className={`${sizeMap[size].text} text-gray-500 coffee:text-gray-400`}>
+        <div
+          className={`${sizeMap[size].text} text-gray-500 coffee:text-gray-400`}
+        >
           {user.name}
-        </span>
+        </div>
       )}
     </div>
   );

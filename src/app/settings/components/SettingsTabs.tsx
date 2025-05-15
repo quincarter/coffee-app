@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import BrewingDevicesTab from './BrewingDevicesTab';
-import AdminPanel from './AdminPanel';
-import BackgroundSettingsTab from './BackgroundSettingsTab';
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import BrewingDevicesTab from "./BrewingDevicesTab";
+import AdminPanel from "./AdminPanel";
+import BackgroundSettingsTab from "./BackgroundSettingsTab";
 
 type Props = {
   userId: string;
@@ -14,8 +14,8 @@ type Props = {
 export default function SettingsTabs({ userId, userRole }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tabParam = searchParams.get('tab');
-  
+  const tabParam = searchParams.get("tab");
+
   // Set initial tab based on URL param or default to "devices"
   const [activeTab, setActiveTab] = useState(() => {
     if (tabParam === "background" || tabParam === "admin") {
@@ -28,14 +28,24 @@ export default function SettingsTabs({ userId, userRole }: Props) {
     return "devices";
   });
 
+  // Get admin subtab from query params and set default
+  const adminSubtab = searchParams.get("adminTab") || "devices";
+
   // Update URL when tab changes
-  const handleTabChange = (tab: string) => {
+  const handleTabChange = (tab: string, adminSubtab?: string) => {
     setActiveTab(tab);
-    
+
     // Create new URLSearchParams object
     const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', tab);
-    
+    params.set("tab", tab);
+
+    // If it's the admin tab and we have a subtab, add it to the URL
+    if (tab === "admin" && adminSubtab) {
+      params.set("adminTab", adminSubtab);
+    } else {
+      params.delete("adminTab");
+    }
+
     // Update URL without refreshing the page
     router.push(`/settings?${params.toString()}`, { scroll: false });
   };
@@ -87,8 +97,14 @@ export default function SettingsTabs({ userId, userRole }: Props) {
 
       <div>
         {activeTab === "devices" && <BrewingDevicesTab userId={userId} />}
-        {activeTab === "background" && <BackgroundSettingsTab userId={userId} />}
-        {activeTab === "admin" && userRole === "admin" && <AdminPanel />}
+        {activeTab === "background" && (
+          <BackgroundSettingsTab userId={userId} />
+        )}
+        {activeTab === "admin" && userRole === "admin" && (
+          <AdminPanel
+            defaultTab={adminSubtab as "devices" | "banners" | "feature-flags"}
+          />
+        )}
       </div>
     </div>
   );

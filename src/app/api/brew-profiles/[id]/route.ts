@@ -18,6 +18,27 @@ export async function GET(
     const brewProfile = await prisma.brewProfile.findUnique({
       where: { id },
       include: {
+        comments: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+            likes: {
+              select: {
+                id: true,
+                userId: true,
+                commentId: true,
+              },
+            },
+          },
+        },
         user: {
           select: {
             id: true,
@@ -114,6 +135,27 @@ export async function PATCH(
         isPublic: body.isPublic || false,
       },
       include: {
+        comments: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+            likes: {
+              select: {
+                id: true,
+                userId: true,
+                commentId: true,
+              },
+            },
+          },
+        },
         user: {
           select: {
             id: true,

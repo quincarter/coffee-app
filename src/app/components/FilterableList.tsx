@@ -108,7 +108,6 @@ export default function FilterableList({
 
     // Only update state if filters have changed
     if (filtersHaveChanged(selectedFilters, newFilters)) {
-      console.log("Setting new filters:", newFilters);
       setSelectedFilters(newFilters);
     }
 

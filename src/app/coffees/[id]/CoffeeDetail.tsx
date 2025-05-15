@@ -27,6 +27,7 @@ import FavoriteButton from "@/app/components/FavoriteButton";
 import BrewProfileCreationModal from "@/app/components/brew/BrewProfileCreationModal";
 import RetireButton from "@/app/components/coffee/RetireButton";
 import ProductUrlField from "@/app/components/coffee/ProductUrlField";
+import CommentSection from "@/app/components/comments/CommentSection";
 
 export default function CoffeeDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -104,7 +105,7 @@ export default function CoffeeDetail({ id }: { id: string }) {
       if (!isLoggedIn) return;
 
       try {
-        const response = await fetch("/api/brew-profiles");
+        const response = await fetch("/api/brew-profiles?includePublic=true");
         if (response.ok) {
           const allProfiles = await response.json();
           // Filter profiles for this coffee
@@ -598,6 +599,11 @@ export default function CoffeeDetail({ id }: { id: string }) {
               })}
             </div>
           </div>
+          <CommentSection
+            entityId={coffee.id}
+            entityType={"coffee"}
+            comments={coffee.comments}
+          />
         </div>
       </div>
 

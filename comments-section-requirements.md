@@ -1,0 +1,73 @@
+/\*\*
+
+- Reusable Comments Component Requirements (Next.js + React)
+- ***
+-
+- Functional Requirements:
+- 1.  Display Comments:
+- - Show a list of comments for a specific entity (e.g., post, product).
+- - Display: user name, avatar (optional), timestamp, and comment text.
+- - Support nested replies (default: 2 levels).
+-
+- 2.  Add Comment:
+- - Authenticated users can submit new comments.
+- - Form includes textarea and submit button.
+- - Validate non-empty input.
+- - Show loading and error states.
+-
+- 3.  Reply to Comment:
+- - Users can reply to any comment.
+- - Inline reply form shown under comment.
+- - Replies retain parent-child relationships.
+-
+- 4.  Edit & Delete:
+- - Users can edit/delete their own comments.
+- - Inline editing supported.
+- - Delete confirmation required.
+-
+- 5.  Likes (Optional):
+- - Toggle like per user.
+- - Show like count.
+-
+- 6.  Pagination / Lazy Loading:
+- - Load comments in pages or on scroll for performance.
+-
+- Technical Requirements:
+- - Component structure:
+- - Components: CommentList, Comment, CommentForm, ReplyThread.
+- - Data passed via props; optionally fetch inside.
+- - Data Handling:
+- - Accept itemId/entityId to fetch comments.
+- - Allow injection of fetch/mutate functions.
+- - Support optimistic UI and error handling.
+- - API Integration:
+- - REST or GraphQL supported.
+- - Abstract to commentsService.ts or similar.
+- - Optional: SWR, React Query for fetching.
+- - Auth Integration:
+- - Use session (e.g., NextAuth) to show/hide form.
+-
+- UI/UX Requirements:
+- - Accessibility:
+- - Keyboard nav + ARIA support.
+- - Responsive:
+- - Mobile-friendly; collapsible threads.
+- - States:
+- - Show loading, error, empty, success states.
+- - Theming:
+- - Style via Tailwind, CSS Modules, or styled-components.
+- - Support dark mode.
+-
+- Extensibility:
+- - Custom render props for comment UI overrides.
+- - Config flags to toggle features (likes, moderation, emoji).
+- - Moderation hook (e.g., filter banned words).
+- - i18n support via props or context.
+-
+- Optional Features:
+- - Markdown/rich text formatting.
+- - Mentions (@username) with autocomplete.
+- - Real-time updates (WebSockets or polling).
+- - Admin/moderator controls (e.g., pinning).
+- - Spam detection, rate limiting, CAPTCHA.
+    \*/
