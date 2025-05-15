@@ -1,29 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import {
-  ArrowLeft,
-  Edit,
-  Trash,
-  Share,
-  Coffee,
-  Droplet,
-  Scale,
-  Calendar,
-  Tag,
-  Heart,
-} from "lucide-react";
-import CoffeeImage from "@/app/components/coffee/CoffeeImage";
-import CoffeeCard from "@/app/components/coffee/CoffeeCard";
 import BrewProfileCard from "@/app/components/BrewProfileCard";
+import CustomNotFound from "@/app/components/CustomNotFound";
+import FavoriteButton from "@/app/components/FavoriteButton";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
 import RelatedItems from "@/app/components/RelatedItems";
 import Toast from "@/app/components/Toast";
-import CustomNotFound from "@/app/components/CustomNotFound";
-import LoadingSpinner from "@/app/components/LoadingSpinner";
-import FavoriteButton from "@/app/components/FavoriteButton";
+import CoffeeCard from "@/app/components/coffee/CoffeeCard";
+import CoffeeImage from "@/app/components/coffee/CoffeeImage";
+import CommentSection from "@/app/components/comments/CommentSection";
+import {
+  ArrowLeft,
+  Calendar,
+  Coffee,
+  Droplet,
+  Edit,
+  Scale,
+  Share,
+  Tag,
+  Trash,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function BrewProfileDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -447,7 +447,11 @@ export default function BrewProfileDetail({ id }: { id: string }) {
               )}
             </div>
           </div>
-
+          <CommentSection
+            entityId={profile.id}
+            comments={profile.comments}
+            entityType={"brewProfile"}
+          />
           <div className="border-t border-gray-200 coffee:border-gray-700 pt-4 flex items-center justify-between text-sm text-gray-500 coffee:text-gray-400">
             <div className="flex items-center">
               <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 coffee:bg-gray-700 mr-2">

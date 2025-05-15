@@ -61,7 +61,7 @@ export default function AdminBanner({ user = null }: any) {
             dismissedBanners = checkDismissedBanners(data);
           }
 
-          const isDismissedLocally = dismissedBanners.bannerId === data.id;
+          const isDismissedLocally = dismissedBanners?.bannerId === data.id;
           setIsDismissed(isDismissedLocally);
           setBanner(data);
         }

@@ -37,6 +37,13 @@ model User {
   dismissedBanners  UserDismissedBanner[]
   coffees          Coffee[] @relation()
   updatedCoffees   Coffee[] @relation("UpdateUser")
+  comments         Comment[] @relation("UserComments")
+  commentLikes     CommentLike[] @relation("UserCommentLikes")
+
+  // Feature Flag Relations
+  createdFlags    FeatureFlag[] @relation("CreatedFlags")
+  updatedFlags    FeatureFlag[] @relation("UpdatedFlags")
+  featureFlagAccess FeatureFlagAccess[]
 }
 
 // Banner system models
@@ -173,6 +180,7 @@ model CoffeeRoaster {
   coffees          Coffee[]
   locations        RoasterLocation[]
   favorites        UserFavorite[] @relation("RoasterFavorites")
+  comments         Comment[] @relation("RoasterComments")
 }
 
 model RoasterLocation {
@@ -215,6 +223,10 @@ model Coffee {
   favorites       UserFavorite[] @relation("CoffeeFavorites")
   user            User     @relation(fields: [createdBy], references: [id])
   updateUser      User?    @relation("UpdateUser", fields: [updatedBy], references: [id])
+  comments        Comment[] @relation("CoffeeComments")
+
+  @@index([createdBy])
+  @@index([updatedBy])
 }
 
 model CoffeeTastingNote {
@@ -264,6 +276,7 @@ model BrewProfile {
   updatedAt       DateTime @updatedAt
   brewSessions    UserBrewSession[] @relation("BrewProfileToUserBrewSession")
   favorites       UserFavorite[] @relation("BrewProfileFavorites")
+  comments        Comment[] @relation("BrewProfileComments")
 }
 
 // Model for user favorites
@@ -290,11 +303,103 @@ model UserFavorite {
   @@unique([userId, entityType, entityId])
 }
 
+// Comments System Models
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isEdited  Boolean  @default(false)
+  
+  // Relations
+  userId    String  
+  user      User     @relation("UserComments", fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Optional parent comment for nested replies
+  parentId  String?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  
+  // Entity relations
+  coffeeId  String?
+  coffee    Coffee?  @relation("CoffeeComments", fields: [coffeeId], references: [id], onDelete: Cascade)
+  
+  brewProfileId String?
+  brewProfile   BrewProfile? @relation("BrewProfileComments", fields: [brewProfileId], references: [id], onDelete: Cascade)
+  
+  roasterId   String?
+  roaster     CoffeeRoaster? @relation("RoasterComments", fields: [roasterId], references: [id], onDelete: Cascade)
+  
+  // Optional likes
+  likes     CommentLike[] @relation("CommentLikes")
+
+  @@index([userId])
+  @@index([coffeeId])
+  @@index([brewProfileId])
+  @@index([roasterId])
+  @@index([parentId])
+
+  // Note: We enforce in application logic that exactly one of [coffeeId, brewProfileId, roasterId] must be set
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  // Relations
+  userId    String
+  user      User     @relation("UserCommentLikes", fields: [userId], references: [id], onDelete: Cascade)
+  commentId String
+  comment   Comment  @relation("CommentLikes", fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([commentId])
+  @@index([userId])
+}
+
 enum CoffeeVariety {
   single_origin
   blend
   microlot
   seasonal
   signature_blend
+}
+
+// Feature Flag System
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isEnabled   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  updatedBy   String?
+
+  // Relations
+  creator     User     @relation("CreatedFlags", fields: [createdBy], references: [id])
+  updater     User?    @relation("UpdatedFlags", fields: [updatedBy], references: [id])
+  access      FeatureFlagAccess[]
+
+  // Allow access by role (e.g., "admin", "user") or specific users
+  allowedRoles String[] @default([])
+
+  @@index([createdBy])
+  @@index([updatedBy])
+}
+
+model FeatureFlagAccess {
+  id            String   @id @default(cuid())
+  featureFlagId String
+  userId        String
+  createdAt     DateTime @default(now())
+
+  // Relations
+  featureFlag   FeatureFlag @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([featureFlagId, userId])
+  @@index([featureFlagId])
+  @@index([userId])
 }
 

@@ -681,7 +681,6 @@ export default function NewBrewForm({
 
   // Update the devices list and selection when a new device is added
   const handleAddDevice = (newDevice: UserBrewingDevice) => {
-    console.log("New device added:", newDevice, userDevices);
     // Only call parent handler to update device list
     if (onDeviceAdded) {
       onDeviceAdded(newDevice);

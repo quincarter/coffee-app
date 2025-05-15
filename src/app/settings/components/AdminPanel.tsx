@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import BrewingDeviceForm from "./BrewingDeviceForm";
 import BannerManager from "./BannerManager";
 import Image from "next/image";
 import { BellRing, Coffee, Pencil, Trash } from "lucide-react";
+import FeatureFlags from "@/app/components/admin/FeatureFlags";
 
 type BrewingDevice = {
   id: string;
@@ -15,8 +17,17 @@ type BrewingDevice = {
   updatedAt: string;
 };
 
-export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<"devices" | "banners">("devices");
+interface AdminPanelProps {
+  defaultTab?: "devices" | "banners" | "feature-flags";
+}
+
+export default function AdminPanel({
+  defaultTab = "devices",
+}: AdminPanelProps) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<
+    "devices" | "banners" | "feature-flags"
+  >(defaultTab);
   const [brewingDevices, setBrewingDevices] = useState<BrewingDevice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,22 +116,55 @@ export default function AdminPanel() {
       <div className="tabs tabs-boxed mb-6">
         <button
           className={`tab ${activeTab === "devices" ? "tab-active" : ""}`}
-          onClick={() => setActiveTab("devices")}
+          onClick={() => {
+            setActiveTab("devices");
+            router?.push(`/settings?tab=admin&adminTab=devices`, {
+              scroll: false,
+            });
+          }}
         >
           <Coffee className="w-4 h-4 mr-2" />
           Brewing Devices
         </button>
         <button
           className={`tab ${activeTab === "banners" ? "tab-active" : ""}`}
-          onClick={() => setActiveTab("banners")}
+          onClick={() => {
+            setActiveTab("banners");
+            router?.push(`/settings?tab=admin&adminTab=banners`, {
+              scroll: false,
+            });
+          }}
         >
           <BellRing className="w-4 h-4 mr-2" />
           Banners
+        </button>
+        <button
+          className={`tab ${activeTab === "feature-flags" ? "tab-active" : ""}`}
+          onClick={() => {
+            setActiveTab("feature-flags");
+            router?.push(`/settings?tab=admin&adminTab=feature-flags`, {
+              scroll: false,
+            });
+          }}
+        >
+          <svg
+            className="w-4 h-4 mr-2"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M4 6h16v4H4zm0 8h10v4H4z" />
+            <path d="M16 14h4v4h-4z" />
+          </svg>
+          Feature Flags
         </button>
       </div>
 
       {activeTab === "banners" ? (
         <BannerManager />
+      ) : activeTab === "feature-flags" ? (
+        <FeatureFlags />
       ) : (
         <div>
           <div className="mb-6 flex items-center justify-between">

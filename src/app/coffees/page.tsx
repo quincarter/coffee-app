@@ -28,6 +28,27 @@ export default async function CoffeesPage() {
       include: {
         roaster: true,
         tastingNotes: true,
+        comments: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+            likes: {
+              select: {
+                id: true,
+                userId: true,
+                commentId: true,
+              },
+            },
+          },
+        },
         user: {
           select: {
             id: true,

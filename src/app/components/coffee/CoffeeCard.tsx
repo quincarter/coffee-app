@@ -10,10 +10,10 @@ import ImageUpload from "../ImageUpload";
 import SearchableDropdown from "../SearchableDropdown";
 import BottomSheet from "../ui/BottomSheet";
 import CoffeeImage from "./CoffeeImage";
-import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
-import TastingNotesDropdown from "./TastingNotesDropdown";
 import CoffeeNameField from "./CoffeeNameField";
 import ProductUrlField from "./ProductUrlField";
+import TastingNotesDropdown from "./TastingNotesDropdown";
+import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
 
 type CoffeeCardProps = {
   coffee: {
@@ -163,7 +163,6 @@ export default function CoffeeCard({
 
       const updatedCoffee = await response.json();
 
-      console.log("Updated coffee:", updatedCoffee);
       // Call onUpdate callback if provided
       if (onUpdate) {
         onUpdate(updatedCoffee);

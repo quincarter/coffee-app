@@ -42,7 +42,9 @@ export default function BrewProfilesPage() {
           setCurrentUserId(userData.id);
 
           // Fetch user's brew profiles if logged in
-          const profilesRes = await fetch("/api/brew-profiles");
+          const profilesRes = await fetch(
+            "/api/brew-profiles?includePublic=true"
+          );
           if (profilesRes.ok) {
             const profilesData = await profilesRes.json();
             setProfiles(profilesData);

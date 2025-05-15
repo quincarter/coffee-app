@@ -12,6 +12,27 @@ export async function GET(
     const roaster = await prisma.coffeeRoaster.findUnique({
       where: { id },
       include: {
+        comments: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+            likes: {
+              select: {
+                id: true,
+                userId: true,
+                commentId: true,
+              },
+            },
+          },
+        },
         _count: {
           select: {
             coffees: true,
