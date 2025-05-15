@@ -3,6 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useAuth } from "@/app/hooks/useAuth";
+import { useFeatureFlag } from "@/app/hooks/useFeatureFlag";
 
 type RelatedItemsProps = {
   title: string;
@@ -16,7 +18,7 @@ type RelatedItemsProps = {
 
 /**
  * A reusable component for displaying related items sections
- * 
+ *
  * @param title - The title of the section
  * @param items - Array of React nodes to display (usually cards)
  * @param viewAllLink - Optional link to view all items
@@ -34,6 +36,14 @@ export default function RelatedItems({
   maxItems = 3,
   className = "",
 }: RelatedItemsProps) {
+  const auth = useAuth();
+  const { isEnabled, wrapComponent } = useFeatureFlag(
+    "related-items",
+    auth.session
+  );
+
+  if (!isEnabled && auth?.session?.user.role !== "admin") return null;
+
   // If there are no items, show the empty message
   if (items.length === 0) {
     return (
@@ -49,7 +59,7 @@ export default function RelatedItems({
   // Limit the number of items to display
   const displayItems = items.slice(0, maxItems);
 
-  return (
+  return wrapComponent(
     <div className={`mt-8 ${className}`}>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-medium">{title}</h2>

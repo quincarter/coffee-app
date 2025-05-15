@@ -222,7 +222,9 @@ export default function CommentSection({
 
   // Don't render anything if the feature is disabled or loading
   if (isLoading) return null;
-  if (!isEnabled) return null;
+
+  console.log("session", session);
+  if (!isEnabled && session?.user.role !== "admin") return null;
   if (!session?.user) {
     return (
       <div className="mt-8 p-4 bg-gray-50 rounded-lg text-center">
