@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useFeatureFlag } from "@/app/hooks/useFeatureFlag";
 import UserAvatar from "@/app/components/UserAvatar";
@@ -49,10 +49,41 @@ function CommentItem({
   const [isReplying, setIsReplying] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [replyContent, setReplyContent] = useState("");
+  const [isHighlighted, setIsHighlighted] = useState(false);
+  const commentRef = useRef<HTMLDivElement>(null);
   const isOwnComment = comment.user.id === currentUserId;
   const likes = comment.likes || [];
   const hasLiked = likes.some((like) => like.userId === currentUserId);
   const likeCount = likes.length;
+
+  const highlightComment = useCallback(() => {
+    if (commentRef.current) {
+      commentRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      setIsHighlighted(true);
+      const timer = setTimeout(() => setIsHighlighted(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Check for initial hash
+    const checkHash = () => {
+      const hash = window.location.hash;
+      if (hash === `#comment-${comment.id}`) {
+        highlightComment();
+      }
+    };
+
+    // Check on mount
+    checkHash();
+
+    // Listen for hash changes
+    window.addEventListener("hashchange", checkHash);
+    return () => window.removeEventListener("hashchange", checkHash);
+  }, [comment.id, highlightComment]);
 
   const handleEdit = () => {
     onEdit(comment.id, editContent);
@@ -66,9 +97,17 @@ function CommentItem({
   };
 
   return (
-    <div className={`flex items-start space-x-4 ${level > 0 ? "ml-12" : ""}`}>
+    <div
+      ref={commentRef}
+      id={`comment-${comment.id}`}
+      className={`flex items-start space-x-4 ${level > 0 ? "ml-12" : ""}`}
+    >
       <div className="flex-grow">
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div
+          className={`bg-gray-50 rounded-lg p-4 transition-all duration-500 ${
+            isHighlighted ? "ring-2 ring-primary animate-pulse" : ""
+          }`}
+        >
           <div className="flex items-center justify-between">
             <UserAvatar user={comment.user} />
 
@@ -201,30 +240,66 @@ export default function CommentSection({
   comments: initialComments = [],
 }: CommentSectionProps) {
   const { session } = useAuth();
-  const { isEnabled, isLoading, wrapComponent } = useFeatureFlag(
-    "comments-section",
-    session
-  );
-  // Ensure all comments have a replies array and proper like structure
-  const normalizedComments = initialComments.map((comment) => ({
-    ...comment,
-    replies: (comment.replies || []).map((reply) => ({
-      ...reply,
-      likes: reply.likes || [],
-      _count: reply._count || { likes: 0 },
-    })),
-    likes: comment.likes || [],
-    _count: comment._count || { likes: 0 },
-  }));
-  const [comments, setComments] = useState(normalizedComments);
+  const {
+    isEnabled,
+    isLoading: isFeatureLoading,
+    wrapComponent,
+  } = useFeatureFlag("comments-section", session);
+  const [comments, setComments] = useState<CommentWithUserAndReplies[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch comments when component mounts or when entityId/entityType changes
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (!entityId || !entityType) return;
+
+      try {
+        const response = await fetch(
+          `/api/comments?entityId=${entityId}&entityType=${entityType}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch comments");
+
+        const data = await response.json();
+        // Normalize the comments data
+        const normalizedComments = data.map(
+          (comment: CommentWithUserAndReplies) => ({
+            ...comment,
+            replies: (comment.replies || []).map((reply) => ({
+              ...reply,
+              likes: reply.likes || [],
+              _count: reply._count || { likes: 0 },
+            })),
+            likes: comment.likes || [],
+            _count: comment._count || { likes: 0 },
+          })
+        );
+        setComments(normalizedComments);
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchComments();
+  }, [entityId, entityType]);
 
   // Don't render anything if the feature is disabled or loading
-  if (isLoading) return null;
-
-  console.log("session", session);
+  if (isFeatureLoading) return null;
   if (!isEnabled && session?.user.role !== "admin") return null;
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="mt-8 flex justify-center">
+        <div className="loading loading-spinner text-primary"></div>
+      </div>
+    );
+  }
+
+  // Show sign in prompt if not logged in
   if (!session?.user) {
     return (
       <div className="mt-8 p-4 bg-gray-50 rounded-lg text-center">

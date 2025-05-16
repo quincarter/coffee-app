@@ -44,7 +44,72 @@ model User {
   createdFlags    FeatureFlag[] @relation("CreatedFlags")
   updatedFlags    FeatureFlag[] @relation("UpdatedFlags")
   featureFlagAccess FeatureFlagAccess[]
+  notifications         Notification[] @relation("UserNotifications")
+  triggeredNotifications Notification[] @relation("ActorNotifications")
+  notificationSettings  NotificationSettings? @relation("UserNotificationSettings")
 }
+
+// Notification system models
+model Notification {
+  id          String            @id @default(cuid())
+  type        NotificationType
+  userId      String           // User who receives the notification
+  actorId     String           // User who triggered the notification
+  read        Boolean          @default(false)
+  entityType  String           // "comment", "coffee", "brew-profile", "roaster"
+  entityId    String           // ID of the related entity
+  content     String?          // Optional content (e.g., comment text)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  user        User             @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  actor       User             @relation("ActorNotifications", fields: [actorId], references: [id], onDelete: Cascade)
+
+  // Optional relations to specific entities
+  comment     Comment?         @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  coffee      Coffee?          @relation(fields: [coffeeId], references: [id], onDelete: Cascade)
+  brewProfile BrewProfile?     @relation(fields: [brewProfileId], references: [id], onDelete: Cascade)
+  roaster     CoffeeRoaster?   @relation(fields: [roasterId], references: [id], onDelete: Cascade)
+
+  // Optional foreign keys for specific entities
+  commentId   String?
+  coffeeId    String?
+  brewProfileId String?
+  roasterId   String?
+
+  @@index([userId])
+  @@index([actorId])
+  @@index([commentId])
+  @@index([coffeeId])
+  @@index([brewProfileId])
+  @@index([roasterId])
+}
+
+model NotificationSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  emailNotifications    Boolean  @default(true)
+  commentNotifications  Boolean  @default(true)
+  likeNotifications    Boolean  @default(true)
+  favoriteNotifications Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  user                 User     @relation("UserNotificationSettings", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum NotificationType {
+  COMMENT
+  COMMENT_REPLY
+  COMMENT_LIKE
+  FAVORITE_COFFEE
+  FAVORITE_BREW_PROFILE
+  FAVORITE_ROASTER
+}
+
+
 
 // Banner system models
 model AdminBanner {
@@ -84,7 +149,7 @@ model BrewingDevice {
   description String
   image       String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now())
 
   UserBrewingDevice UserBrewingDevice[]
   UserBrewSession   UserBrewSession[]
@@ -160,7 +225,7 @@ model MagicLink {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now())
 }
 
 model CoffeeRoaster {
@@ -177,6 +242,7 @@ model CoffeeRoaster {
   updatedBy        String?  // userId
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  notifications Notification[] @relation()
   coffees          Coffee[]
   locations        RoasterLocation[]
   favorites        UserFavorite[] @relation("RoasterFavorites")
@@ -218,6 +284,7 @@ model Coffee {
   updatedBy       String?  // userId
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  notifications Notification[] @relation()
   brewProfiles    BrewProfile[]
   tastingNotes    CoffeeTastingNote[] @relation("CoffeeToTastingNote")
   favorites       UserFavorite[] @relation("CoffeeFavorites")
@@ -274,6 +341,7 @@ model BrewProfile {
   isPublic        Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  notifications Notification[] @relation()
   brewSessions    UserBrewSession[] @relation("BrewProfileToUserBrewSession")
   favorites       UserFavorite[] @relation("BrewProfileFavorites")
   comments        Comment[] @relation("BrewProfileComments")
@@ -332,6 +400,7 @@ model Comment {
   
   // Optional likes
   likes     CommentLike[] @relation("CommentLikes")
+  notifications Notification[] @relation()
 
   @@index([userId])
   @@index([coffeeId])

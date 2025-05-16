@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     // If the roaster doesn't exist, return default metadata
     if (!roaster) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       return {
         title: "Roaster | BrewMe",
         description: "A coffee roaster on BrewMe",
@@ -54,7 +55,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // Extract the data we need for metadata
     const roasterName = roaster.name;
     const coffeeCount = roaster._count?.coffees || 0;
-    const description = roaster.notes || `${roasterName} - Coffee Roaster with ${coffeeCount} coffees`;
+    const description =
+      roaster.notes ||
+      `${roasterName} - Coffee Roaster with ${coffeeCount} coffees`;
 
     // Use roaster image if available, otherwise use fallback
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -67,7 +70,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     // Create a descriptive title and description
     const title = `${roasterName} | Coffee Roaster | BrewMe`;
-    const metaDescription = description.length > 160 ? description.substring(0, 157) + "..." : description;
+    const metaDescription =
+      description.length > 160
+        ? description.substring(0, 157) + "..."
+        : description;
 
     // Create canonical URL for this roaster
     const canonicalUrl = `${baseUrl}/roasters/${id}`;
