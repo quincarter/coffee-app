@@ -10,6 +10,7 @@ import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
 import TastingNotesDropdown from "./TastingNotesDropdown";
 import CoffeeNameField from "./CoffeeNameField";
 import ProcessDropdown from "./ProcessDropdown";
+import CountryOfOriginDropdown from "./CountryOfOriginDropdown";
 
 type CoffeeSelectorProps = {
   selectedRoaster: string;
@@ -314,38 +315,16 @@ export default function CoffeeSelector({
             </div>
 
             {/* Country of Origin */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Country of Origin
-              </label>
-              <SearchableDropdown
-                options={availableOrigins.map((origin) => ({
-                  value: origin.name,
-                  label: origin.name,
-                }))}
-                value={coffeeFormData.countryOfOrigin}
-                onChange={(value) => {
-                  if (Array.isArray(value)) {
-                    setCoffeeFormData({
-                      ...coffeeFormData,
-                      countryOfOrigin: value[0] || "",
-                    });
-                  } else {
-                    setCoffeeFormData({
-                      ...coffeeFormData,
-                      countryOfOrigin: value,
-                    });
-                  }
-                }}
-                label=""
-                placeholder="Select or type a country..."
-                allowAddNew={true}
-                onAddNew={(_newValue) => {
-                  // New value will be added to the form data automatically
-                }}
-                multiple={false}
-              />
-            </div>
+            <CountryOfOriginDropdown
+              value={coffeeFormData.countryOfOrigin}
+              onChange={(value) =>
+                setCoffeeFormData({
+                  ...coffeeFormData,
+                  countryOfOrigin: value,
+                })
+              }
+              options={availableOrigins}
+            />
 
             {/* Process */}
             <ProcessDropdown
