@@ -21,8 +21,11 @@ export default function BottomSheet({
   const [animation, setAnimation] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const initialTouchY = useRef<number | null>(null);
   const currentTouchY = useRef<number | null>(null);
+  const lastTouchTime = useRef<number | null>(null);
+  const lastTouchY = useRef<number | null>(null);
 
   // Handle animation on show/hide
   useEffect(() => {
@@ -71,41 +74,77 @@ export default function BottomSheet({
   // Handle swipe down to close on mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     initialTouchY.current = e.touches[0].clientY;
+    lastTouchY.current = e.touches[0].clientY;
+    lastTouchTime.current = Date.now();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (initialTouchY.current === null) return;
-    currentTouchY.current = e.touches[0].clientY;
+    if (initialTouchY.current === null || !scrollRef.current) return;
 
-    // Calculate the distance swiped
+    // Only allow swipe-to-close when at the top of the content
+    if (scrollRef.current.scrollTop > 0) return;
+
+    currentTouchY.current = e.touches[0].clientY;
     const deltaY = currentTouchY.current - initialTouchY.current;
 
-    // Only allow swiping down, not up
+    // Calculate velocity
+    const now = Date.now();
+    const deltaTime = now - (lastTouchTime.current || now);
+    const velocity = lastTouchY.current
+      ? (currentTouchY.current - lastTouchY.current) / deltaTime
+      : 0;
+
+    lastTouchY.current = currentTouchY.current;
+    lastTouchTime.current = now;
+
+    // Only allow swiping down with reduced sensitivity
     if (deltaY > 0 && contentRef.current) {
-      // Apply transform to follow finger, with resistance
-      contentRef.current.style.transform = `translateY(${deltaY * 0.4}px)`;
+      // More resistance to the swipe (0.3 instead of 0.4)
+      contentRef.current.style.transform = `translateY(${deltaY * 0.3}px)`;
       e.preventDefault();
     }
   };
 
   const handleTouchEnd = () => {
-    if (initialTouchY.current === null || currentTouchY.current === null)
+    if (
+      initialTouchY.current === null ||
+      currentTouchY.current === null ||
+      !contentRef.current
+    )
       return;
 
-    // Calculate the distance swiped
     const deltaY = currentTouchY.current - initialTouchY.current;
 
-    // If swiped down more than 100px, close the sheet
-    if (deltaY > 100) {
+    // Calculate final velocity
+    const deltaTime = Date.now() - (lastTouchTime.current || Date.now());
+    const finalVelocity = lastTouchY.current
+      ? (currentTouchY.current - lastTouchY.current) / deltaTime
+      : 0;
+
+    // Get the height of the bottom sheet
+    const sheetHeight = contentRef.current.offsetHeight;
+
+    // Close if either:
+    // 1. Swiped down more than 30% of sheet height
+    // 2. Swiped down more than 15% with high velocity
+    const heightThreshold = sheetHeight * 0.3;
+    const velocityThreshold = 0.5; // pixels per millisecond
+
+    if (
+      deltaY > heightThreshold ||
+      (deltaY > sheetHeight * 0.15 && finalVelocity > velocityThreshold)
+    ) {
       onClose();
-    } else if (contentRef.current) {
-      // Otherwise, animate back to original position
+    } else {
+      // Animate back to original position
       contentRef.current.style.transform = "";
     }
 
     // Reset values
     initialTouchY.current = null;
     currentTouchY.current = null;
+    lastTouchY.current = null;
+    lastTouchTime.current = null;
   };
 
   if (!show) return null;
@@ -159,7 +198,9 @@ export default function BottomSheet({
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-6 pt-2">{children}</div>
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 pt-2">
+          {children}
+        </div>
       </div>
     </div>
   );
