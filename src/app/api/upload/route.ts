@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/app/lib/session";
 import { put } from "@vercel/blob";
 
+// Configure file size limit
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "5mb",
+    },
+  },
+};
+
 export async function POST(request: Request) {
   try {
     const session = await getSession();

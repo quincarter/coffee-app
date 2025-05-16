@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Loader2, Trash } from "lucide-react";
 import { uploadImage } from "../utils/uploadImage";
+import { useAuth } from "@/app/hooks/useAuth";
 
 type ImageUploadProps = {
   initialImage?: string | null;
@@ -25,33 +26,66 @@ export default function ImageUpload({
   const [imagePreview, setImagePreview] = useState<string | null>(initialImage);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { session } = useAuth();
 
   useEffect(() => {
     setImagePreview(initialImage);
   }, [initialImage]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!session?.user) {
+      setError("Please log in to upload images");
+      return;
+    }
+
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image size must be less than 5MB");
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setError("File must be an image");
+        return;
+      }
+
       setImageFile(file);
       setError(null);
 
       // Create a preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const preview = reader.result as string;
-        setImagePreview(preview);
-      };
-      reader.readAsDataURL(file);
-
-      // Upload the image
       try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const preview = reader.result as string;
+          setImagePreview(preview);
+        };
+        reader.onerror = () => {
+          setError("Failed to create image preview");
+        };
+        reader.readAsDataURL(file);
+
+        // Upload the image
         setIsUploading(true);
         const imageUrl = await uploadImage(file, uploadContext);
+
+        if (!imageUrl) {
+          throw new Error("Failed to upload image");
+        }
+
         onImageUploaded(imageUrl);
       } catch (err) {
         console.error("Error uploading image:", err);
-        setError(err instanceof Error ? err.message : "Failed to upload image");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to upload image. Please try again"
+        );
+        setImagePreview(null);
+        setImageFile(null);
       } finally {
         setIsUploading(false);
       }
@@ -87,7 +121,7 @@ export default function ImageUpload({
               ? "file-input file-input-bordered file-input-sm w-full bg-white coffee:bg-gray-700 text-gray-700 coffee:text-gray-300 border-gray-300 coffee:border-gray-600"
               : "file-input file-input-bordered w-full bg-white coffee:bg-gray-700 text-gray-700 coffee:text-gray-300 border-gray-300 coffee:border-gray-600"
           }
-          disabled={isUploading}
+          disabled={isUploading || !session?.user}
         />
       </div>
 
