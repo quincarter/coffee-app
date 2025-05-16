@@ -12,6 +12,7 @@ import TastingNotesDropdown from "./TastingNotesDropdown";
 import CoffeeNameField from "./CoffeeNameField";
 import ProductUrlField from "./ProductUrlField";
 import ProcessDropdown from "./ProcessDropdown";
+import CountryOfOriginDropdown from "@/app/components/coffee/CountryOfOriginDropdown";
 
 type CoffeeEditFormProps = {
   coffee: any;
@@ -247,28 +248,11 @@ export default function CoffeeEditForm({
 
           <div className="space-y-4">
             {/* Country of Origin */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Country of Origin
-              </label>
-              <SearchableDropdown
-                options={origins.map((origin) => ({
-                  value: origin.name,
-                  label: origin.name,
-                }))}
-                value={formData.countryOfOrigin}
-                onChange={(value) => {
-                  if (Array.isArray(value)) {
-                    handleChange("countryOfOrigin", value[0] || "");
-                  } else {
-                    handleChange("countryOfOrigin", value);
-                  }
-                }}
-                placeholder="Select country of origin..."
-                allowAddNew={true}
-                multiple={false}
-              />
-            </div>
+            <CountryOfOriginDropdown
+              value={formData.countryOfOrigin}
+              onChange={(value) => handleChange("countryOfOrigin", value)}
+              options={origins}
+            />
 
             {/* Elevation */}
             <div>

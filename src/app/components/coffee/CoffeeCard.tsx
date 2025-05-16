@@ -15,6 +15,7 @@ import ProductUrlField from "./ProductUrlField";
 import TastingNotesDropdown from "./TastingNotesDropdown";
 import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
 import ProcessDropdown from "./ProcessDropdown";
+import CountryOfOriginDropdown from "@/app/components/coffee/CountryOfOriginDropdown";
 
 type CoffeeCardProps = {
   coffee: {
@@ -408,32 +409,11 @@ export default function CoffeeCard({
             </div>
 
             {/* Country of Origin */}
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Country of Origin
-              </label>
-              <SearchableDropdown
-                options={availableOrigins.map((origin) => ({
-                  value: origin.name,
-                  label: origin.name,
-                }))}
-                value={formData.countryOfOrigin}
-                onChange={(value) => {
-                  if (Array.isArray(value)) {
-                    handleChange("countryOfOrigin", value[0] || "");
-                  } else {
-                    handleChange("countryOfOrigin", value);
-                  }
-                }}
-                label=""
-                placeholder="Select or type a country..."
-                allowAddNew={true}
-                onAddNew={(_newValue) => {
-                  // New value will be added to the form data automatically
-                }}
-                multiple={false}
-              />
-            </div>
+            <CountryOfOriginDropdown
+              value={formData.countryOfOrigin}
+              onChange={(value) => handleChange("countryOfOrigin", value)}
+              options={availableOrigins}
+            />
 
             {/* Process */}
             <ProcessDropdown
