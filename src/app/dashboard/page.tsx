@@ -27,6 +27,10 @@ export default function Dashboard() {
   const [totalProfiles, setTotalProfiles] = useState(0);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
 
+  const handleSelectBrew = (brew: BrewSession) => {
+    router.push(`/brew-log?session=${brew.id}`);
+  };
+
   // Handle a new device being added
   const handleDeviceAdded = (newDevice: UserBrewingDevice) => {
     setUserDevices((prevDevices) => [...prevDevices, newDevice]);
@@ -52,8 +56,17 @@ export default function Dashboard() {
   const { session, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    // Only fetch data if we have a valid session
-    if (authLoading || !session?.user) {
+    // Reset loading state when auth state changes
+    setLoading(authLoading);
+
+    // Only fetch data if we have a valid session and we're not in auth loading state
+    if (authLoading) {
+      return;
+    }
+
+    // If no session, redirect to login
+    if (!session?.user) {
+      router.push("/login");
       return;
     }
 
@@ -78,56 +91,58 @@ export default function Dashboard() {
         ]);
 
         // Check if user is authenticated
-        if (userRes.status === 401) {
-          // Redirect to login page if not authenticated
+        if (
+          [
+            userRes,
+            brewsRes,
+            devicesRes,
+            favoritesRes,
+            totalBrewsRes,
+            profilesRes,
+            totalProfilesRes,
+          ].some((res) => res.status === 401)
+        ) {
           router.push("/login");
           return;
         }
 
-        // Check each response individually
-        if (!userRes.ok) {
-          throw new Error(
-            `Failed to fetch user profile: ${userRes.status} ${userRes.statusText}`
-          );
-        }
-        if (!brewsRes.ok) {
-          throw new Error(
-            `Failed to fetch brew sessions: ${brewsRes.status} ${brewsRes.statusText}`
-          );
-        }
-        if (!devicesRes.ok) {
-          throw new Error(
-            `Failed to fetch user devices: ${devicesRes.status} ${devicesRes.statusText}`
-          );
-        }
-        if (!favoritesRes.ok) {
-          throw new Error(
-            `Failed to fetch favorites: ${favoritesRes.status} ${favoritesRes.statusText}`
-          );
-        }
-        if (!totalBrewsRes.ok) {
-          throw new Error(
-            `Failed to fetch total brews: ${totalBrewsRes.status} ${totalBrewsRes.statusText}`
-          );
-        }
-        if (!profilesRes.ok) {
-          throw new Error(
-            `Failed to fetch brew profiles: ${profilesRes.status} ${profilesRes.statusText}`
-          );
-        }
-        if (!totalProfilesRes.ok) {
-          throw new Error(
-            `Failed to fetch total profiles: ${totalProfilesRes.status} ${totalProfilesRes.statusText}`
-          );
+        // Create array of response checks
+        const responses = [
+          { res: userRes, name: "user profile" },
+          { res: brewsRes, name: "brew sessions" },
+          { res: devicesRes, name: "user devices" },
+          { res: favoritesRes, name: "favorites" },
+          { res: totalBrewsRes, name: "total brews" },
+          { res: profilesRes, name: "brew profiles" },
+          { res: totalProfilesRes, name: "total profiles" },
+        ];
+
+        // Check all responses
+        for (const { res, name } of responses) {
+          if (!res.ok) {
+            throw new Error(
+              `Failed to fetch ${name}: ${res.status} ${res.statusText}`
+            );
+          }
         }
 
-        const userData = await userRes.json();
-        const brewsData = await brewsRes.json();
-        const devicesData = await devicesRes.json();
-        const favoritesData = await favoritesRes.json();
-        const totalBrewsData = await totalBrewsRes.json();
-        const profilesData = await profilesRes.json();
-        const totalProfilesData = await totalProfilesRes.json();
+        const [
+          userData,
+          brewsData,
+          devicesData,
+          favoritesData,
+          totalBrewsData,
+          profilesData,
+          totalProfilesData,
+        ] = await Promise.all([
+          userRes.json(),
+          brewsRes.json(),
+          devicesRes.json(),
+          favoritesRes.json(),
+          totalBrewsRes.json(),
+          profilesRes.json(),
+          totalProfilesRes.json(),
+        ]);
 
         setUser(userData);
         setRecentBrews(brewsData);
@@ -149,21 +164,11 @@ export default function Dashboard() {
       }
     }
 
-    if (!authLoading && !session?.user) {
-      // If we're not loading and don't have a session, redirect to login
-      router.push("/login");
-      return;
-    }
-
     fetchDashboardData();
   }, [router, session, authLoading]);
 
-  const handleSelectBrew = (brew: { id: string }) => {
-    router.push(`/brew-log?session=${brew.id}`);
-  };
-
-  // Show loading state when either auth is loading or data is loading
-  if (authLoading || loading) {
+  // Show loading state only when initial data is being fetched
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
