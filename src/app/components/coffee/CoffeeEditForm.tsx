@@ -11,6 +11,7 @@ import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
 import TastingNotesDropdown from "./TastingNotesDropdown";
 import CoffeeNameField from "./CoffeeNameField";
 import ProductUrlField from "./ProductUrlField";
+import ProcessDropdown from "./ProcessDropdown";
 
 type CoffeeEditFormProps = {
   coffee: any;
@@ -284,26 +285,11 @@ export default function CoffeeEditForm({
             </div>
 
             {/* Process */}
-            <div>
-              <label className="block text-sm font-medium mb-1">Process</label>
-              <SearchableDropdown
-                options={processes.map((process) => ({
-                  value: process.name,
-                  label: process.name,
-                }))}
-                value={formData.process}
-                onChange={(value) => {
-                  if (Array.isArray(value)) {
-                    handleChange("process", value[0] || "");
-                  } else {
-                    handleChange("process", value);
-                  }
-                }}
-                placeholder="Select process..."
-                allowAddNew={true}
-                multiple={false}
-              />
-            </div>
+            <ProcessDropdown
+              value={formData.process}
+              onChange={(value) => handleChange("process", value)}
+              options={processes}
+            />
 
             {/* Variety */}
             <VarietyDropdown

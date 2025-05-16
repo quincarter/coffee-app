@@ -14,6 +14,7 @@ import CoffeeNameField from "./CoffeeNameField";
 import ProductUrlField from "./ProductUrlField";
 import TastingNotesDropdown from "./TastingNotesDropdown";
 import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
+import ProcessDropdown from "./ProcessDropdown";
 
 type CoffeeCardProps = {
   coffee: {
@@ -435,30 +436,11 @@ export default function CoffeeCard({
             </div>
 
             {/* Process */}
-            <div>
-              <label className="block text-sm font-medium mb-1">Process</label>
-              <SearchableDropdown
-                options={availableProcesses.map((process) => ({
-                  value: process.name,
-                  label: process.name,
-                }))}
-                value={formData.process}
-                onChange={(value) => {
-                  if (Array.isArray(value)) {
-                    handleChange("process", value[0] || "");
-                  } else {
-                    handleChange("process", value);
-                  }
-                }}
-                label=""
-                placeholder="Select or type a process method..."
-                allowAddNew={true}
-                onAddNew={(_newValue) => {
-                  // New value will be added to the form data automatically
-                }}
-                multiple={false}
-              />
-            </div>
+            <ProcessDropdown
+              value={formData.process}
+              onChange={(value) => handleChange("process", value)}
+              options={availableProcesses}
+            />
 
             {/* Elevation */}
             <div>

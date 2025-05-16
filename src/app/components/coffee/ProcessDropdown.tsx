@@ -1,24 +1,27 @@
 "use client";
 
 import SearchableDropdown from "@/app/components/SearchableDropdown";
+import { useState } from "react";
 
-interface TastingNotesDropdownProps {
-  value: string[];
-  onChange: (value: string[]) => void;
+interface ProcessDropdownProps {
+  value: string;
+  onChange: (value: string) => void;
   options: { id: string; name: string }[];
   label?: string;
   disabled?: boolean;
   required?: boolean;
 }
 
-export default function TastingNotesDropdown({
+export default function ProcessDropdown({
   value,
   onChange,
-  options,
-  label = "Tasting Notes",
+  options: initialOptions,
+  label = "Process",
   disabled = false,
   required = false,
-}: TastingNotesDropdownProps) {
+}: ProcessDropdownProps) {
+  const [options, setOptions] = useState(initialOptions);
+
   return (
     <div>
       {label && (
@@ -28,26 +31,29 @@ export default function TastingNotesDropdown({
         </label>
       )}
       <SearchableDropdown
-        options={options.map((note) => ({
-          value: note.name,
-          label: note.name,
+        options={options.map((process) => ({
+          value: process.name,
+          label: process.name,
         }))}
         value={value}
         onChange={(newValue) => {
           if (Array.isArray(newValue)) {
-            onChange(newValue);
+            onChange(newValue[0] || "");
           } else {
-            onChange([newValue]);
+            onChange(newValue);
           }
         }}
         label=""
-        placeholder="Select or type tasting notes..."
+        placeholder="Select or type a process method..."
         allowAddNew={true}
         onAddNew={(newValue) => {
-          // Add the new value to the list of selected values
-          onChange([...value, newValue]);
+          // Add it to our local options state
+          const newOption = { id: newValue, name: newValue };
+          setOptions([...options, newOption]);
+          // Update the selected value
+          onChange(newValue);
         }}
-        multiple={true}
+        multiple={false}
         disabled={disabled}
       />
     </div>
