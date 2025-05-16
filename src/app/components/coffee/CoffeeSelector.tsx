@@ -9,6 +9,7 @@ import CoffeeImage from "./CoffeeImage";
 import VarietyDropdown, { CoffeeVariety } from "./VarietyDropdown";
 import TastingNotesDropdown from "./TastingNotesDropdown";
 import CoffeeNameField from "./CoffeeNameField";
+import ProcessDropdown from "./ProcessDropdown";
 
 type CoffeeSelectorProps = {
   selectedRoaster: string;
@@ -347,36 +348,16 @@ export default function CoffeeSelector({
             </div>
 
             {/* Process */}
-            <div>
-              <label className="block text-sm font-medium mb-1">Process</label>
-              <SearchableDropdown
-                options={availableProcesses.map((process) => ({
-                  value: process.name,
-                  label: process.name,
-                }))}
-                value={coffeeFormData.process}
-                onChange={(value) => {
-                  if (Array.isArray(value)) {
-                    setCoffeeFormData({
-                      ...coffeeFormData,
-                      process: value[0] || "",
-                    });
-                  } else {
-                    setCoffeeFormData({
-                      ...coffeeFormData,
-                      process: value,
-                    });
-                  }
-                }}
-                label=""
-                placeholder="Select or type a process method..."
-                allowAddNew={true}
-                onAddNew={(_newValue) => {
-                  // New value will be added to the form data automatically
-                }}
-                multiple={false}
-              />
-            </div>
+            <ProcessDropdown
+              value={coffeeFormData.process}
+              onChange={(value) => {
+                setCoffeeFormData({
+                  ...coffeeFormData,
+                  process: value,
+                });
+              }}
+              options={availableProcesses}
+            />
 
             {/* Elevation */}
             <div>
