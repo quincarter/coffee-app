@@ -16,6 +16,28 @@ export async function POST(
     const comment = await prisma.comment.findUnique({
       where: { id },
       include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        coffee: {
+          select: {
+            id: true,
+          },
+        },
+        brewProfile: {
+          select: {
+            id: true,
+          },
+        },
+        roaster: {
+          select: {
+            id: true,
+          },
+        },
         likes: {
           where: {
             userId: user.id,
@@ -47,13 +69,42 @@ export async function POST(
       });
       liked = false;
     } else {
-      // Like
-      await prisma.commentLike.create({
-        data: {
-          userId: user.id,
-          commentId: id,
-        },
-      });
+      // Like and notify
+      await Promise.all([
+        prisma.commentLike.create({
+          data: {
+            userId: user.id,
+            commentId: id,
+          },
+        }),
+        // Create notification for comment owner
+        ...(comment.user.id !== user.id
+          ? [
+              prisma.notification.create({
+                data: {
+                  type: "COMMENT_LIKE",
+                  userId: comment.user.id,
+                  actorId: user.id,
+                  entityType: comment.coffee
+                    ? "coffee"
+                    : comment.brewProfile
+                      ? "brewProfile"
+                      : "roaster",
+                  entityId:
+                    comment.coffee?.id ||
+                    comment.brewProfile?.id ||
+                    comment.roaster?.id ||
+                    "",
+                  content: comment.content,
+                  commentId: comment.id,
+                  coffeeId: comment.coffee?.id,
+                  brewProfileId: comment.brewProfile?.id,
+                  roasterId: comment.roaster?.id,
+                },
+              }),
+            ]
+          : []),
+      ]);
       liked = true;
     }
 

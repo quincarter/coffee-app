@@ -46,7 +46,7 @@ export default function BrewProfileCard({
     <>
       <Link
         href={`/brew-profiles/${profile.id}`}
-        className="max-w-100 min-w-80 bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
+        className="min-w-80 bg-white coffee:bg-gray-800 rounded-lg shadow-sm border border-gray-200 coffee:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
       >
         <div className="p-5 shared-card-styles">
           <div className="flex items-start justify-between mb-3 gap-3">

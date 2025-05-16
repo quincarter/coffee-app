@@ -1,6 +1,7 @@
 import { prisma } from "@/app/lib/db";
 import { getServerUser } from "@/app/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
+import { createNotification } from "@/app/lib/notifications";
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,33 +42,79 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    const comment = await prisma.comment.create({
-      data: commentData,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
-        replies: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                image: true,
-              },
+    // Create comment and get owner ID for notification
+    const [comment, entity] = await prisma.$transaction(async (tx) => {
+      const newComment = await tx.comment.create({
+        data: commentData,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
             },
-            likes: true,
           },
+          replies: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  image: true,
+                },
+              },
+              likes: true,
+            },
+          },
+          likes: true,
         },
-        likes: true,
-      },
+      });
+
+      let entityData = null;
+      switch (entityType) {
+        case "coffee":
+          entityData = await tx.coffee.findUnique({
+            where: { id: entityId },
+            select: { createdBy: true },
+          });
+          break;
+        case "brewProfile":
+          entityData = await tx.brewProfile.findUnique({
+            where: { id: entityId },
+            select: { userId: true },
+          });
+          break;
+        case "roaster":
+          entityData = await tx.coffeeRoaster.findUnique({
+            where: { id: entityId },
+            select: { createdBy: true },
+          });
+          break;
+      }
+
+      return [newComment, entityData];
     });
+
+    // Create notification and send email for the entity owner
+    if (entity) {
+      const ownerId = "createdBy" in entity ? entity.createdBy : entity.userId;
+      if (ownerId && ownerId !== user.id) {
+        await createNotification({
+          type: parentId ? "COMMENT_REPLY" : "COMMENT",
+          userId: ownerId,
+          actorId: user.id,
+          entityType,
+          entityId,
+          content: content,
+          commentId: comment.id,
+          coffeeId: entityType === "coffee" ? entityId : undefined,
+          brewProfileId: entityType === "brewProfile" ? entityId : undefined,
+          roasterId: entityType === "roaster" ? entityId : undefined,
+        });
+      }
+    }
 
     return NextResponse.json(comment);
   } catch (error) {

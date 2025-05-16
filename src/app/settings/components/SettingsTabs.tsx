@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import BrewingDevicesTab from "./BrewingDevicesTab";
 import AdminPanel from "./AdminPanel";
 import BackgroundSettingsTab from "./BackgroundSettingsTab";
+import { NotificationSettings } from "@/app/components/NotificationSettings";
 
 type Props = {
   userId: string;
@@ -18,7 +19,11 @@ export default function SettingsTabs({ userId, userRole }: Props) {
 
   // Set initial tab based on URL param or default to "devices"
   const [activeTab, setActiveTab] = useState(() => {
-    if (tabParam === "background" || tabParam === "admin") {
+    if (
+      tabParam === "background" ||
+      tabParam === "admin" ||
+      tabParam === "notifications"
+    ) {
       // Only allow admin tab if user is admin
       if (tabParam === "admin" && userRole !== "admin") {
         return "devices";
@@ -78,6 +83,18 @@ export default function SettingsTabs({ userId, userRole }: Props) {
               Background
             </button>
           </li>
+          <li className="mr-2">
+            <button
+              className={`tab ${
+                activeTab === "notifications"
+                  ? "tab-active text-primary border-primary"
+                  : ""
+              }`}
+              onClick={() => handleTabChange("notifications")}
+            >
+              Notifications
+            </button>
+          </li>
           {userRole === "admin" && (
             <li className="mr-2">
               <button
@@ -100,6 +117,7 @@ export default function SettingsTabs({ userId, userRole }: Props) {
         {activeTab === "background" && (
           <BackgroundSettingsTab userId={userId} />
         )}
+        {activeTab === "notifications" && <NotificationSettings />}
         {activeTab === "admin" && userRole === "admin" && (
           <AdminPanel
             defaultTab={adminSubtab as "devices" | "banners" | "feature-flags"}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/hooks/useAuth";
 import { Coffee, Plus, Clock, Star, BookOpen } from "lucide-react";
 import BrewSessionList from "../brew-log/components/BrewSessionList";
 import QuickBrewForm from "./components/QuickBrewForm";
@@ -47,7 +48,15 @@ export default function Dashboard() {
     toast.success("Brew profile created!");
   };
 
+  // Get authentication state from the useAuth hook
+  const { session, loading: authLoading } = useAuth();
+
   useEffect(() => {
+    // Only fetch data if we have a valid session
+    if (authLoading || !session?.user) {
+      return;
+    }
+
     async function fetchDashboardData() {
       try {
         const [
@@ -140,14 +149,21 @@ export default function Dashboard() {
       }
     }
 
+    if (!authLoading && !session?.user) {
+      // If we're not loading and don't have a session, redirect to login
+      router.push("/login");
+      return;
+    }
+
     fetchDashboardData();
-  }, [router]);
+  }, [router, session, authLoading]);
 
   const handleSelectBrew = (brew: { id: string }) => {
     router.push(`/brew-log?session=${brew.id}`);
   };
 
-  if (loading) {
+  // Show loading state when either auth is loading or data is loading
+  if (authLoading || loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>

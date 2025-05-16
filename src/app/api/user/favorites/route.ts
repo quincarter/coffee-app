@@ -187,18 +187,68 @@ export async function POST(request: NextRequest) {
     }
 
     // Create favorite
-    const favorite = await prisma.userFavorite.create({
-      data: {
-        userId,
-        entityType,
-        entityId,
-        // Set the appropriate ID field based on entity type
-        ...(entityType === "brew-profile" ? { brewProfileId: entityId } : {}),
-        ...(entityType === "coffee" ? { coffeeId: entityId } : {}),
-        ...(entityType === "roaster" ? { roasterId: entityId } : {}),
-        ...(entityType === "location" ? { locationId: entityId } : {}),
-      },
+    const [favorite, entity] = await prisma.$transaction(async (tx) => {
+      const favorite = await tx.userFavorite.create({
+        data: {
+          userId,
+          entityType,
+          entityId,
+          // Set the appropriate ID field based on entity type
+          ...(entityType === "brew-profile" ? { brewProfileId: entityId } : {}),
+          ...(entityType === "coffee" ? { coffeeId: entityId } : {}),
+          ...(entityType === "roaster" ? { roasterId: entityId } : {}),
+          ...(entityType === "location" ? { locationId: entityId } : {}),
+        },
+      });
+
+      let entity = null;
+      switch (entityType) {
+        case "coffee":
+          entity = await tx.coffee.findUnique({
+            where: { id: entityId },
+            select: { createdBy: true },
+          });
+          break;
+        case "brew-profile":
+          entity = await tx.brewProfile.findUnique({
+            where: { id: entityId },
+            select: { userId: true },
+          });
+          break;
+        case "roaster":
+          entity = await tx.coffeeRoaster.findUnique({
+            where: { id: entityId },
+            select: { createdBy: true },
+          });
+          break;
+      }
+
+      return [favorite, entity];
     });
+
+    // Create notification for the entity owner
+    if (entity) {
+      const ownerId = 'createdBy' in entity ? entity.createdBy : entity.userId;
+      if (ownerId && ownerId !== userId) {
+        await prisma.notification.create({
+          data: {
+            type:
+              entityType === "coffee"
+                ? "FAVORITE_COFFEE"
+                : entityType === "brew-profile"
+                  ? "FAVORITE_BREW_PROFILE"
+                  : "FAVORITE_ROASTER",
+            userId: ownerId,
+            actorId: userId,
+            entityType,
+            entityId,
+            coffeeId: entityType === "coffee" ? entityId : undefined,
+            brewProfileId: entityType === "brew-profile" ? entityId : undefined,
+            roasterId: entityType === "roaster" ? entityId : undefined,
+          },
+        });
+      }
+    }
 
     return NextResponse.json(favorite);
   } catch (error) {
