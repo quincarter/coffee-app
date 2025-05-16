@@ -1,6 +1,7 @@
 "use client";
 
 import SearchableDropdown from "@/app/components/SearchableDropdown";
+import { useState } from "react";
 
 interface TastingNotesDropdownProps {
   value: string[];
@@ -14,11 +15,22 @@ interface TastingNotesDropdownProps {
 export default function TastingNotesDropdown({
   value,
   onChange,
-  options,
+  options: initialOptions,
   label = "Tasting Notes",
   disabled = false,
   required = false,
 }: TastingNotesDropdownProps) {
+  const [options, setOptions] = useState(() => {
+    // Add any values that aren't in initialOptions
+    const newOptions = [...initialOptions];
+    value.forEach((val) => {
+      if (!initialOptions.find((opt) => opt.name === val)) {
+        newOptions.push({ id: val, name: val });
+      }
+    });
+    return newOptions;
+  });
+
   return (
     <div>
       {label && (
@@ -28,7 +40,7 @@ export default function TastingNotesDropdown({
         </label>
       )}
       <SearchableDropdown
-        options={options.map((note) => ({
+        options={options.map((note: { id: string; name: string }) => ({
           value: note.name,
           label: note.name,
         }))}
@@ -44,7 +56,9 @@ export default function TastingNotesDropdown({
         placeholder="Select or type tasting notes..."
         allowAddNew={true}
         onAddNew={(newValue) => {
-          // Add the new value to the list of selected values
+          // Add the new value to both our local options state and the selected values
+          const newOption = { id: newValue, name: newValue };
+          setOptions([...options, newOption]);
           onChange([...value, newValue]);
         }}
         multiple={true}

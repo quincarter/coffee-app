@@ -20,7 +20,13 @@ export default function ProcessDropdown({
   disabled = false,
   required = false,
 }: ProcessDropdownProps) {
-  const [options, setOptions] = useState(initialOptions);
+  // Ensure initialOptions includes the initial value if it exists
+  const [options, setOptions] = useState(() => {
+    if (value && !initialOptions.find((opt) => opt.name === value)) {
+      return [...initialOptions, { id: value, name: value }];
+    }
+    return initialOptions;
+  });
 
   return (
     <div>
