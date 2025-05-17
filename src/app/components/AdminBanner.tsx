@@ -36,18 +36,20 @@ export default function AdminBanner({ user = null }: any) {
   const [isDismissed, setIsDismissed] = useState(false);
 
   const checkDismissedBanners = (banner: BannerData) => {
+    // Check database dismissals first
+    if (user?.dismissedBanners?.length > 0) {
+      const isDismissedInDb = user.dismissedBanners.some(
+        (dismissedBanner: UserDismissedBanner) =>
+          dismissedBanner.bannerId === banner?.id
+      );
+      if (isDismissedInDb) return true;
+    }
+
+    // Fall back to localStorage for non-logged-in users or as backup
     const dismissedBanners = JSON.parse(
       localStorage.getItem("dismissedBanners") || "{}"
     );
-
-    if (user && user.dismissedBanners) {
-      return user.dismissedBanners.find(
-        (dismissedBannerNested: UserDismissedBanner) =>
-          dismissedBannerNested.bannerId === banner?.id
-      );
-    }
-
-    return dismissedBanners;
+    return dismissedBanners[banner?.id] === true;
   };
   useEffect(() => {
     const fetchBanner = async () => {
@@ -56,13 +58,8 @@ export default function AdminBanner({ user = null }: any) {
         if (!response.ok) return;
         const data = await response.json();
         if (data && data.isActive) {
-          let dismissedBanners;
-          if (data) {
-            dismissedBanners = checkDismissedBanners(data);
-          }
-
-          const isDismissedLocally = dismissedBanners?.bannerId === data.id;
-          setIsDismissed(isDismissedLocally);
+          const isDismissedByUser = checkDismissedBanners(data);
+          setIsDismissed(isDismissedByUser);
           setBanner(data);
         }
       } catch (error) {
@@ -71,13 +68,24 @@ export default function AdminBanner({ user = null }: any) {
     };
 
     fetchBanner();
-  }, []);
+  }, [user]);
 
   const handleDismiss = async () => {
     if (!banner) return;
 
     try {
-      // Update local storage
+      // For logged-in users, save dismissal in the database
+      if (user?.id) {
+        await fetch("/api/admin/banner/dismiss", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ bannerId: banner.id }),
+        });
+      }
+
+      // Always update localStorage as a fallback
       const dismissedBanners = JSON.parse(
         localStorage.getItem("dismissedBanners") || "{}"
       );
@@ -87,21 +95,13 @@ export default function AdminBanner({ user = null }: any) {
         JSON.stringify(dismissedBanners)
       );
 
-      // Update server state
-      await fetch("/api/admin/banner/dismiss", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ bannerId: banner.id }),
-      });
-
       setIsDismissed(true);
     } catch (error) {
       console.error("Error dismissing banner:", error);
     }
   };
 
+  console.log("banner conditional", banner, banner?.isActive, isDismissed);
   if (!banner || !banner.isActive || isDismissed) return null;
 
   const Icon = iconMap[banner.color];
