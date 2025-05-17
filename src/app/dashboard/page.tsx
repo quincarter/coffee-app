@@ -72,8 +72,26 @@ export default function Dashboard() {
 
     async function fetchDashboardData() {
       try {
+        // First, fetch and validate user profile
+        const userRes = await fetch("/api/user/profile");
+
+        if (userRes.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (!userRes.ok) {
+          throw new Error(
+            `Failed to fetch user profile: ${userRes.status} ${userRes.statusText}`
+          );
+        }
+
+        // Get user data first and set it
+        const userProfileData = await userRes.json();
+        setUser(userProfileData);
+
+        // Now fetch all other data in parallel since we have the user profile
         const [
-          userRes,
           brewsRes,
           devicesRes,
           favoritesRes,
@@ -81,7 +99,6 @@ export default function Dashboard() {
           profilesRes,
           totalProfilesRes,
         ] = await Promise.all([
-          fetch("/api/user/profile"),
           fetch("/api/brew-sessions?limit=5"),
           fetch("/api/user-brewing-devices"),
           fetch("/api/brew-sessions/favorites?recentOnly=true"),
@@ -90,10 +107,9 @@ export default function Dashboard() {
           fetch("/api/brew-profiles/count"),
         ]);
 
-        // Check if user is authenticated
+        // Check if any of the subsequent requests failed auth
         if (
           [
-            userRes,
             brewsRes,
             devicesRes,
             favoritesRes,
@@ -106,9 +122,8 @@ export default function Dashboard() {
           return;
         }
 
-        // Create array of response checks
+        // Create array of response checks for the parallel requests
         const responses = [
-          { res: userRes, name: "user profile" },
           { res: brewsRes, name: "brew sessions" },
           { res: devicesRes, name: "user devices" },
           { res: favoritesRes, name: "favorites" },
@@ -126,8 +141,8 @@ export default function Dashboard() {
           }
         }
 
+        // Parse all responses in parallel
         const [
-          userData,
           brewsData,
           devicesData,
           favoritesData,
@@ -135,7 +150,6 @@ export default function Dashboard() {
           profilesData,
           totalProfilesData,
         ] = await Promise.all([
-          userRes.json(),
           brewsRes.json(),
           devicesRes.json(),
           favoritesRes.json(),
@@ -144,7 +158,7 @@ export default function Dashboard() {
           totalProfilesRes.json(),
         ]);
 
-        setUser(userData);
+        // Set all state values after successful data fetching
         setRecentBrews(brewsData);
         setFavoriteBrews(favoritesData.brews);
         setTotalFavorites(favoritesData.total);
