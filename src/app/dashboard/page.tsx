@@ -12,6 +12,13 @@ import { toast } from "react-hot-toast";
 import BrewProfileCard from "../components/BrewProfileCard";
 import BrewProfileCreationModal from "../components/brew/BrewProfileCreationModal";
 import AdminBanner from "../components/AdminBanner";
+import {
+  BrewingStatsSkeleton,
+  BrewProfilesSkeleton,
+  FavoriteBrewsSkeleton,
+  RecentBrewsSkeleton,
+  WelcomeHeaderSkeleton,
+} from "./components/DashboardSectionSkeleton";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -26,6 +33,18 @@ export default function Dashboard() {
   const [recentProfiles, setRecentProfiles] = useState<Array<BrewProfile>>([]);
   const [totalProfiles, setTotalProfiles] = useState(0);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
+
+  // loading states for different sections
+  const [userLoading, setUserLoading] = useState<boolean>(true);
+  const [recentBrewsLoading, setRecentBrewsLoading] = useState<boolean>(true);
+  const [favoriteBrewsLoading, setFavoriteBrewsLoading] =
+    useState<boolean>(true);
+  const [totalBrewsLoading, setTotalBrewsLoading] = useState<boolean>(true);
+  const [userDevicesLoading, setUserDevicesLoading] = useState<boolean>(true);
+  const [recentProfilesLoading, setRecentProfilesLoading] =
+    useState<boolean>(true);
+  const [totalProfilesLoading, setTotalProfilesLoading] =
+    useState<boolean>(true);
 
   const handleSelectBrew = (brew: BrewSession) => {
     router.push(`/brew-log?session=${brew.id}`);
@@ -89,6 +108,7 @@ export default function Dashboard() {
         // Get user data first and set it
         const userProfileData = await userRes.json();
         setUser(userProfileData);
+        setUserLoading(false);
 
         // Now fetch all other data in parallel since we have the user profile
         const [
@@ -159,12 +179,30 @@ export default function Dashboard() {
         ]);
 
         // Set all state values after successful data fetching
-        setRecentBrews(brewsData);
         setFavoriteBrews(favoritesData.brews);
         setTotalFavorites(favoritesData.total);
+        favoritesData
+          ? setFavoriteBrewsLoading(false)
+          : setFavoriteBrewsLoading(true);
+
         setTotalBrews(totalBrewsData.total);
+        totalBrewsData
+          ? setTotalBrewsLoading(false)
+          : setTotalBrewsLoading(true);
+
         setUserDevices(devicesData);
+        devicesData
+          ? setUserDevicesLoading(false)
+          : setUserDevicesLoading(true);
+
         setRecentProfiles(profilesData);
+        profilesData
+          ? setRecentProfilesLoading(false)
+          : setRecentProfilesLoading(true);
+
+        setRecentBrews(brewsData);
+        brewsData ? setRecentBrewsLoading(false) : setRecentBrewsLoading(true);
+
         setTotalProfiles(totalProfilesData.total);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -193,17 +231,21 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="w-full space-y-8 shadow-md bg-base-100 relative mb-6">
-        <AdminBanner user={user} />
+        {user && <AdminBanner user={user} />}
       </div>
 
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2">
-          Welcome back, {user?.name || "Coffee Lover"}
-        </h1>
-        <p className="text-gray-600 coffee:text-gray-400">
-          Track your coffee brewing journey and perfect your craft.
-        </p>
-      </div>
+      {!userLoading ? (
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold mb-2">
+            Welcome back, {user?.name || "Coffee Lover"}
+          </h1>
+          <p className="text-gray-600 coffee:text-gray-400">
+            Track your coffee brewing journey and perfect your craft.
+          </p>
+        </div>
+      ) : (
+        WelcomeHeaderSkeleton()
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -238,7 +280,9 @@ export default function Dashboard() {
             Favorite Brews
           </h2>
 
-          {favoriteBrews?.length > 0 ? (
+          {favoriteBrewsLoading ? (
+            FavoriteBrewsSkeleton()
+          ) : favoriteBrews?.length > 0 ? (
             <div className="space-y-2">
               {favoriteBrews?.slice(0, 3).map((brew) => (
                 <div
@@ -272,59 +316,64 @@ export default function Dashboard() {
             <Clock className="mr-2 h-5 w-5 text-green-500" />
             Brewing Stats
           </h2>
-
-          <div className="space-y-4">
-            <div>
-              <Link href="/brew-log" className="group">
-                <div className="text-2xl font-bold group-hover:text-primary transition-colors">
-                  {totalBrews}
-                </div>
-                <div className="text-sm text-gray-500 coffee:text-gray-400 flex items-center">
-                  Total brews
-                  <span className="ml-2 text-primary">View all →</span>
-                </div>
-              </Link>
-            </div>
-
-            <div>
-              <div className="text-2xl font-bold">
-                {recentBrews?.length > 0
-                  ? (() => {
-                      // Count brews per device
-                      const deviceCounts = recentBrews.reduce(
-                        (acc, brew) => {
-                          const deviceId = brew.brewingDeviceId;
-                          acc[deviceId] = (acc[deviceId] || 0) + 1;
-                          return acc;
-                        },
-                        {} as Record<string, number>
-                      );
-
-                      // Find the highest count
-                      const maxCount = Math.max(...Object.values(deviceCounts));
-
-                      // Get all devices with that count (handles ties)
-                      const topDeviceIds = Object.entries(deviceCounts)
-                        .filter(([_, count]) => count === maxCount)
-                        .map(([deviceId]) => deviceId);
-
-                      // Map to device names
-                      const topDeviceNames = topDeviceIds.map(
-                        (id) =>
-                          userDevices.find((d) => d.brewingDeviceId === id)
-                            ?.name || "Unknown"
-                      );
-
-                      // Join with commas if there are ties
-                      return topDeviceNames.join(", ");
-                    })()
-                  : "None"}
+          {totalBrewsLoading ? (
+            BrewingStatsSkeleton()
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <Link href="/brew-log" className="group">
+                  <div className="text-2xl font-bold group-hover:text-primary transition-colors">
+                    {totalBrews}
+                  </div>
+                  <div className="text-sm text-gray-500 coffee:text-gray-400 flex items-center">
+                    Total brews
+                    <span className="ml-2 text-primary">View all →</span>
+                  </div>
+                </Link>
               </div>
-              <div className="text-sm text-gray-500 coffee:text-gray-400">
-                Most used device
+
+              <div>
+                <div className="text-2xl font-bold">
+                  {recentBrews?.length > 0
+                    ? (() => {
+                        // Count brews per device
+                        const deviceCounts = recentBrews.reduce(
+                          (acc, brew) => {
+                            const deviceId = brew.brewingDeviceId;
+                            acc[deviceId] = (acc[deviceId] || 0) + 1;
+                            return acc;
+                          },
+                          {} as Record<string, number>
+                        );
+
+                        // Find the highest count
+                        const maxCount = Math.max(
+                          ...Object.values(deviceCounts)
+                        );
+
+                        // Get all devices with that count (handles ties)
+                        const topDeviceIds = Object.entries(deviceCounts)
+                          .filter(([_, count]) => count === maxCount)
+                          .map(([deviceId]) => deviceId);
+
+                        // Map to device names
+                        const topDeviceNames = topDeviceIds.map(
+                          (id) =>
+                            userDevices.find((d) => d.brewingDeviceId === id)
+                              ?.name || "Unknown"
+                        );
+
+                        // Join with commas if there are ties
+                        return topDeviceNames.join(", ");
+                      })()
+                    : "None"}
+                </div>
+                <div className="text-sm text-gray-500 coffee:text-gray-400">
+                  Most used device
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -335,15 +384,19 @@ export default function Dashboard() {
             <BookOpen className="mr-2 h-5 w-5 text-purple-500" />
             Brew Profiles
           </h2>
-          <Link
-            href="/brew-profiles"
-            className="btn btn-sm btn-outline btn-primary"
-          >
-            View all
-          </Link>
+          {!recentProfilesLoading && (
+            <Link
+              href="/brew-profiles"
+              className="btn btn-sm btn-outline btn-primary"
+            >
+              View all
+            </Link>
+          )}
         </div>
 
-        {recentProfiles?.length > 0 ? (
+        {recentProfilesLoading ? (
+          BrewProfilesSkeleton()
+        ) : recentProfiles?.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recentProfiles.map((profile) => (
               <BrewProfileCard
@@ -387,12 +440,19 @@ export default function Dashboard() {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Recent Brews</h2>
-          <Link href="/brew-log" className="btn btn-sm btn-outline btn-primary">
-            View all
-          </Link>
+          {!recentBrewsLoading && (
+            <Link
+              href="/brew-log"
+              className="btn btn-sm btn-outline btn-primary"
+            >
+              View all
+            </Link>
+          )}
         </div>
 
-        {recentBrews?.length > 0 ? (
+        {recentBrewsLoading ? (
+          RecentBrewsSkeleton()
+        ) : recentBrews?.length > 0 ? (
           <div className="max-w-3xl mx-auto">
             <BrewSessionList
               sessions={recentBrews}
@@ -415,6 +475,7 @@ export default function Dashboard() {
             </button>
           </div>
         )}
+        {}
       </div>
 
       {/* Brew Profile Creation Modal */}
