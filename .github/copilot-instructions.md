@@ -1,3 +1,4 @@
+ignore the .history directory entirely. It's just the git change history
 Use Next.js 15.x.x+ and React 19.x.x+
 Use the app directory structure
 Use the new routing system

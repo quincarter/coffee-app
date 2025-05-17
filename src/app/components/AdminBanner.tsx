@@ -101,7 +101,6 @@ export default function AdminBanner({ user = null }: any) {
     }
   };
 
-  console.log("banner conditional", banner, banner?.isActive, isDismissed);
   if (!banner || !banner.isActive || isDismissed) return null;
 
   const Icon = iconMap[banner.color];
